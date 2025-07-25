@@ -1,0 +1,4 @@
+params.id issue in many routes, like updating job, posting job etc
+reload to see changes issue
+hydration issue
+put api/user/[id] forbidden for admin, fix it
