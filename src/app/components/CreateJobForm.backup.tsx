@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
+import CountryList from 'country-list-with-dial-code-and-flag';
+import { getCurrencyByCode } from '@/lib/currencies';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CalendarIcon, Clock, DollarSign, MapPin, X } from 'lucide-react';
@@ -23,158 +25,78 @@ import { JobStatus } from "../constants/jobStatus";
 import { JobType } from "../constants/jobType";
 import RichTextEditor from "./RichTextEditor";
 
-// Define the Country interface from the new countries data
-interface CountryData {
-  code: string;        // Currency code (e.g., "USD")
-  name: string;        // Currency name (e.g., "US Dollar")
-  country: string;     // Country name (e.g., "United States")
-  countryCode: string; // Country code (e.g., "US")
-  flag?: string;       // Base64 encoded flag image (optional)
-}
+// Define proper types for country and currency
+type CountryType = {
+  code: string;
+  name: string;
+  emoji: string;
+  currencyCode: string;
+  phoneCode: string;
+};
 
-// Use the countries data which contains both country and currency information
-const countriesData: CountryData[] = countries;
+type CurrencyType = {
+  code: string;
+  name: string;
+  symbol: string;
+  symbolNative: string;
+  decimalDigits: number;
+  rounding: number;
+  namePlural: string;
+};
+
+// Define the Country interface from the package
+type Country = {
+  name: string;
+  code: string;
+  dial_code: string;
+  currency: string;
+  flag: string;
+};
+
+// Get all countries from the package
+const allCountries: Country[] = CountryList.getAll();
 
 // Create a map of currency code to countries that use it
-const currencyToCountriesMap = countriesData.reduce<Record<string, CountryData[]>>((acc, item) => {
-  const currencyCode = item.code;
-  if (currencyCode) {
-    if (!acc[currencyCode]) {
-      acc[currencyCode] = [];
+const currencyToCountriesMap = allCountries.reduce<Record<string, Country[]>>((acc, country) => {
+  const currency = country.currency;
+  if (currency) {
+    if (!acc[currency]) {
+      acc[currency] = [];
     }
-    acc[currencyCode].push(item);
+    acc[currency].push(country);
   }
   return acc;
 }, {});
 
-// Create a map of country code to country data for easy lookup
-const countryCodeToDataMap = countriesData.reduce<Record<string, CountryData>>((acc, item) => {
-  acc[item.countryCode] = item;
-  return acc;
-}, {});
+// Get unique currencies with their details
+const uniqueCurrencies = Object.entries(
+  allCountries.reduce<Record<string, CurrencyType>>((acc, country) => {
+    const currencyCode = country.currency;
+    if (currencyCode && !acc[currencyCode]) {
+      acc[currencyCode] = {
+        code: currencyCode,
+        name: currencyCode, // Using code as fallback name
+        symbol: currencyCode, // Using code as fallback symbol
+        symbolNative: currencyCode, // Using code as fallback native symbol
+        decimalDigits: 2,
+        rounding: 0,
+        namePlural: `${currencyCode}s`
+      };
+    }
+    return acc;
+  }, {})
+).map(([_, currency]) => currency);
 
-// Create a unique list of countries for the country selector
-const uniqueCountries = Array.from(
-  new Map(countriesData.map(item => [item.countryCode, {
-    code: item.countryCode,
-    name: item.country,
-    flag: item.flag || '',
-    currencyCode: item.code
-  }])).values()
-);
+// Map to our CountryType
+const countryList: CountryType[] = allCountries.map(country => ({
+  code: country.code,
+  name: country.name,
+  emoji: country.flag,
+  currencyCode: country.currency || 'USD', // Default to USD if no currency
+  phoneCode: country.dial_code.replace(/\D/g, '') // Remove non-numeric characters
+}));
 
-// Create a unique list of currencies for the currency selector
-const uniqueCurrencies = Array.from(
-  new Map(countriesData.map(item => [item.code, {
-    code: item.code,
-    name: item.name,
-    symbol: getCurrencySymbol(item.code) // We'll implement this function
-  }])).values()
-);
-
-// Helper function to get currency symbol from currency code
-function getCurrencySymbol(currencyCode: string): string {
-  // For common currencies, return their symbols
-  const symbolMap: Record<string, string> = {
-    'USD': '$',
-    'EUR': '€',
-    'GBP': '£',
-    'JPY': '¥',
-    'CAD': 'C$',
-    'AUD': 'A$',
-    'CHF': 'CHF',
-    'CNY': '¥',
-    'INR': '₹',
-    'BRL': 'R$',
-    'MXN': '$',
-    'SGD': 'S$',
-    'NZD': 'NZ$',
-    'HKD': 'HK$',
-    'SEK': 'kr',
-    'NOK': 'kr',
-    'DKK': 'kr',
-    'PLN': 'zł',
-    'HUF': 'Ft',
-    'ILS': '₪',
-    'KRW': '₩',
-    'MYR': 'RM',
-    'PHP': '₱',
-    'THB': '฿',
-    'TRY': '₺',
-    'ZAR': 'R',
-    'RUB': '₽',
-    'AED': 'د.إ',
-    'SAR': '﷼',
-    'EGP': 'E£',
-    'PKR': '₨',
-    'BDT': '৳',
-    'IDR': 'Rp',
-    'VND': '₫',
-    'UAH': '₴',
-    'ARS': '$',
-    'CLP': '$',
-    'PEN': 'S/',
-    'COP': '$',
-    'BOB': 'Bs.',
-    'CRC': '₡',
-    'DOP': 'RD$',
-    'GTQ': 'Q',
-    'HNL': 'L',
-    'NIO': 'C$',
-    'PAB': 'B/.',
-    'PYG': '₲',
-    'UYU': '$U',
-    'VEF': 'Bs',
-    'IRR': '﷼',
-    'IQD': 'ع.د',
-    'KWD': 'د.ك',
-    'OMR': 'ر.ع.',
-    'QAR': 'ر.ق',
-    'YER': '﷼',
-    'LBP': 'ل.ل',
-    'JOD': 'د.ا',
-    'BHD': '.د.ب',
-    'LYD': 'ل.د',
-    'TND': 'د.ت',
-    'MAD': 'د.م.',
-    'DZD': 'د.ج',
-    'AZN': '₼',
-    'AMD': 'դր.',
-    'BYN': 'Br',
-    'BGN': 'лв',
-    'HRK': 'kn',
-    'GEL': '₾',
-    'ISK': 'kr',
-    'KZT': '₸',
-    'KGS': 'с',
-    'MKD': 'ден',
-    'MDL': 'L',
-    'RSD': 'дин',
-    'TJS': 'SM',
-    'TMT': 'm',
-    'UZS': 'сўм',
-    'AFN': '؋',
-    'ETB': 'Br',
-    'GHS': '₵',
-    'KES': 'KSh',
-    'MWK': 'MK',
-    'MUR': '₨',
-    'NGN': '₦',
-    'RWF': 'FRw',
-    'TZS': 'TSh',
-    'UGX': 'USh',
-    'ZMW': 'ZK',
-    'BWP': 'P',
-    'MZN': 'MT',
-    'AOA': 'Kz',
-    'CDF': 'FC',
-    'XOF': 'CFA',
-    'XAF': 'FCFA',
-    'XPF': '₣',
-  };
-  
-  return symbolMap[currencyCode] || currencyCode;
-}
+const currencyList: CurrencyType[] = uniqueCurrencies;
 
 // Commission configuration
 const COMMISSION_CONFIG = {
@@ -239,7 +161,6 @@ const getRedirectPath = (userRole: string | undefined): string => {
       return "/dashboard/company/jobs";
     default:
       return "/dashboard/company/jobs"; 
-  }
 };
 
 export default function CreateJobForm({
@@ -256,8 +177,8 @@ export default function CreateJobForm({
 
   // Helper function to safely get currency symbol
   const getCurrencySymbol = (currencyCode: string): string => {
-    // Use the existing getCurrencySymbol function we defined earlier
-    return getCurrencySymbol(currencyCode);
+    const currency = getCurrencyByCode(currencyCode) as { symbol?: string } | undefined;
+    return currency?.symbol || currencyCode || '$';
   };
 
   // Determine dynamic redirect path
@@ -743,7 +664,7 @@ export default function CreateJobForm({
                 <Select
                   value={formData.country}
                   onValueChange={(value: string) => {
-                    const selectedCountry = uniqueCountries.find(c => c.code === value);
+                    const selectedCountry = countryList.find(c => c.code === value);
                     if (selectedCountry) {
                       setFormData(prev => ({
                         ...prev,
@@ -760,36 +681,23 @@ export default function CreateJobForm({
                     <SelectValue placeholder="Select a country">
                       {formData.country ? (
                         <div className="flex items-center gap-2">
-                          {uniqueCountries.find(c => c.code === formData.country)?.flag ? (
-                            <img 
-                              src={uniqueCountries.find(c => c.code === formData.country)?.flag} 
-                              alt="" 
-                              className="w-6 h-4 object-contain"
-                            />
-                          ) : (
-                            <span className="text-lg">🌐</span>
-                          )}
+                          <span className="text-lg">
+                            {allCountries.find(c => c.code === formData.country)?.flag || '🌐'}
+                          </span>
                           <span>
-                            {uniqueCountries.find(c => c.code === formData.country)?.name || 'Select a country'}
+                            {allCountries.find(c => c.code === formData.country)?.name || 'Select a country'}
                           </span>
                         </div>
                       ) : 'Select a country'}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-[400px] overflow-y-auto">
-                    {uniqueCountries.map((country) => (
+                    {allCountries.map((country) => (
                       <SelectItem key={country.code} value={country.code}>
                         <div className="flex items-center gap-2">
-                          {country.flag ? (
-                            <img 
-                              src={country.flag} 
-                              alt="" 
-                              className="w-6 h-4 object-contain"
-                            />
-                          ) : (
-                            <span className="text-lg">🌐</span>
-                          )}
+                          <span className="text-lg">{country.flag}</span>
                           <span className="flex-1">{country.name}</span>
+                          <span className="text-xs text-gray-500">{country.dial_code}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -832,27 +740,24 @@ export default function CreateJobForm({
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {formData.salary.currency ? (() => {
-                        const selectedCurrency = uniqueCurrencies.find(c => c.code === formData.salary.currency);
+                        const selectedCurrency = currencyList.find(c => c.code === formData.salary.currency);
                         if (!selectedCurrency) return 'Select a currency';
-                        // Display symbol and currency name
-                        const symbol = selectedCurrency.symbol && selectedCurrency.symbol !== selectedCurrency.code 
-                          ? selectedCurrency.symbol 
-                          : selectedCurrency.code;
+                        const countriesUsingThisCurrency = currencyToCountriesMap[selectedCurrency.code] || [];
+                        const flag = countriesUsingThisCurrency[0]?.flag || '💱';
                         return (
                           <div className="flex items-center gap-2">
-                            <span className="font-mono">{symbol}</span>
-                            <span className="text-gray-500 text-sm">{selectedCurrency.name}</span>
+                            <span className="text-lg">{flag}</span>
+                            <span className="font-mono">{selectedCurrency.symbol}</span>
+                            {/* <span>{selectedCurrency.code}</span> */}
                           </div>
                         );
                       })() : 'Select a currency'}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-[400px] overflow-y-auto">
-                    {uniqueCurrencies.map((currency) => {
-                      // Display symbol and currency name
-                      const symbol = currency.symbol && currency.symbol !== currency.code 
-                        ? currency.symbol 
-                        : currency.code;
+                    {currencyList.map((currency) => {
+                      const countriesUsingThisCurrency = currencyToCountriesMap[currency.code] || [];
+                      const flag = countriesUsingThisCurrency[0]?.flag || '💱';
                       return (
                         <SelectItem 
                           key={currency.code} 
@@ -860,8 +765,9 @@ export default function CreateJobForm({
                           hideIndicator={formData.salary.currency !== currency.code}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="font-mono">{symbol}</span>
-                            <span className="text-gray-500 text-sm">{currency.name}</span>
+                            <span className="text-lg">{flag}</span>
+                            <span className="font-mono">{currency.symbol}</span>
+                            {/* <span className="flex-1">{currency.code}</span> */}
                           </div>
                         </SelectItem>
                       );
@@ -915,9 +821,9 @@ export default function CreateJobForm({
                 Minimum Salary*
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 text-sm whitespace-nowrap">
-                    {formData.salary.currency || 'USD'}
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none w-8">
+                  <span className="text-gray-500 text-sm">
+                    {getCurrencySymbol(formData.salary.currency || 'USD')}
                   </span>
                 </div>
                 <input
@@ -937,9 +843,9 @@ export default function CreateJobForm({
                 Maximum Salary*
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 text-sm whitespace-nowrap">
-                    {formData.salary.currency || 'USD'}
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none w-8">
+                  <span className="text-gray-500 text-sm">
+                    {getCurrencySymbol(formData.salary.currency || 'USD')}
                   </span>
                 </div>
                 <input
