@@ -16,6 +16,110 @@ import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { UserRole } from "@/app/constants/userRoles";
 import { JobStatus } from "@/app/constants/jobStatus";
 
+// Helper function to get currency symbol from currency code
+const getCurrencySymbol = (currencyCode: string): string => {
+  // For common currencies, return their symbols
+  const symbolMap: Record<string, string> = {
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'CAD': 'C$',
+    'AUD': 'A$',
+    'CHF': 'CHF',
+    'CNY': '¥',
+    'INR': '₹',
+    'BRL': 'R$',
+    'MXN': '$',
+    'SGD': 'S$',
+    'NZD': 'NZ$',
+    'HKD': 'HK$',
+    'SEK': 'kr',
+    'NOK': 'kr',
+    'DKK': 'kr',
+    'PLN': 'zł',
+    'HUF': 'Ft',
+    'ILS': '₪',
+    'KRW': '₩',
+    'MYR': 'RM',
+    'PHP': '₱',
+    'THB': '฿',
+    'TRY': '₺',
+    'ZAR': 'R',
+    'RUB': '₽',
+    'AED': 'د.إ',
+    'SAR': '﷼',
+    'EGP': 'E£',
+    'PKR': '₨',
+    'BDT': '৳',
+    'IDR': 'Rp',
+    'VND': '₫',
+    'UAH': '₴',
+    'ARS': '$',
+    'CLP': '$',
+    'PEN': 'S/',
+    'COP': '$',
+    'BOB': 'Bs.',
+    'CRC': '₡',
+    'DOP': 'RD$',
+    'GTQ': 'Q',
+    'HNL': 'L',
+    'NIO': 'C$',
+    'PAB': 'B/.',
+    'PYG': '₲',
+    'UYU': '$U',
+    'VEF': 'Bs',
+    'IRR': '﷼',
+    'IQD': 'ع.د',
+    'KWD': 'د.ك',
+    'OMR': 'ر.ع.',
+    'QAR': 'ر.ق',
+    'YER': '﷼',
+    'LBP': 'ل.ل',
+    'JOD': 'د.ا',
+    'BHD': '.د.ب',
+    'LYD': 'ل.د',
+    'TND': 'د.ت',
+    'MAD': 'د.م.',
+    'DZD': 'د.ج',
+    'AZN': '₼',
+    'AMD': 'դր.',
+    'BYN': 'Br',
+    'BGN': 'лв',
+    'HRK': 'kn',
+    'GEL': '₾',
+    'ISK': 'kr',
+    'KZT': '₸',
+    'KGS': 'с',
+    'MKD': 'ден',
+    'MDL': 'L',
+    'RSD': 'дин',
+    'TJS': 'SM',
+    'TMT': 'm',
+    'UZS': 'сўм',
+    'AFN': '؋',
+    'ETB': 'Br',
+    'GHS': '₵',
+    'KES': 'KSh',
+    'MWK': 'MK',
+    'MUR': '₨',
+    'NGN': '₦',
+    'RWF': 'FRw',
+    'TZS': 'TSh',
+    'UGX': 'USh',
+    'ZMW': 'ZK',
+    'BWP': 'P',
+    'MZN': 'MT',
+    'AOA': 'Kz',
+    'CDF': 'FC',
+    'XOF': 'CFA',
+    'XAF': 'FCFA',
+    'XPF': '₣',
+  };
+  
+  return symbolMap[currencyCode] || currencyCode;
+};
+
 export default function AdminJobDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -219,8 +323,8 @@ export default function AdminJobDetailPage() {
                       Salary Range
                     </dt>
                     <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {job.salary.currency} {job.salary.min.toLocaleString()} -{" "}
-                      {job.salary.max.toLocaleString()}
+                      {getCurrencySymbol(job.salary.currency)} {job.salary.min.toLocaleString()} -{" "}
+                      {job.salary.max.toLocaleString()} ({job.salary.currency})
                     </dd>
                   </div>
                   <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -240,26 +344,26 @@ export default function AdminJobDetailPage() {
                       {/* Check if commission type exists and is fixed, otherwise fall back to percentage logic */}
                       {job.commission?.type === "fixed"
                         ? // Fixed commission display
-                          `${job.salary.currency} ${
+                          `${getCurrencySymbol(job.salary.currency)} ${
                             job.commission.fixedAmount?.toLocaleString() ||
                             job.commissionAmount.toLocaleString()
-                          } (Fixed)`
+                          } (${job.salary.currency}) (Fixed)`
                         : job.commission?.type === "percentage"
                         ? // Percentage commission display
                           `${job.commission.originalPercentage}% (${
-                            job.salary.currency
+                            getCurrencySymbol(job.salary.currency)
                           } ${
                             job.commission.originalAmount?.toLocaleString() ||
                             job.commissionAmount.toLocaleString()
-                          })`
+                          } ${job.salary.currency})`
                         : // Legacy fallback - only show if commissionPercentage is greater than 0
                         job.commissionPercentage > 0
                         ? `${job.commissionPercentage}% (${
-                            job.salary.currency
-                          } ${job.commissionAmount.toLocaleString()})`
+                            getCurrencySymbol(job.salary.currency)
+                          } ${job.commissionAmount.toLocaleString()} ${job.salary.currency})`
                         : `${
-                            job.salary.currency
-                          } ${job.commissionAmount.toLocaleString()} (Fixed)`}
+                            getCurrencySymbol(job.salary.currency)
+                          } ${job.commissionAmount.toLocaleString()} (${job.salary.currency}) (Fixed)`}
                     </dd>
                   </div>
                   <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -296,6 +400,23 @@ export default function AdminJobDetailPage() {
                 />
               </div>
             </div>
+
+            {/* Company Description */}
+            {job.companyDescription && (
+              <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-5 sm:px-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Company Description
+                  </h3>
+                </div>
+                <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+                  <div
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: job.companyDescription }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Sourcing Guidelines */}
             {job.sourcingGuidelines && (
