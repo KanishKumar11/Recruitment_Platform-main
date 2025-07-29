@@ -32,6 +32,7 @@ import {
   Home,
 } from "lucide-react";
 
+
 type RegistrationStep = "form" | "otp";
 
 const companySizeOptions = [
