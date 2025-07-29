@@ -188,7 +188,7 @@ interface JobFormData {
   title: string;
   jobCode: string;
   country: string;
-  compensationType: 'MONTHLY' | 'ANNUALLY';
+  compensationType: 'HOURLY' | 'MONTHLY' | 'ANNUALLY';
   location: string;
   status: "DRAFT" | "ACTIVE" | "PAUSED" | "CLOSED";
   salary: {
@@ -812,146 +812,143 @@ export default function CreateJobForm({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Currency
-                </label>
-                <Select
-                  value={formData.salary.currency}
-                  onValueChange={(value: string) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      salary: {
-                        ...prev.salary,
-                        currency: value
-                      }
-                    }));
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue>
-                      {formData.salary.currency ? (() => {
-                        const selectedCurrency = uniqueCurrencies.find(c => c.code === formData.salary.currency);
-                        if (!selectedCurrency) return 'Select a currency';
-                        // Display symbol and currency name
-                        const symbol = selectedCurrency.symbol && selectedCurrency.symbol !== selectedCurrency.code 
-                          ? selectedCurrency.symbol 
-                          : selectedCurrency.code;
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono">{symbol}</span>
-                            <span className="text-gray-500 text-sm">{selectedCurrency.name}</span>
-                          </div>
-                        );
-                      })() : 'Select a currency'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[400px] overflow-y-auto">
-                    {uniqueCurrencies.map((currency) => {
-                      // Display symbol and currency name
-                      const symbol = currency.symbol && currency.symbol !== currency.code 
-                        ? currency.symbol 
-                        : currency.code;
-                      return (
-                        <SelectItem 
-                          key={currency.code} 
-                          value={currency.code}
-                          hideIndicator={formData.salary.currency !== currency.code}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono">{symbol}</span>
-                            <span className="text-gray-500 text-sm">{currency.name}</span>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Salary Range Section */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Salary range
+              </label>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Compensation Type*
-                </label>
-                <div className="mt-1 flex space-x-4">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      name="compensationType"
-                      value="MONTHLY"
-                      checked={formData.compensationType === 'MONTHLY'}
-                      onChange={() => setFormData(prev => ({
-                        ...prev,
-                        compensationType: 'MONTHLY'
-                      }))}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Monthly</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      name="compensationType"
-                      value="ANNUALLY"
-                      checked={formData.compensationType === 'ANNUALLY'}
-                      onChange={() => setFormData(prev => ({
-                        ...prev,
-                        compensationType: 'ANNUALLY'
-                      }))}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Annually</span>
-                  </label>
+              {/* Single Row Layout: Toggle Buttons + Salary Inputs + Currency */}
+              <div className="flex items-center space-x-4">
+                {/* Time Period Toggle Buttons */}
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      compensationType: 'HOURLY'
+                    }))}
+                    className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                      formData.compensationType === 'HOURLY'
+                        ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Hourly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      compensationType: 'MONTHLY'
+                    }))}
+                    className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                      formData.compensationType === 'MONTHLY'
+                        ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      compensationType: 'ANNUALLY'
+                    }))}
+                    className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                      formData.compensationType === 'ANNUALLY'
+                        ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    Annual
+                  </button>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Salary Range */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Minimum Salary*
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 text-sm whitespace-nowrap">
-                    {formData.salary.currency || 'USD'}
-                  </span>
+                {/* Salary Range Inputs */}
+                <div className="flex items-center space-x-3 flex-1">
+                  <input
+                    type="number"
+                    name="salary.min"
+                    value={formData.salary.min || ""}
+                    onChange={handleNumberChange}
+                    required
+                    min="0"
+                    className="flex-1 px-4 py-1 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="1,300,000"
+                  />
+                  
+                  <span className="text-gray-500 font-medium text-sm">to</span>
+                  
+                  <input
+                    type="number"
+                    name="salary.max"
+                    value={formData.salary.max || ""}
+                    onChange={handleNumberChange}
+                    required
+                    min={formData.salary.min || 0}
+                    className="flex-1 px-4 py-1 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="3,000,000"
+                  />
                 </div>
-                <input
-                  type="number"
-                  name="salary.min"
-                  value={formData.salary.min || ""}
-                  onChange={handleNumberChange}
-                  required
-                  min="0"
-                  className="pl-16 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="0"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Maximum Salary*
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 text-sm whitespace-nowrap">
-                    {formData.salary.currency || 'USD'}
-                  </span>
+                
+                {/* Currency Selector - Wider */}
+                <div className="w-80">
+                  <Select
+                    value={formData.salary.currency}
+                    onValueChange={(value: string) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        salary: {
+                          ...prev.salary,
+                          currency: value
+                        }
+                      }));
+                    }}
+                  >
+                    <SelectTrigger className="w-full min-w-48 h-12 px-4 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <SelectValue>
+                        {formData.salary.currency ? (() => {
+                          const selectedCurrency = uniqueCurrencies.find(c => c.code === formData.salary.currency);
+                          if (!selectedCurrency) return 'Select';
+                          // Display symbol and currency name
+                          const symbol = selectedCurrency.symbol && selectedCurrency.symbol !== selectedCurrency.code 
+                            ? selectedCurrency.symbol 
+                            : selectedCurrency.code;
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-lg">{symbol}</span>
+                              <span className="text-sm text-gray-600">{selectedCurrency.code}</span>
+                            </div>
+                          );
+                        })() : (
+                          <span className="text-gray-500">Currency</span>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[400px] w-48 overflow-y-auto">
+                      {uniqueCurrencies.map((currency) => {
+                        // Display symbol and currency name
+                        const symbol = currency.symbol && currency.symbol !== currency.code 
+                          ? currency.symbol 
+                          : currency.code;
+                        return (
+                          <SelectItem 
+                            key={currency.code} 
+                            value={currency.code}
+                            hideIndicator={formData.salary.currency !== currency.code}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono">{symbol}</span>
+                              <span className="text-gray-500 text-sm">{currency.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <input
-                  type="number"
-                  name="salary.max"
-                  value={formData.salary.max || ""}
-                  onChange={handleNumberChange}
-                  required
-                  min={formData.salary.min || 0}
-                  className="pl-16 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="0"
-                />
               </div>
             </div>
           </div>
