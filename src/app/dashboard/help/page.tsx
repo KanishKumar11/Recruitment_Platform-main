@@ -202,7 +202,7 @@ export default function HelpPage() {
                         Submit a Support Request
                       </h3>
                       <SupportTicketForm
-                        onSubmitSuccess={handleTicketCreated}
+                        onSuccess={handleTicketCreated}
                       />
                     </div>
                   </div>

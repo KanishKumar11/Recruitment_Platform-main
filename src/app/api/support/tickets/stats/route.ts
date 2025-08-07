@@ -117,13 +117,13 @@ export async function GET(request: NextRequest) {
       Critical: 0,
     };
     priorityStats.forEach((stat) => {
-      if (stat._id && priorityDistribution.hasOwnProperty(stat._id)) {
-        priorityDistribution[stat._id] = stat.count;
+      if (stat._id && stat._id in priorityDistribution) {
+        priorityDistribution[stat._id as keyof typeof priorityDistribution] = stat.count;
       }
     });
 
     // Format category stats
-    const categoryDistribution = {};
+    const categoryDistribution: Record<string, number> = {};
     categoryStats.forEach((stat) => {
       if (stat._id) {
         categoryDistribution[stat._id] = stat.count;
