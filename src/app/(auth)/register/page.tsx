@@ -10,7 +10,7 @@ import {
 } from "./../../store/services/authApi";
 import { setCredentials } from "./../../store/slices/authSlice";
 import { useDispatch } from "react-redux";
-import { UserRole } from "@/app/models/User";
+import { UserRole } from "@/app/constants/userRoles";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,

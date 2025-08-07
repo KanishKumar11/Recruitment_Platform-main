@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserRole } from '../../models/User';
+import { UserRole } from '../../constants/userRoles';
 
 // Server-side user with MongoDB _id
 interface ServerUser {
