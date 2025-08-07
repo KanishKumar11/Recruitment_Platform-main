@@ -1,19 +1,19 @@
 // src/app/models/Resume.ts - Updated with indexes
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export enum ResumeStatus {
-  SUBMITTED = 'SUBMITTED',
-  REVIEWED = 'REVIEWED',
-  SHORTLISTED = 'SHORTLISTED',
-  ONHOLD = 'ONHOLD',
-  INTERVIEW_IN_PROCESS = 'INTERVIEW_IN_PROCESS',
-  INTERVIEWED = 'INTERVIEWED',
-  SELECTED_IN_FINAL_INTERVIEW = 'SELECTED_IN_FINAL_INTERVIEW',
-  OFFERED = 'OFFERED',
-  OFFER_DECLINED = 'OFFER_DECLINED',
-  HIRED = 'HIRED',
-  REJECTED = 'REJECTED',
-  DUPLICATE = 'DUPLICATE'
+  SUBMITTED = "SUBMITTED",
+  REVIEWED = "REVIEWED",
+  SHORTLISTED = "SHORTLISTED",
+  ONHOLD = "ONHOLD",
+  INTERVIEW_IN_PROCESS = "INTERVIEW_IN_PROCESS",
+  INTERVIEWED = "INTERVIEWED",
+  SELECTED_IN_FINAL_INTERVIEW = "SELECTED_IN_FINAL_INTERVIEW",
+  OFFERED = "OFFERED",
+  OFFER_DECLINED = "OFFER_DECLINED",
+  HIRED = "HIRED",
+  REJECTED = "REJECTED",
+  DUPLICATE = "DUPLICATE",
 }
 
 export interface IResume extends Document {
@@ -36,8 +36,13 @@ export interface IResume extends Document {
   remarks: string;
   status: ResumeStatus;
   resumeFile: string;
+  additionalDocuments?: {
+    filename: string;
+    originalName: string;
+    uploadedAt: Date;
+  }[];
   submittedByName?: string;
-        
+
   // Status timestamps
   submittedAt: Date;
   reviewedAt: Date | null;
@@ -51,7 +56,7 @@ export interface IResume extends Document {
   hiredAt: Date | null;
   rejectedAt: Date | null;
   duplicateAt: Date | null;
-        
+
   screeningAnswers: {
     questionId: mongoose.Types.ObjectId;
     answer: string;
@@ -70,25 +75,25 @@ const ResumeSchema = new Schema<IResume>(
   {
     jobId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Job',
-      required: true
+      ref: "Job",
+      required: true,
     },
     submittedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
+      ref: "User",
+      required: true,
     },
     candidateName: { type: String, required: true },
-    email: { 
-      type: String, 
+    email: {
+      type: String,
       required: true,
       lowercase: true,
-      trim: true
+      trim: true,
     },
-    phone: { 
-      type: String, 
+    phone: {
+      type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     alternativePhone: { type: String },
     country: { type: String, required: true },
@@ -103,12 +108,19 @@ const ResumeSchema = new Schema<IResume>(
     qualification: { type: String, required: true },
     remarks: { type: String },
     status: {
-       type: String,
-       enum: Object.values(ResumeStatus),
-       default: ResumeStatus.SUBMITTED
-     },
+      type: String,
+      enum: Object.values(ResumeStatus),
+      default: ResumeStatus.SUBMITTED,
+    },
     resumeFile: { type: String, required: true },
-              
+    additionalDocuments: [
+      {
+        filename: { type: String, required: true },
+        originalName: { type: String, required: true },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
+
     // Status timestamps
     submittedAt: { type: Date, default: Date.now },
     reviewedAt: { type: Date, default: null },
@@ -122,24 +134,28 @@ const ResumeSchema = new Schema<IResume>(
     hiredAt: { type: Date, default: null },
     rejectedAt: { type: Date, default: null },
     duplicateAt: { type: Date, default: null },
-              
-    screeningAnswers: [{
-      questionId: {
-         type: mongoose.Schema.Types.ObjectId,
-        ref: 'ScreeningQuestion',
-        required: true
+
+    screeningAnswers: [
+      {
+        questionId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "ScreeningQuestion",
+          required: true,
+        },
+        answer: { type: String, required: true },
       },
-      answer: { type: String, required: true }
-    }],
-    notes: [{
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+    ],
+    notes: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        note: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now },
       },
-      note: { type: String, required: true },
-      createdAt: { type: Date, default: Date.now }
-    }]
+    ],
   },
   { timestamps: true }
 );
@@ -160,9 +176,9 @@ let ResumeModel: Model<IResume>;
 
 // Check if model already exists to prevent OverwriteModelError
 try {
-  ResumeModel = mongoose.model<IResume>('Resume');
+  ResumeModel = mongoose.model<IResume>("Resume");
 } catch {
-  ResumeModel = mongoose.model<IResume>('Resume', ResumeSchema);
+  ResumeModel = mongoose.model<IResume>("Resume", ResumeSchema);
 }
 
 export default ResumeModel;

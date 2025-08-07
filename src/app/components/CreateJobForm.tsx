@@ -1,23 +1,33 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { CalendarIcon, Clock, DollarSign, MapPin, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useSelector } from 'react-redux';
-import { countries } from '@/lib/countries';
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { CalendarIcon, Clock, DollarSign, MapPin, X } from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "react-hot-toast";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useSelector } from "react-redux";
+import { countries } from "@/lib/countries";
 import { useCreateJobMutation } from "@/app/store/services/jobsApi";
 import { JobStatus } from "../constants/jobStatus";
 import { JobType } from "../constants/jobType";
@@ -25,18 +35,20 @@ import RichTextEditor from "./RichTextEditor";
 
 // Define the Country interface from the new countries data
 interface CountryData {
-  code: string;        // Currency code (e.g., "USD")
-  name: string;        // Currency name (e.g., "US Dollar")
-  country: string;     // Country name (e.g., "United States")
+  code: string; // Currency code (e.g., "USD")
+  name: string; // Currency name (e.g., "US Dollar")
+  country: string; // Country name (e.g., "United States")
   countryCode: string; // Country code (e.g., "US")
-  flag?: string;       // Base64 encoded flag image (optional)
+  flag?: string; // Base64 encoded flag image (optional)
 }
 
 // Use the countries data which contains both country and currency information
 const countriesData: CountryData[] = countries;
 
 // Create a map of currency code to countries that use it
-const currencyToCountriesMap = countriesData.reduce<Record<string, CountryData[]>>((acc, item) => {
+const currencyToCountriesMap = countriesData.reduce<
+  Record<string, CountryData[]>
+>((acc, item) => {
   const currencyCode = item.code;
   if (currencyCode) {
     if (!acc[currencyCode]) {
@@ -48,137 +60,152 @@ const currencyToCountriesMap = countriesData.reduce<Record<string, CountryData[]
 }, {});
 
 // Create a map of country code to country data for easy lookup
-const countryCodeToDataMap = countriesData.reduce<Record<string, CountryData>>((acc, item) => {
-  acc[item.countryCode] = item;
-  return acc;
-}, {});
+const countryCodeToDataMap = countriesData.reduce<Record<string, CountryData>>(
+  (acc, item) => {
+    acc[item.countryCode] = item;
+    return acc;
+  },
+  {}
+);
 
 // Create a unique list of countries for the country selector
 const uniqueCountries = Array.from(
-  new Map(countriesData.map(item => [item.countryCode, {
-    code: item.countryCode,
-    name: item.country,
-    flag: item.flag || '',
-    currencyCode: item.code
-  }])).values()
+  new Map(
+    countriesData.map((item) => [
+      item.countryCode,
+      {
+        code: item.countryCode,
+        name: item.country,
+        flag: item.flag || "",
+        currencyCode: item.code,
+      },
+    ])
+  ).values()
 );
 
 // Create a unique list of currencies for the currency selector
 const uniqueCurrencies = Array.from(
-  new Map(countriesData.map(item => [item.code, {
-    code: item.code,
-    name: item.name,
-    symbol: getCurrencySymbol(item.code) // We'll implement this function
-  }])).values()
+  new Map(
+    countriesData.map((item) => [
+      item.code,
+      {
+        code: item.code,
+        name: item.name,
+        symbol: getCurrencySymbol(item.code), // We'll implement this function
+      },
+    ])
+  ).values()
 );
 
 // Helper function to get currency symbol from currency code
 function getCurrencySymbol(currencyCode: string): string {
   // For common currencies, return their symbols
   const symbolMap: Record<string, string> = {
-    'USD': '$',
-    'EUR': '€',
-    'GBP': '£',
-    'JPY': '¥',
-    'CAD': 'C$',
-    'AUD': 'A$',
-    'CHF': 'CHF',
-    'CNY': '¥',
-    'INR': '₹',
-    'BRL': 'R$',
-    'MXN': '$',
-    'SGD': 'S$',
-    'NZD': 'NZ$',
-    'HKD': 'HK$',
-    'SEK': 'kr',
-    'NOK': 'kr',
-    'DKK': 'kr',
-    'PLN': 'zł',
-    'HUF': 'Ft',
-    'ILS': '₪',
-    'KRW': '₩',
-    'MYR': 'RM',
-    'PHP': '₱',
-    'THB': '฿',
-    'TRY': '₺',
-    'ZAR': 'R',
-    'RUB': '₽',
-    'AED': 'د.إ',
-    'SAR': '﷼',
-    'EGP': 'E£',
-    'PKR': '₨',
-    'BDT': '৳',
-    'IDR': 'Rp',
-    'VND': '₫',
-    'UAH': '₴',
-    'ARS': '$',
-    'CLP': '$',
-    'PEN': 'S/',
-    'COP': '$',
-    'BOB': 'Bs.',
-    'CRC': '₡',
-    'DOP': 'RD$',
-    'GTQ': 'Q',
-    'HNL': 'L',
-    'NIO': 'C$',
-    'PAB': 'B/.',
-    'PYG': '₲',
-    'UYU': '$U',
-    'VEF': 'Bs',
-    'IRR': '﷼',
-    'IQD': 'ع.د',
-    'KWD': 'د.ك',
-    'OMR': 'ر.ع.',
-    'QAR': 'ر.ق',
-    'YER': '﷼',
-    'LBP': 'ل.ل',
-    'JOD': 'د.ا',
-    'BHD': '.د.ب',
-    'LYD': 'ل.د',
-    'TND': 'د.ت',
-    'MAD': 'د.م.',
-    'DZD': 'د.ج',
-    'AZN': '₼',
-    'AMD': 'դր.',
-    'BYN': 'Br',
-    'BGN': 'лв',
-    'HRK': 'kn',
-    'GEL': '₾',
-    'ISK': 'kr',
-    'KZT': '₸',
-    'KGS': 'с',
-    'MKD': 'ден',
-    'MDL': 'L',
-    'RSD': 'дин',
-    'TJS': 'SM',
-    'TMT': 'm',
-    'UZS': 'сўм',
-    'AFN': '؋',
-    'ETB': 'Br',
-    'GHS': '₵',
-    'KES': 'KSh',
-    'MWK': 'MK',
-    'MUR': '₨',
-    'NGN': '₦',
-    'RWF': 'FRw',
-    'TZS': 'TSh',
-    'UGX': 'USh',
-    'ZMW': 'ZK',
-    'BWP': 'P',
-    'MZN': 'MT',
-    'AOA': 'Kz',
-    'CDF': 'FC',
-    'XOF': 'CFA',
-    'XAF': 'FCFA',
-    'XPF': '₣',
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    JPY: "¥",
+    CAD: "C$",
+    AUD: "A$",
+    CHF: "CHF",
+    CNY: "¥",
+    INR: "₹",
+    BRL: "R$",
+    MXN: "$",
+    SGD: "S$",
+    NZD: "NZ$",
+    HKD: "HK$",
+    SEK: "kr",
+    NOK: "kr",
+    DKK: "kr",
+    PLN: "zł",
+    HUF: "Ft",
+    ILS: "₪",
+    KRW: "₩",
+    MYR: "RM",
+    PHP: "₱",
+    THB: "฿",
+    TRY: "₺",
+    ZAR: "R",
+    RUB: "₽",
+    AED: "د.إ",
+    SAR: "﷼",
+    EGP: "E£",
+    PKR: "₨",
+    BDT: "৳",
+    IDR: "Rp",
+    VND: "₫",
+    UAH: "₴",
+    ARS: "$",
+    CLP: "$",
+    PEN: "S/",
+    COP: "$",
+    BOB: "Bs.",
+    CRC: "₡",
+    DOP: "RD$",
+    GTQ: "Q",
+    HNL: "L",
+    NIO: "C$",
+    PAB: "B/.",
+    PYG: "₲",
+    UYU: "$U",
+    VEF: "Bs",
+    IRR: "﷼",
+    IQD: "ع.د",
+    KWD: "د.ك",
+    OMR: "ر.ع.",
+    QAR: "ر.ق",
+    YER: "﷼",
+    LBP: "ل.ل",
+    JOD: "د.ا",
+    BHD: ".د.ب",
+    LYD: "ل.د",
+    TND: "د.ت",
+    MAD: "د.م.",
+    DZD: "د.ج",
+    AZN: "₼",
+    AMD: "դր.",
+    BYN: "Br",
+    BGN: "лв",
+    HRK: "kn",
+    GEL: "₾",
+    ISK: "kr",
+    KZT: "₸",
+    KGS: "с",
+    MKD: "ден",
+    MDL: "L",
+    RSD: "дин",
+    TJS: "SM",
+    TMT: "m",
+    UZS: "сўм",
+    AFN: "؋",
+    ETB: "Br",
+    GHS: "₵",
+    KES: "KSh",
+    MWK: "MK",
+    MUR: "₨",
+    NGN: "₦",
+    RWF: "FRw",
+    TZS: "TSh",
+    UGX: "USh",
+    ZMW: "ZK",
+    BWP: "P",
+    MZN: "MT",
+    AOA: "Kz",
+    CDF: "FC",
+    XOF: "CFA",
+    XAF: "FCFA",
+    XPF: "₣",
   };
-  
+
   return symbolMap[currencyCode] || currencyCode;
 }
 
 // Commission configuration
 const COMMISSION_CONFIG = {
   DEFAULT_REDUCTION_PERCENTAGE: 40,
+  MIN_REDUCTION_PERCENTAGE: 0,
+  MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
   MAX_COMMISSION_PERCENTAGE: 50,
 };
@@ -187,8 +214,9 @@ const COMMISSION_CONFIG = {
 interface JobFormData {
   title: string;
   jobCode: string;
+  companyName: string;
   country: string;
-  compensationType: 'HOURLY' | 'MONTHLY' | 'ANNUALLY';
+  compensationType: "HOURLY" | "MONTHLY" | "ANNUALLY";
   location: string;
   status: "DRAFT" | "ACTIVE" | "PAUSED" | "CLOSED";
   salary: {
@@ -206,9 +234,9 @@ interface JobFormData {
   compensationDetails: string;
   replacementTerms: string;
   commission: {
-    type: "percentage" | "fixed"; 
+    type: "percentage" | "fixed";
     originalPercentage: number;
-    fixedAmount: number; 
+    fixedAmount: number;
     recruiterPercentage: number;
     platformFeePercentage: number;
     reductionPercentage: number;
@@ -238,7 +266,7 @@ const getRedirectPath = (userRole: string | undefined): string => {
     case "company":
       return "/dashboard/company/jobs";
     default:
-      return "/dashboard/company/jobs"; 
+      return "/dashboard/company/jobs";
   }
 };
 
@@ -253,6 +281,21 @@ export default function CreateJobForm({
   // Get user role from your auth state
   const user = useSelector((state: any) => state.auth?.user);
   const userRole = user?.role || user?.userType || user?.type;
+
+  // Auto-populate company name for company users
+  useEffect(() => {
+    if (userRole === "COMPANY" && user) {
+      setFormData((prev) => {
+        if (!prev.companyName) {
+          return {
+            ...prev,
+            companyName: user.companyName || user.name || "",
+          };
+        }
+        return prev;
+      });
+    }
+  }, [user, userRole]);
 
   // Helper function to safely get currency symbol
   const getCurrencySymbol = (currencyCode: string): string => {
@@ -270,8 +313,9 @@ export default function CreateJobForm({
   const [formData, setFormData] = useState<JobFormData>({
     title: "",
     jobCode: "",
-    country: "US", 
-    compensationType: 'ANNUALLY',
+    companyName: "",
+    country: "US",
+    compensationType: "ANNUALLY",
     location: "",
     status: "DRAFT",
     salary: {
@@ -346,23 +390,29 @@ export default function CreateJobForm({
   };
 
   // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: string } }) => {
+  const handleChange = (
+    e:
+      | React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      | { target: { name: string; value: string } }
+  ) => {
     const { name, value } = e.target;
-    
+
     // Handle nested fields (e.g., salary.min, salary.max, salary.currency)
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+      setFormData((prev) => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof JobFormData] as object || {}),
-          [child]: value
-        }
+          ...((prev[parent as keyof JobFormData] as object) || {}),
+          [child]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -632,27 +682,201 @@ export default function CreateJobForm({
 
   // Comprehensive list of countries
   const countries = [
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
-    "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
-    "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
-    "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica",
-    "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "East Timor", "Ecuador",
-    "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
-    "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
-    "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
-    "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, North", "Korea, South", "Kosovo", "Kuwait", "Kyrgyzstan",
-    "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
-    "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
-    "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
-    "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau",
-    "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia",
-    "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino",
-    "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
-    "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname",
-    "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Togo", "Tonga", "Trinidad and Tobago",
-    "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
-    "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe",
-    "Remote"
+    "Afghanistan",
+    "Albania",
+    "Algeria",
+    "Andorra",
+    "Angola",
+    "Antigua and Barbuda",
+    "Argentina",
+    "Armenia",
+    "Australia",
+    "Austria",
+    "Azerbaijan",
+    "Bahamas",
+    "Bahrain",
+    "Bangladesh",
+    "Barbados",
+    "Belarus",
+    "Belgium",
+    "Belize",
+    "Benin",
+    "Bhutan",
+    "Bolivia",
+    "Bosnia and Herzegovina",
+    "Botswana",
+    "Brazil",
+    "Brunei",
+    "Bulgaria",
+    "Burkina Faso",
+    "Burundi",
+    "Cabo Verde",
+    "Cambodia",
+    "Cameroon",
+    "Canada",
+    "Central African Republic",
+    "Chad",
+    "Chile",
+    "China",
+    "Colombia",
+    "Comoros",
+    "Congo",
+    "Costa Rica",
+    "Croatia",
+    "Cuba",
+    "Cyprus",
+    "Czech Republic",
+    "Denmark",
+    "Djibouti",
+    "Dominica",
+    "Dominican Republic",
+    "East Timor",
+    "Ecuador",
+    "Egypt",
+    "El Salvador",
+    "Equatorial Guinea",
+    "Eritrea",
+    "Estonia",
+    "Eswatini",
+    "Ethiopia",
+    "Fiji",
+    "Finland",
+    "France",
+    "Gabon",
+    "Gambia",
+    "Georgia",
+    "Germany",
+    "Ghana",
+    "Greece",
+    "Grenada",
+    "Guatemala",
+    "Guinea",
+    "Guinea-Bissau",
+    "Guyana",
+    "Haiti",
+    "Honduras",
+    "Hungary",
+    "Iceland",
+    "India",
+    "Indonesia",
+    "Iran",
+    "Iraq",
+    "Ireland",
+    "Israel",
+    "Italy",
+    "Jamaica",
+    "Japan",
+    "Jordan",
+    "Kazakhstan",
+    "Kenya",
+    "Kiribati",
+    "Korea, North",
+    "Korea, South",
+    "Kosovo",
+    "Kuwait",
+    "Kyrgyzstan",
+    "Laos",
+    "Latvia",
+    "Lebanon",
+    "Lesotho",
+    "Liberia",
+    "Libya",
+    "Liechtenstein",
+    "Lithuania",
+    "Luxembourg",
+    "Madagascar",
+    "Malawi",
+    "Malaysia",
+    "Maldives",
+    "Mali",
+    "Malta",
+    "Marshall Islands",
+    "Mauritania",
+    "Mauritius",
+    "Mexico",
+    "Micronesia",
+    "Moldova",
+    "Monaco",
+    "Mongolia",
+    "Montenegro",
+    "Morocco",
+    "Mozambique",
+    "Myanmar",
+    "Namibia",
+    "Nauru",
+    "Nepal",
+    "Netherlands",
+    "New Zealand",
+    "Nicaragua",
+    "Niger",
+    "Nigeria",
+    "North Macedonia",
+    "Norway",
+    "Oman",
+    "Pakistan",
+    "Palau",
+    "Panama",
+    "Papua New Guinea",
+    "Paraguay",
+    "Peru",
+    "Philippines",
+    "Poland",
+    "Portugal",
+    "Qatar",
+    "Romania",
+    "Russia",
+    "Rwanda",
+    "Saint Kitts and Nevis",
+    "Saint Lucia",
+    "Saint Vincent and the Grenadines",
+    "Samoa",
+    "San Marino",
+    "Sao Tome and Principe",
+    "Saudi Arabia",
+    "Senegal",
+    "Serbia",
+    "Seychelles",
+    "Sierra Leone",
+    "Singapore",
+    "Slovakia",
+    "Slovenia",
+    "Solomon Islands",
+    "Somalia",
+    "South Africa",
+    "South Sudan",
+    "Spain",
+    "Sri Lanka",
+    "Sudan",
+    "Suriname",
+    "Sweden",
+    "Switzerland",
+    "Syria",
+    "Taiwan",
+    "Tajikistan",
+    "Tanzania",
+    "Thailand",
+    "Togo",
+    "Tonga",
+    "Trinidad and Tobago",
+    "Tunisia",
+    "Turkey",
+    "Turkmenistan",
+    "Tuvalu",
+    "Uganda",
+    "Ukraine",
+    "United Arab Emirates",
+    "United Kingdom",
+    "United States",
+    "Uruguay",
+    "Uzbekistan",
+    "Vanuatu",
+    "Vatican City",
+    "Venezuela",
+    "Vietnam",
+    "Yemen",
+    "Zambia",
+    "Zimbabwe",
+    "Remote",
   ].sort();
 
   return (
@@ -701,6 +925,26 @@ export default function CreateJobForm({
             </div>
           </div>
 
+          {/* Row 1.5: Company Name - Only show for internal users */}
+          {userRole === "INTERNAL" && (
+            <div className="grid grid-cols-1 gap-6 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Company Name*
+                </label>
+                <input
+                  type="text"
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter the company name for this job posting"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Row 2: Experience Min-Max */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
@@ -737,64 +981,76 @@ export default function CreateJobForm({
           {/* Row 3: Location Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Country
-                </label>
-                <Select
-                  value={formData.country}
-                  onValueChange={(value: string) => {
-                    const selectedCountry = uniqueCountries.find(c => c.code === value);
-                    if (selectedCountry) {
-                      setFormData(prev => ({
-                        ...prev,
-                        country: value,
-                        salary: {
-                          ...prev.salary,
-                          currency: selectedCountry.currencyCode || 'USD'
-                        }
-                      }));
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a country">
-                      {formData.country ? (
-                        <div className="flex items-center gap-2">
-                          {uniqueCountries.find(c => c.code === formData.country)?.flag ? (
-                            <img 
-                              src={uniqueCountries.find(c => c.code === formData.country)?.flag} 
-                              alt="" 
-                              className="w-6 h-4 object-contain"
-                            />
-                          ) : (
-                            <span className="text-lg">🌐</span>
-                          )}
-                          <span>
-                            {uniqueCountries.find(c => c.code === formData.country)?.name || 'Select a country'}
-                          </span>
-                        </div>
-                      ) : 'Select a country'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[400px] overflow-y-auto">
-                    {uniqueCountries.map((country) => (
-                      <SelectItem key={country.code} value={country.code}>
-                        <div className="flex items-center gap-2">
-                          {country.flag ? (
-                            <img 
-                              src={country.flag} 
-                              alt="" 
-                              className="w-6 h-4 object-contain"
-                            />
-                          ) : (
-                            <span className="text-lg">🌐</span>
-                          )}
-                          <span className="flex-1">{country.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <label className="block text-sm font-medium text-gray-700">
+                Country
+              </label>
+              <Select
+                value={formData.country}
+                onValueChange={(value: string) => {
+                  const selectedCountry = uniqueCountries.find(
+                    (c) => c.code === value
+                  );
+                  if (selectedCountry) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      country: value,
+                      salary: {
+                        ...prev.salary,
+                        currency: selectedCountry.currencyCode || "USD",
+                      },
+                    }));
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a country">
+                    {formData.country ? (
+                      <div className="flex items-center gap-2">
+                        {uniqueCountries.find(
+                          (c) => c.code === formData.country
+                        )?.flag ? (
+                          <img
+                            src={
+                              uniqueCountries.find(
+                                (c) => c.code === formData.country
+                              )?.flag
+                            }
+                            alt=""
+                            className="w-6 h-4 object-contain"
+                          />
+                        ) : (
+                          <span className="text-lg">🌐</span>
+                        )}
+                        <span>
+                          {uniqueCountries.find(
+                            (c) => c.code === formData.country
+                          )?.name || "Select a country"}
+                        </span>
+                      </div>
+                    ) : (
+                      "Select a country"
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="max-h-[400px] overflow-y-auto">
+                  {uniqueCountries.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      <div className="flex items-center gap-2">
+                        {country.flag ? (
+                          <img
+                            src={country.flag}
+                            alt=""
+                            className="w-6 h-4 object-contain"
+                          />
+                        ) : (
+                          <span className="text-lg">🌐</span>
+                        )}
+                        <span className="flex-1">{country.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -817,49 +1073,55 @@ export default function CreateJobForm({
               <label className="block text-sm font-medium text-gray-700">
                 Salary range
               </label>
-              
+
               {/* Single Row Layout: Toggle Buttons + Salary Inputs + Currency */}
               <div className="flex items-center space-x-4">
                 {/* Time Period Toggle Buttons */}
                 <div className="flex bg-gray-100 rounded-lg p-1">
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({
-                      ...prev,
-                      compensationType: 'HOURLY'
-                    }))}
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        compensationType: "HOURLY",
+                      }))
+                    }
                     className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                      formData.compensationType === 'HOURLY'
-                        ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      formData.compensationType === "HOURLY"
+                        ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
                     Hourly
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({
-                      ...prev,
-                      compensationType: 'MONTHLY'
-                    }))}
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        compensationType: "MONTHLY",
+                      }))
+                    }
                     className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                      formData.compensationType === 'MONTHLY'
-                        ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      formData.compensationType === "MONTHLY"
+                        ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
                     Monthly
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({
-                      ...prev,
-                      compensationType: 'ANNUALLY'
-                    }))}
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        compensationType: "ANNUALLY",
+                      }))
+                    }
                     className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                      formData.compensationType === 'ANNUALLY'
-                        ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      formData.compensationType === "ANNUALLY"
+                        ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
                     Annual
@@ -878,9 +1140,9 @@ export default function CreateJobForm({
                     className="flex-1 px-4 py-1 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="1,300,000"
                   />
-                  
+
                   <span className="text-gray-500 font-medium text-sm">to</span>
-                  
+
                   <input
                     type="number"
                     name="salary.max"
@@ -892,37 +1154,47 @@ export default function CreateJobForm({
                     placeholder="3,000,000"
                   />
                 </div>
-                
+
                 {/* Currency Selector - Wider */}
                 <div className="w-80">
                   <Select
                     value={formData.salary.currency}
                     onValueChange={(value: string) => {
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
                         salary: {
                           ...prev.salary,
-                          currency: value
-                        }
+                          currency: value,
+                        },
                       }));
                     }}
                   >
                     <SelectTrigger className="w-full min-w-48 h-12 px-4 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                       <SelectValue>
-                        {formData.salary.currency ? (() => {
-                          const selectedCurrency = uniqueCurrencies.find(c => c.code === formData.salary.currency);
-                          if (!selectedCurrency) return 'Select';
-                          // Display symbol and currency name
-                          const symbol = selectedCurrency.symbol && selectedCurrency.symbol !== selectedCurrency.code 
-                            ? selectedCurrency.symbol 
-                            : selectedCurrency.code;
-                          return (
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-lg">{symbol}</span>
-                              <span className="text-sm text-gray-600">{selectedCurrency.code}</span>
-                            </div>
-                          );
-                        })() : (
+                        {formData.salary.currency ? (
+                          (() => {
+                            const selectedCurrency = uniqueCurrencies.find(
+                              (c) => c.code === formData.salary.currency
+                            );
+                            if (!selectedCurrency) return "Select";
+                            // Display symbol and currency name
+                            const symbol =
+                              selectedCurrency.symbol &&
+                              selectedCurrency.symbol !== selectedCurrency.code
+                                ? selectedCurrency.symbol
+                                : selectedCurrency.code;
+                            return (
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-lg">
+                                  {symbol}
+                                </span>
+                                <span className="text-sm text-gray-600">
+                                  {selectedCurrency.code}
+                                </span>
+                              </div>
+                            );
+                          })()
+                        ) : (
                           <span className="text-gray-500">Currency</span>
                         )}
                       </SelectValue>
@@ -930,18 +1202,23 @@ export default function CreateJobForm({
                     <SelectContent className="max-h-[400px] w-48 overflow-y-auto">
                       {uniqueCurrencies.map((currency) => {
                         // Display symbol and currency name
-                        const symbol = currency.symbol && currency.symbol !== currency.code 
-                          ? currency.symbol 
-                          : currency.code;
+                        const symbol =
+                          currency.symbol && currency.symbol !== currency.code
+                            ? currency.symbol
+                            : currency.code;
                         return (
-                          <SelectItem 
-                            key={currency.code} 
+                          <SelectItem
+                            key={currency.code}
                             value={currency.code}
-                            hideIndicator={formData.salary.currency !== currency.code}
+                            hideIndicator={
+                              formData.salary.currency !== currency.code
+                            }
                           >
                             <div className="flex items-center gap-2">
                               <span className="font-mono">{symbol}</span>
-                              <span className="text-gray-500 text-sm">{currency.name}</span>
+                              <span className="text-gray-500 text-sm">
+                                {currency.name}
+                              </span>
                             </div>
                           </SelectItem>
                         );

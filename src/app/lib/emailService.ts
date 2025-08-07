@@ -1,10 +1,10 @@
 // src/lib/emailService.ts
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 // Create transporter for Zoho Mail
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: 'smtp.zoho.com',
+    host: "smtp.zoho.com",
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
@@ -12,8 +12,8 @@ const createTransporter = () => {
       pass: process.env.ZOHO_APP_PASSWORD, // Your Zoho app password
     },
     tls: {
-      rejectUnauthorized: false
-    }
+      rejectUnauthorized: false,
+    },
   });
 };
 
@@ -29,7 +29,7 @@ interface ContactFormData {
 // Email templates
 const getOTPEmailTemplate = (name: string, otp: string) => {
   return {
-    subject: 'Verify Your Email Address - OTP Code',
+    subject: "Verify Your Email Address - OTP Code",
     html: `
       <!DOCTYPE html>
       <html>
@@ -97,7 +97,7 @@ const getOTPEmailTemplate = (name: string, otp: string) => {
       The Team
       
       This is an automated message, please do not reply to this email.
-    `
+    `,
   };
 };
 
@@ -145,13 +145,17 @@ const getContactFormEmailTemplate = (formData: ContactFormData) => {
               <div class="info-item">
                 <span class="info-label">Email:</span>
                 <span class="info-value">
-                  <a href="mailto:${formData.email}" style="color: #667eea;">${formData.email}</a>
+                  <a href="mailto:${formData.email}" style="color: #667eea;">${
+      formData.email
+    }</a>
                 </span>
               </div>
               <div class="info-item">
                 <span class="info-label">Phone:</span>
                 <span class="info-value">
-                  <a href="tel:${formData.phone}" style="color: #667eea;">${formData.phone}</a>
+                  <a href="tel:${formData.phone}" style="color: #667eea;">${
+      formData.phone
+    }</a>
                 </span>
               </div>
               <div class="info-item">
@@ -160,28 +164,32 @@ const getContactFormEmailTemplate = (formData: ContactFormData) => {
               </div>
               <div class="info-item">
                 <span class="info-label">Submitted:</span>
-                <span class="info-value">${new Date().toLocaleString('en-IN', { 
-                  timeZone: 'Asia/Kolkata',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit'
+                <span class="info-value">${new Date().toLocaleString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
                 })}</span>
               </div>
             </div>
             
             <h2>Message</h2>
             <div class="message-box">
-              <p style="white-space: pre-wrap; line-height: 1.6; margin: 0;">${formData.message}</p>
+              <p style="white-space: pre-wrap; line-height: 1.6; margin: 0;">${
+                formData.message
+              }</p>
             </div>
             
             <div style="margin-top: 30px; padding: 20px; background-color: #e8f4fd; border-radius: 8px;">
               <h3 style="margin: 0 0 10px 0; color: #0066cc;">Quick Actions</h3>
               <p style="margin: 5px 0;">
                 <strong>Reply:</strong> 
-                <a href="mailto:${formData.email}?subject=Re: Your inquiry - SourcingScreen" style="color: #667eea;">
+                <a href="mailto:${
+                  formData.email
+                }?subject=Re: Your inquiry - SourcingScreen" style="color: #667eea;">
                   Send Email Reply
                 </a>
               </p>
@@ -211,7 +219,9 @@ const getContactFormEmailTemplate = (formData: ContactFormData) => {
       Email: ${formData.email}
       Phone: ${formData.phone}
       Company: ${formData.company}
-      Submitted: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+      Submitted: ${new Date().toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}
       
       Message:
       ${formData.message}
@@ -221,18 +231,22 @@ const getContactFormEmailTemplate = (formData: ContactFormData) => {
       - Call: ${formData.phone}
       
       This email was automatically generated from the SourcingScreen contact form.
-    `
+    `,
   };
 };
 
-export const sendOTPEmail = async (email: string, name: string, otp: string): Promise<boolean> => {
+export const sendOTPEmail = async (
+  email: string,
+  name: string,
+  otp: string
+): Promise<boolean> => {
   try {
     const transporter = createTransporter();
     const emailTemplate = getOTPEmailTemplate(name, otp);
-    
+
     const mailOptions = {
       from: {
-        name: 'Sourcing Screen',
+        name: "Sourcing Screen",
         address: process.env.ZOHO_EMAIL!,
       },
       to: email,
@@ -242,25 +256,28 @@ export const sendOTPEmail = async (email: string, name: string, otp: string): Pr
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('OTP email sent successfully:', result.messageId);
+    console.log("OTP email sent successfully:", result.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending OTP email:', error);
+    console.error("Error sending OTP email:", error);
     return false;
   }
 };
 
-export const sendWelcomeEmail = async (email: string, name: string): Promise<boolean> => {
+export const sendWelcomeEmail = async (
+  email: string,
+  name: string
+): Promise<boolean> => {
   try {
     const transporter = createTransporter();
-    
+
     const mailOptions = {
       from: {
-        name: 'Sourcing Screen',
+        name: "Sourcing Screen",
         address: process.env.ZOHO_EMAIL!,
       },
       to: email,
-      subject: 'Welcome to Our Platform!',
+      subject: "Welcome to Our Platform!",
       html: `
         <!DOCTYPE html>
         <html>
@@ -306,26 +323,28 @@ export const sendWelcomeEmail = async (email: string, name: string): Promise<boo
         
         Best regards,
         The Team
-      `
+      `,
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('Welcome email sent successfully:', result.messageId);
+    console.log("Welcome email sent successfully:", result.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    console.error("Error sending welcome email:", error);
     return false;
   }
 };
 
-export const sendContactFormEmail = async (formData: ContactFormData): Promise<boolean> => {
+export const sendContactFormEmail = async (
+  formData: ContactFormData
+): Promise<boolean> => {
   try {
     const transporter = createTransporter();
     const emailTemplate = getContactFormEmailTemplate(formData);
-    
+
     const mailOptions = {
       from: {
-        name: 'SourcingScreen Contact Form',
+        name: "SourcingScreen Contact Form",
         address: process.env.ZOHO_EMAIL!,
       },
       to: process.env.ZOHO_EMAIL!, // Send to your own email
@@ -336,10 +355,480 @@ export const sendContactFormEmail = async (formData: ContactFormData): Promise<b
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('Contact form email sent successfully:', result.messageId);
+    console.log("Contact form email sent successfully:", result.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending contact form email:', error);
+    console.error("Error sending contact form email:", error);
     return false;
+  }
+};
+
+// Support ticket interfaces
+interface SupportTicketData {
+  ticketNumber: string;
+  subject: string;
+  message: string;
+  category: string;
+  priority: string;
+  userName: string;
+  userEmail: string;
+  createdAt: Date;
+}
+
+interface TicketResponseData {
+  ticketNumber: string;
+  subject: string;
+  responseMessage: string;
+  respondedBy: string;
+  userName: string;
+  userEmail: string;
+  createdAt: Date;
+}
+
+// Support ticket email templates
+const getNewTicketEmailTemplate = (ticketData: SupportTicketData) => {
+  const priorityColor =
+    {
+      Low: "#28a745",
+      Medium: "#ffc107",
+      High: "#fd7e14",
+      Critical: "#dc3545",
+    }[ticketData.priority] || "#6c757d";
+
+  const categoryIcon =
+    {
+      "Technical Issue": "🔧",
+      "Account Issue": "👤",
+      "Feature Request": "💡",
+      "General Inquiry": "❓",
+      "Bug Report": "🐛",
+    }[ticketData.category] || "📝";
+
+  return {
+    subject: `🎫 New Support Ticket: ${ticketData.subject} [${ticketData.ticketNumber}]`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Support Ticket</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+          .content { padding: 40px 30px; }
+          .ticket-info { background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; }
+          .info-item { margin: 15px 0; }
+          .info-label { font-weight: bold; color: #333; display: inline-block; width: 120px; }
+          .info-value { color: #555; }
+          .priority-badge { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 12px;
+            background-color: ${priorityColor};
+          }
+          .category-badge { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            background-color: #e9ecef; 
+            color: #495057; 
+            font-size: 12px;
+            font-weight: bold;
+          }
+          .message-box { 
+            background-color: #fff; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 20px 0; 
+            line-height: 1.6;
+          }
+          .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+          .action-box { 
+            background-color: #e8f4fd; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 20px 0; 
+            text-align: center;
+          }
+          .action-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 10px;
+          }
+          .urgent-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎫 New Support Ticket</h1>
+          </div>
+          <div class="content">
+            ${
+              ticketData.priority === "Critical" ||
+              ticketData.priority === "High"
+                ? `
+            <div class="urgent-notice">
+              <strong>⚠️ ${ticketData.priority} Priority Ticket:</strong> This ticket requires immediate attention. Please respond as soon as possible.
+            </div>
+            `
+                : ""
+            }
+            
+            <h2>Ticket Information</h2>
+            <div class="ticket-info">
+              <div class="info-item">
+                <span class="info-label">Ticket #:</span>
+                <span class="info-value"><strong>${
+                  ticketData.ticketNumber
+                }</strong></span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Subject:</span>
+                <span class="info-value">${ticketData.subject}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Category:</span>
+                <span class="info-value">
+                  <span class="category-badge">${categoryIcon} ${
+      ticketData.category
+    }</span>
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Priority:</span>
+                <span class="info-value">
+                  <span class="priority-badge">${ticketData.priority}</span>
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Submitted By:</span>
+                <span class="info-value">
+                  ${ticketData.userName} 
+                  (<a href="mailto:${
+                    ticketData.userEmail
+                  }" style="color: #667eea;">${ticketData.userEmail}</a>)
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Submitted At:</span>
+                <span class="info-value">${ticketData.createdAt.toLocaleString(
+                  "en-IN",
+                  {
+                    timeZone: "Asia/Kolkata",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                )}</span>
+              </div>
+            </div>
+            
+            <h2>Message</h2>
+            <div class="message-box">
+              <p style="white-space: pre-wrap; margin: 0;">${
+                ticketData.message
+              }</p>
+            </div>
+            
+            <div class="action-box">
+              <h3 style="margin: 0 0 15px 0; color: #0066cc;">Quick Actions</h3>
+              <a href="mailto:${ticketData.userEmail}?subject=Re: ${
+      ticketData.subject
+    } [${ticketData.ticketNumber}]" class="action-button">
+                📧 Reply to User
+              </a>
+              <p style="margin: 10px 0 0 0; font-size: 14px; color: #666;">
+                Log in to the admin panel to manage this ticket and update its status.
+              </p>
+            </div>
+            
+          </div>
+          <div class="footer">
+            <p>This email was automatically generated from the SourcingScreen support system.</p>
+            <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      NEW SUPPORT TICKET SUBMITTED
+      ============================
+      
+      ${
+        ticketData.priority === "Critical" || ticketData.priority === "High"
+          ? `⚠️ ${ticketData.priority} PRIORITY TICKET - IMMEDIATE ATTENTION REQUIRED\n`
+          : ""
+      }
+      
+      Ticket Information:
+      Ticket #: ${ticketData.ticketNumber}
+      Subject: ${ticketData.subject}
+      Category: ${ticketData.category}
+      Priority: ${ticketData.priority}
+      Submitted By: ${ticketData.userName} (${ticketData.userEmail})
+      Submitted At: ${ticketData.createdAt.toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}
+      
+      Message:
+      ${ticketData.message}
+      
+      Quick Actions:
+      - Reply to user: ${ticketData.userEmail}
+      - Subject: Re: ${ticketData.subject} [${ticketData.ticketNumber}]
+      
+      Log in to the admin panel to manage this ticket and update its status.
+      
+      This email was automatically generated from the SourcingScreen support system.
+    `,
+  };
+};
+
+const getTicketResponseEmailTemplate = (responseData: TicketResponseData) => {
+  return {
+    subject: `📬 Response to Your Support Ticket [${responseData.ticketNumber}]`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Support Ticket Response</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+          .content { padding: 40px 30px; }
+          .ticket-info { background-color: #f8f9fa; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; }
+          .info-item { margin: 15px 0; }
+          .info-label { font-weight: bold; color: #333; display: inline-block; width: 120px; }
+          .info-value { color: #555; }
+          .response-box { 
+            background-color: #fff; 
+            border: 1px solid #28a745; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 20px 0; 
+            line-height: 1.6;
+          }
+          .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+          .action-box { 
+            background-color: #e8f5e8; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 20px 0; 
+            text-align: center;
+          }
+          .action-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>📬 Support Team Response</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${responseData.userName}!</h2>
+            <p>We've responded to your support ticket. Here are the details:</p>
+            
+            <div class="ticket-info">
+              <div class="info-item">
+                <span class="info-label">Ticket #:</span>
+                <span class="info-value"><strong>${
+                  responseData.ticketNumber
+                }</strong></span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Subject:</span>
+                <span class="info-value">${responseData.subject}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Responded By:</span>
+                <span class="info-value">${responseData.respondedBy}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Response Date:</span>
+                <span class="info-value">${responseData.createdAt.toLocaleString(
+                  "en-IN",
+                  {
+                    timeZone: "Asia/Kolkata",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                )}</span>
+              </div>
+            </div>
+            
+            <h2>Our Response</h2>
+            <div class="response-box">
+              <p style="white-space: pre-wrap; margin: 0;">${
+                responseData.responseMessage
+              }</p>
+            </div>
+            
+            <div class="action-box">
+              <h3 style="margin: 0 0 15px 0; color: #155724;">Need Further Assistance?</h3>
+              <p style="margin: 10px 0; color: #155724;">
+                If you need additional help or have follow-up questions, you can:
+              </p>
+              <a href="mailto:${process.env.ZOHO_EMAIL}?subject=Re: ${
+      responseData.subject
+    } [${responseData.ticketNumber}]" class="action-button">
+                📧 Reply to This Ticket
+              </a>
+              <p style="margin: 10px 0 0 0; font-size: 14px; color: #666;">
+                Or log in to your dashboard to view all your support tickets.
+              </p>
+            </div>
+            
+            <p>Thank you for using our support system. We're here to help!</p>
+            <p>Best regards,<br>The SourcingScreen Support Team</p>
+            
+          </div>
+          <div class="footer">
+            <p>This email was automatically generated from the SourcingScreen support system.</p>
+            <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      SUPPORT TEAM RESPONSE
+      =====================
+      
+      Hello ${responseData.userName}!
+      
+      We've responded to your support ticket. Here are the details:
+      
+      Ticket Information:
+      Ticket #: ${responseData.ticketNumber}
+      Subject: ${responseData.subject}
+      Responded By: ${responseData.respondedBy}
+      Response Date: ${responseData.createdAt.toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}
+      
+      Our Response:
+      ${responseData.responseMessage}
+      
+      Need Further Assistance?
+      If you need additional help or have follow-up questions, please reply to this email or log in to your dashboard to view all your support tickets.
+      
+      Thank you for using our support system. We're here to help!
+      
+      Best regards,
+      The SourcingScreen Support Team
+      
+      This email was automatically generated from the SourcingScreen support system.
+    `,
+  };
+};
+
+// Support ticket email functions
+export const sendNewTicketNotification = async (
+  ticketData: SupportTicketData,
+  supportEmail?: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const transporter = createTransporter();
+    const emailTemplate = getNewTicketEmailTemplate(ticketData);
+
+    // Use provided support email or fallback to default
+    const toEmail = supportEmail || process.env.ZOHO_EMAIL!;
+
+    const mailOptions = {
+      from: {
+        name: "SourcingScreen Support System",
+        address: process.env.ZOHO_EMAIL!,
+      },
+      to: toEmail,
+      replyTo: ticketData.userEmail,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log(
+      `New ticket notification sent successfully to ${toEmail}:`,
+      result.messageId
+    );
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending new ticket notification:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+};
+
+export const sendTicketResponseNotification = async (
+  responseData: TicketResponseData
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const transporter = createTransporter();
+    const emailTemplate = getTicketResponseEmailTemplate(responseData);
+
+    const mailOptions = {
+      from: {
+        name: "SourcingScreen Support Team",
+        address: process.env.ZOHO_EMAIL!,
+      },
+      to: responseData.userEmail,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log(
+      `Ticket response notification sent successfully to ${responseData.userEmail}:`,
+      result.messageId
+    );
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending ticket response notification:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
   }
 };

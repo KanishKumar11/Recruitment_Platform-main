@@ -1,6 +1,6 @@
 // components/company/ResumeDetailModal.tsx
 import React, { useState, useEffect } from "react";
-import { X, Paperclip, Download, Loader2 } from "lucide-react";
+import { X, Paperclip, Download, Loader2, Eye, FileText } from "lucide-react";
 import {
   useGetResumeByIdQuery,
   useUpdateResumeStatusMutation,
@@ -32,6 +32,10 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
     useUpdateResumeStatusMutation();
   const [addNote, { isLoading: isAddingNote }] = useAddResumeNoteMutation();
   const [newNote, setNewNote] = useState("");
+  const [previewDocument, setPreviewDocument] = useState<{
+    filename: string;
+    originalName: string;
+  } | null>(null);
   const userRole = useSelector((state: RootState) => state.auth.user?.role);
 
   // Close modal on escape key press
@@ -54,7 +58,8 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
     // Remove any existing path prefixes if present
     const cleanFilename = filename.split("/").pop() || filename;
 
-    const baseUrl = `/api/files/${cleanFilename}`;
+    // Use the resume download API endpoint
+    const baseUrl = `/api/resumes/download/${cleanFilename}`;
     const token = localStorage.getItem("token") || "";
 
     // For iframe preview, we need to include the token in the URL since iframe can't send custom headers
@@ -62,7 +67,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       return `${baseUrl}?token=${encodeURIComponent(token)}`;
     }
 
-    return isDownload ? `${baseUrl}?download=true` : baseUrl;
+    return baseUrl;
   };
 
   // Helper function to handle file download with authentication
@@ -70,16 +75,20 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
     if (!resume?.resumeFile) return;
 
     try {
-      const downloadUrl = getFileUrl(resume.resumeFile, true);
+      // Use the resume download API endpoint
+      const cleanFilename =
+        resume.resumeFile.split("/").pop() || resume.resumeFile;
+      const downloadUrl = `/api/resumes/download/${cleanFilename}?download=true`;
 
       // Fetch the file with authentication headers
+      const token = localStorage.getItem("token");
+
       const response = await fetch(downloadUrl, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          // Add any other auth headers your app uses
+          Authorization: `Bearer ${token || ""}`,
         },
-        credentials: "include", // Include cookies if your auth uses them
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -93,7 +102,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = resume.resumeFile.split("/").pop() || "resume";
+      link.download = cleanFilename;
       document.body.appendChild(link);
       link.click();
 
@@ -102,8 +111,66 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Download failed:", error);
-      // You might want to show a toast notification here
       alert("Failed to download file. Please try again.");
+    }
+  };
+
+  // Helper function to check if file can be previewed
+  const canPreviewFile = (filename: string) => {
+    const extension = filename.toLowerCase().split(".").pop();
+    return ["pdf", "jpg", "jpeg", "png", "gif", "bmp", "webp", "txt"].includes(
+      extension || ""
+    );
+  };
+
+  // Helper function to get preview URL for additional documents
+  const getDocumentPreviewUrl = (filename: string) => {
+    const token = localStorage.getItem("token") || "";
+    return `/api/resumes/download/${filename}?token=${encodeURIComponent(
+      token
+    )}`;
+  };
+
+  // Helper function to handle additional document download
+  const handleDocumentDownload = async (
+    filename: string,
+    originalName: string
+  ) => {
+    try {
+      const downloadUrl = `/api/resumes/download/${filename}?download=true`;
+
+      // Fetch the file with authentication headers
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(downloadUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token || ""}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.status}`);
+      }
+
+      // Get the file blob
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = originalName;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Document download failed:", error);
+      alert("Failed to download document. Please try again.");
     }
   };
 
@@ -175,10 +242,11 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
   const getQuestionText = (questionId: any) => {
     if (typeof questionId === "object" && questionId !== null) {
       if ("question" in questionId) {
-        return questionId.question;
+        // Ensure we return a string, not an object
+        return String(questionId.question || "Question");
       }
     }
-    return `Question`;
+    return "Question";
   };
 
   // Format status options for dropdown
@@ -424,6 +492,67 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
           </div>
         </div>
 
+        {/* Additional Documents Section */}
+        {resume.additionalDocuments &&
+          resume.additionalDocuments.length > 0 && (
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+              <div className="flex items-center mb-2">
+                <Paperclip className="mr-2 h-5 w-5 text-gray-500" />
+                <h3 className="text-lg font-medium text-gray-900">
+                  Additional Documents ({resume.additionalDocuments.length})
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {resume.additionalDocuments.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200"
+                  >
+                    <div className="flex items-center">
+                      <Paperclip className="h-4 w-4 text-gray-400 mr-2" />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {doc.originalName}
+                        </span>
+                        <p className="text-xs text-gray-500">
+                          Uploaded on{" "}
+                          {doc.uploadedAt
+                            ? new Date(doc.uploadedAt).toLocaleDateString()
+                            : "Unknown date"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      {canPreviewFile(doc.filename) && (
+                        <button
+                          onClick={() =>
+                            setPreviewDocument({
+                              filename: doc.filename,
+                              originalName: doc.originalName,
+                            })
+                          }
+                          className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          Preview
+                        </button>
+                      )}
+                      <button
+                        onClick={() =>
+                          handleDocumentDownload(doc.filename, doc.originalName)
+                        }
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        <Download className="mr-1 h-4 w-4" />
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         {/* Status Update and Notes Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Status Update Section - Only visible to COMPANY, ADMIN, INTERNAL */}
@@ -507,6 +636,69 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Document Preview Modal */}
+        {previewDocument && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60">
+            <div className="bg-white p-4 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Preview: {previewDocument.originalName}
+                </h3>
+                <button
+                  onClick={() => setPreviewDocument(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="w-full h-96">
+                {previewDocument.filename.toLowerCase().endsWith(".pdf") ? (
+                  <iframe
+                    src={getDocumentPreviewUrl(previewDocument.filename)}
+                    className="w-full h-full border border-gray-300 rounded-lg"
+                    title={`Preview of ${previewDocument.originalName}`}
+                  />
+                ) : previewDocument.filename
+                    .toLowerCase()
+                    .match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? (
+                  <img
+                    src={getDocumentPreviewUrl(previewDocument.filename)}
+                    alt={`Preview of ${previewDocument.originalName}`}
+                    className="w-full h-full object-contain border border-gray-300 rounded-lg"
+                  />
+                ) : previewDocument.filename.toLowerCase().endsWith(".txt") ? (
+                  <iframe
+                    src={getDocumentPreviewUrl(previewDocument.filename)}
+                    className="w-full h-full border border-gray-300 rounded-lg"
+                    title={`Preview of ${previewDocument.originalName}`}
+                  />
+                ) : (
+                  <div className="w-full h-full border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                      <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">
+                        Preview not available for this file type
+                      </p>
+                      <button
+                        onClick={() =>
+                          handleDocumentDownload(
+                            previewDocument.filename,
+                            previewDocument.originalName
+                          )
+                        }
+                        className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download File
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

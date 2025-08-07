@@ -17,6 +17,22 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { IJob } from "@/app/models/Job";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/app/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 export default function RecruiterJobs() {
   const router = useRouter();
@@ -28,6 +44,12 @@ export default function RecruiterJobs() {
   const [countryFilter, setCountryFilter] = useState("");
   const [clientFilter, setClientFilter] = useState("");
   const [industryFilter, setIndustryFilter] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
   // Derived data for filter dropdowns
   const [locations, setLocations] = useState<string[]>([]);
@@ -54,7 +76,25 @@ export default function RecruiterJobs() {
     if (clientFilter && job.postedByName !== clientFilter) return false;
 
     return true;
-  });
+  }) || [];
+
+  // Calculate pagination
+  const totalItems = filteredJobs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = filteredJobs.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (setValue: (value: string) => void, value: string) => {
+    setValue(value);
+    setCurrentPage(1);
+  };
 
   // Extract unique values for filters
   useEffect(() => {
@@ -81,6 +121,7 @@ export default function RecruiterJobs() {
     setCountryFilter("");
     setClientFilter("");
     setIndustryFilter("");
+    setCurrentPage(1);
   };
 
   // Format salary for display
@@ -165,7 +206,7 @@ export default function RecruiterJobs() {
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Search by job title or job code"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                   />
                 </div>
 
@@ -174,7 +215,7 @@ export default function RecruiterJobs() {
                   <select
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
+                    onChange={(e) => handleFilterChange(setLocationFilter, e.target.value)}
                   >
                     <option value="">All Locations</option>
                     {locations.map((location) => (
@@ -190,7 +231,7 @@ export default function RecruiterJobs() {
                   <select
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={countryFilter}
-                    onChange={(e) => setCountryFilter(e.target.value)}
+                    onChange={(e) => handleFilterChange(setCountryFilter, e.target.value)}
                   >
                     <option value="">All Countries</option>
                     {countries.map((country) => (
@@ -206,7 +247,7 @@ export default function RecruiterJobs() {
                   <select
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={clientFilter}
-                    onChange={(e) => setClientFilter(e.target.value)}
+                    onChange={(e) => handleFilterChange(setClientFilter, e.target.value)}
                   >
                     <option value="">All Clients</option>
                     {clients.map((client) => (
@@ -219,7 +260,24 @@ export default function RecruiterJobs() {
               </div>
 
               {/* Filter actions */}
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-between items-center mt-4">
+                <div>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                    setItemsPerPage(parseInt(value));
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option.toString()}>
+                          {option} per page
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <button
                   onClick={clearFilters}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -232,13 +290,21 @@ export default function RecruiterJobs() {
 
             {/* Jobs listing */}
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
+              <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Available Jobs
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} jobs
+                </p>
+              </div>
               {isLoading ? (
                 <div className="flex justify-center items-center h-64">
                   <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
                 </div>
-              ) : filteredJobs && filteredJobs.length > 0 ? (
+              ) : currentJobs && currentJobs.length > 0 ? (
                 <ul className="divide-y divide-gray-200">
-                  {filteredJobs.map((job) => (
+                  {currentJobs.map((job) => (
                     <li key={job._id as string}>
                       <div className="block hover:bg-gray-50 transition duration-150">
                         <div className="px-4 py-4 sm:px-6">
@@ -356,6 +422,68 @@ export default function RecruiterJobs() {
                       ? "No jobs match your current filters. Try adjusting your search criteria."
                       : "There are no active jobs available at the moment."}
                   </p>
+                </div>
+              )}
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 bg-white">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {/* Page numbers */}
+                      {[...Array(totalPages)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        const isCurrentPage = pageNumber === currentPage;
+                        
+                        // Show first page, last page, current page, and pages around current page
+                        if (
+                          pageNumber === 1 ||
+                          pageNumber === totalPages ||
+                          (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                        ) {
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNumber)}
+                                isActive={isCurrentPage}
+                                className="cursor-pointer"
+                              >
+                                {pageNumber}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        // Show ellipsis
+                        if (
+                          pageNumber === currentPage - 2 ||
+                          pageNumber === currentPage + 2
+                        ) {
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        return null;
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </div>

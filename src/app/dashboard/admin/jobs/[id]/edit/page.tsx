@@ -23,6 +23,8 @@ import { JobStatus } from "@/app/constants/jobStatus";
 // Commission configuration
 const COMMISSION_CONFIG = {
   DEFAULT_REDUCTION_PERCENTAGE: 40,
+  MIN_REDUCTION_PERCENTAGE: 0,
+  MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
   MAX_COMMISSION_PERCENTAGE: 50,
 };
@@ -308,9 +310,9 @@ export default function AdminJobEditPage() {
       Math.max(
         parseFloat(e.target.value) ||
           COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
-        0
+        COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE
       ),
-      100
+      COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE
     );
 
     const recruiterPercentage = calculateRecruiterCommission(
@@ -860,15 +862,16 @@ export default function AdminJobEditPage() {
                           id="reductionPercentage"
                           value={formData.commission.reductionPercentage || ""}
                           onChange={handleReductionChange}
-                          min="0"
-                          max="100"
-                          step="0.1"
+                          step="1"
+                          placeholder="40"
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-orange-50"
                         />
                         <p className="mt-1 text-sm text-orange-600">
                           Percentage to reduce from original commission
                           (default:{" "}
-                          {COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE}%)
+                          {COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE}%,
+                          range: {COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}%-
+                          {COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}%)
                         </p>
                       </div>
 
@@ -999,19 +1002,7 @@ export default function AdminJobEditPage() {
                             formData.commissionAmount ||
                             ""
                           }
-                          onChange={(e) => {
-                            const fixedAmount = parseFloat(e.target.value) || 0;
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              commission: {
-                                ...prev.commission,
-                                type: "fixed",
-                                fixedAmount,
-                                recruiterAmount: fixedAmount, // For fixed, recruiter gets the full amount
-                              },
-                              commissionAmount: fixedAmount, // Legacy field
-                            }));
-                          }}
+                          onChange={handleFixedCommissionChange}
                           min="0"
                           step="0.01"
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -1021,6 +1012,34 @@ export default function AdminJobEditPage() {
                         </p>
                       </div>
 
+                      {/* Platform Fee Control for Fixed Commission */}
+                      <div>
+                        <label
+                          htmlFor="fixedReductionPercentage"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Platform Fee Reduction % (Admin Control)
+                        </label>
+                        <input
+                          type="number"
+                          id="fixedReductionPercentage"
+                          value={formData.commission?.reductionPercentage || ""}
+                          onChange={handleReductionChange}
+                          min={COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}
+                          max={COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}
+                          step="0.1"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-orange-50"
+                        />
+                        <p className="mt-1 text-sm text-orange-600">
+                          Percentage to reduce from fixed commission (default:{" "}
+                          {COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE}%,
+                          range: {COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}%-
+                          {COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}%)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                       {/* Currency Display */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
@@ -1031,6 +1050,27 @@ export default function AdminJobEditPage() {
                         </div>
                         <p className="mt-1 text-sm text-gray-500">
                           Commission currency matches salary currency
+                        </p>
+                      </div>
+
+                      {/* Recruiter Amount Display */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Recruiter Amount ({formData.salary.currency})
+                        </label>
+                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                          {formData.commission?.fixedAmount > 0 &&
+                          formData.commission?.reductionPercentage !== undefined
+                            ? (
+                                (formData.commission.fixedAmount *
+                                  (100 -
+                                    formData.commission.reductionPercentage)) /
+                                100
+                              ).toLocaleString()
+                            : "0"}
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Amount recruiters will receive after platform fee
                         </p>
                       </div>
                     </div>

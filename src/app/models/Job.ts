@@ -1,32 +1,34 @@
 // src/app/models/Job.ts
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 // Ensure ScreeningQuestion model is imported and registered first
-import './ScreeningQuestion';
+import "./ScreeningQuestion";
 
 export enum JobStatus {
-  DRAFT = 'DRAFT',
-  ACTIVE = 'ACTIVE',
-  PAUSED = 'PAUSED',
-  CLOSED = 'CLOSED'
+  DRAFT = "DRAFT",
+  ACTIVE = "ACTIVE",
+  PAUSED = "PAUSED",
+  CLOSED = "CLOSED",
 }
 
 export enum JobType {
-  FULL_TIME = 'FULL_TIME',
-  PART_TIME = 'PART_TIME',
-  CONTRACT = 'CONTRACT',
-  FREELANCE = 'FREELANCE',
-  INTERNSHIP = 'INTERNSHIP'
+  FULL_TIME = "FULL_TIME",
+  PART_TIME = "PART_TIME",
+  CONTRACT = "CONTRACT",
+  FREELANCE = "FREELANCE",
+  INTERNSHIP = "INTERNSHIP",
 }
 
 // Commission configuration - can be moved to a config file
 export const COMMISSION_CONFIG = {
   DEFAULT_REDUCTION_PERCENTAGE: 40, // 40% reduction by default
+  MIN_REDUCTION_PERCENTAGE: 0, // Minimum 0% platform fee
+  MAX_REDUCTION_PERCENTAGE: 80, // Maximum 80% platform fee
   MIN_COMMISSION_PERCENTAGE: 1, // Minimum 1% commission
   MAX_COMMISSION_PERCENTAGE: 50, // Maximum 50% commission
 };
 
 export interface IJobCommission {
-  type: 'percentage' | 'fixed'; // New field to track commission type
+  type: "percentage" | "fixed"; // New field to track commission type
   originalPercentage: number; // Set by company (for percentage-based)
   fixedAmount: number; // New field for fixed commission amount
   recruiterPercentage: number; // Calculated and shown to recruiters (for percentage-based)
@@ -40,6 +42,7 @@ export interface IJob extends Document {
   applicantCount: number;
   title: string;
   jobCode: string;
+  companyName: string;
   postedBy: mongoose.Types.ObjectId;
   postedDate: Date;
   country: string;
@@ -59,14 +62,14 @@ export interface IJob extends Document {
   };
   compensationDetails: string;
   replacementTerms: string;
-  
+
   // Updated commission structure
   commission: IJobCommission;
-  
+
   // Legacy fields for backward compatibility
   commissionPercentage: number;
   commissionAmount: number;
-  
+
   description: string;
   companyDescription?: string; // Optional company description
   sourcingGuidelines: string;
@@ -74,77 +77,88 @@ export interface IJob extends Document {
   createdAt: Date;
   updatedAt: Date;
   // Added property for team member name
-  postedByName?: string;        // Name of the user who posted the job
+  postedByName?: string; // Name of the user who posted the job
   postedByCompany?: string;
-   company?: string;
+  company?: string;
 }
 
 const CommissionSchema = new Schema<IJobCommission>({
-  type: { type: String, enum: ['percentage', 'fixed'], default: 'percentage', required: true },
+  type: {
+    type: String,
+    enum: ["percentage", "fixed"],
+    default: "percentage",
+    required: true,
+  },
   originalPercentage: { type: Number, default: 0 },
   fixedAmount: { type: Number, default: 0 }, // New field
   recruiterPercentage: { type: Number, default: 0 },
   platformFeePercentage: { type: Number, default: 0 },
-  reductionPercentage: { type: Number, default: COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE },
+  reductionPercentage: {
+    type: Number,
+    default: COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
+  },
   originalAmount: { type: Number, default: 0 },
-  recruiterAmount: { type: Number, default: 0 }
+  recruiterAmount: { type: Number, default: 0 },
 });
 
 const JobSchema = new Schema<IJob>(
   {
     title: { type: String, required: true },
     jobCode: { type: String, required: true, unique: true },
-    postedBy: { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'User',
-      required: true 
+    companyName: { type: String, required: true },
+    postedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     postedDate: { type: Date, default: Date.now },
     country: { type: String, required: true },
     location: { type: String, required: true },
-    status: { 
-      type: String, 
-      enum: Object.values(JobStatus), 
+    status: {
+      type: String,
+      enum: Object.values(JobStatus),
       default: JobStatus.DRAFT,
-      required: true 
+      required: true,
     },
     salary: {
       min: { type: Number, required: true },
       max: { type: Number, required: true },
-      currency: { type: String, default: 'USD', required: true }
+      currency: { type: String, default: "USD", required: true },
     },
     paymentTerms: { type: String },
     positions: { type: Number, default: 1, required: true },
-    jobType: { 
-      type: String, 
-      enum: Object.values(JobType), 
+    jobType: {
+      type: String,
+      enum: Object.values(JobType),
       default: JobType.FULL_TIME,
-      required: true 
+      required: true,
     },
     experienceLevel: {
       min: { type: Number, required: true },
-      max: { type: Number, required: true }
+      max: { type: Number, required: true },
     },
     compensationDetails: { type: String },
     replacementTerms: { type: String },
-    
+
     // New commission structure
     commission: {
       type: CommissionSchema,
-      required: true
+      required: true,
     },
-    
+
     // Legacy fields for backward compatibility
     commissionPercentage: { type: Number },
     commissionAmount: { type: Number },
-    
+
     description: { type: String, required: true },
-    companyDescription: { type: String, default: '' }, // Optional field
+    companyDescription: { type: String, default: "" }, // Optional field
     sourcingGuidelines: { type: String },
-    screeningQuestions: [{ 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'ScreeningQuestion' 
-    }],
+    screeningQuestions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ScreeningQuestion",
+      },
+    ],
   },
   { timestamps: true }
 );
@@ -156,12 +170,15 @@ export class CommissionCalculator {
     reductionPercentage: number = COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
   ): number {
     if (originalCommission <= 0) return 0;
-    
+
     const reduction = (originalCommission * reductionPercentage) / 100;
     const recruiterCommission = originalCommission - reduction;
-    
+
     // Ensure minimum commission
-    return Math.max(recruiterCommission, COMMISSION_CONFIG.MIN_COMMISSION_PERCENTAGE);
+    return Math.max(
+      recruiterCommission,
+      COMMISSION_CONFIG.MIN_COMMISSION_PERCENTAGE
+    );
   }
 
   static calculatePlatformFee(
@@ -195,77 +212,117 @@ export class CommissionCalculator {
   }
 
   static createCommissionStructure(
-    type: 'percentage' | 'fixed',
+    type: "percentage" | "fixed",
     originalPercentage: number,
     fixedAmount: number,
     maxSalary: number,
     reductionPercentage: number = COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
   ): IJobCommission {
-    if (type === 'percentage') {
-      const recruiterPercentage = this.calculateRecruiterCommission(originalPercentage, reductionPercentage);
-      const platformFeePercentage = this.calculatePlatformFee(originalPercentage, recruiterPercentage);
-      const originalAmount = this.calculateCommissionAmount(maxSalary, originalPercentage);
-      const recruiterAmount = this.calculateCommissionAmount(maxSalary, recruiterPercentage);
+    if (type === "percentage") {
+      const recruiterPercentage = this.calculateRecruiterCommission(
+        originalPercentage,
+        reductionPercentage
+      );
+      const platformFeePercentage = this.calculatePlatformFee(
+        originalPercentage,
+        recruiterPercentage
+      );
+      const originalAmount = this.calculateCommissionAmount(
+        maxSalary,
+        originalPercentage
+      );
+      const recruiterAmount = this.calculateCommissionAmount(
+        maxSalary,
+        recruiterPercentage
+      );
 
       return {
-        type: 'percentage',
+        type: "percentage",
         originalPercentage,
         fixedAmount: 0,
         recruiterPercentage,
         platformFeePercentage,
         reductionPercentage,
         originalAmount,
-        recruiterAmount
+        recruiterAmount,
       };
     } else {
       // Fixed commission type
-      const { recruiterAmount } = this.calculateFixedCommissionBreakdown(fixedAmount, reductionPercentage);
+      const { recruiterAmount } = this.calculateFixedCommissionBreakdown(
+        fixedAmount,
+        reductionPercentage
+      );
 
       return {
-        type: 'fixed',
+        type: "fixed",
         originalPercentage: 0,
         fixedAmount,
         recruiterPercentage: 0,
         platformFeePercentage: 0,
         reductionPercentage,
         originalAmount: fixedAmount,
-        recruiterAmount
+        recruiterAmount,
       };
     }
   }
 }
 
 // Create a unique job code if not provided
-JobSchema.pre('save', async function(next) {
+JobSchema.pre("save", async function (next) {
   if (this.isNew && !this.jobCode) {
     const date = new Date();
-    this.jobCode = `JOB-${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    this.jobCode = `JOB-${date.getFullYear()}${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}${date
+      .getDate()
+      .toString()
+      .padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
   }
-  
+
   // Handle commission calculation for new jobs or when commission data changes
-  if (this.isNew || this.isModified('commission') || this.isModified('salary.max')) {
+  if (
+    this.isNew ||
+    this.isModified("commission") ||
+    this.isModified("salary.max")
+  ) {
     if (this.commission) {
+      // Validate platform fee is within allowed range
+      const reductionPercentage =
+        this.commission.reductionPercentage ||
+        COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE;
+      if (
+        reductionPercentage < COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE ||
+        reductionPercentage > COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE
+      ) {
+        const error = new Error(
+          `Platform fee must be between ${COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}% and ${COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}%`
+        );
+        error.name = "ValidationError";
+        return next(error);
+      }
+
       const commissionData = CommissionCalculator.createCommissionStructure(
-        this.commission.type || 'percentage',
+        this.commission.type || "percentage",
         this.commission.originalPercentage || 0,
         this.commission.fixedAmount || 0,
         this.salary?.max || 0,
-        this.commission.reductionPercentage || COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
+        reductionPercentage
       );
       this.commission = commissionData;
-      
+
       // Update legacy fields for backward compatibility
-      this.commissionPercentage = this.commission.type === 'percentage' 
-        ? this.commission.originalPercentage 
-        : 0;
+      this.commissionPercentage =
+        this.commission.type === "percentage"
+          ? this.commission.originalPercentage
+          : 0;
       this.commissionAmount = this.commission.originalAmount;
     }
   }
-  
+
   next();
 });
 
 // Use modelName to avoid issues with hot reloading
-const Job = mongoose.models.Job || mongoose.model<IJob>('Job', JobSchema);
+const Job = mongoose.models.Job || mongoose.model<IJob>("Job", JobSchema);
 
 export default Job;

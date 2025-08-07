@@ -93,29 +93,52 @@ export default function AdminJobDetailPage() {
       <DashboardLayout>
         <div className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Job Details
-              </h1>
-              <div className="flex space-x-4">
-                <Link
-                  href={`/dashboard/admin/jobs/${id}/edit`}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Edit Job
-                </Link>
-                <Link
-                  href={`/dashboard/admin/jobs/${id}/questions`}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Manage Questions
-                </Link>
-                <Link
-                  href="/dashboard/admin/jobs"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Back to Jobs
-                </Link>
+            {/* Header with Title and Actions */}
+            <div className="mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                <div className="flex-1">
+                  <h1 className="text-2xl font-semibold text-gray-900">
+                    Job Details
+                  </h1>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Manage and view job information
+                  </p>
+                </div>
+
+                {/* Actions Panel - Vertical on mobile, horizontal on desktop */}
+                <div className="flex-shrink-0">
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">
+                      Quick Actions
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                      <Link
+                        href={`/dashboard/admin/jobs/${id}/edit`}
+                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        Edit Job
+                      </Link>
+                      <Link
+                        href={`/dashboard/admin/jobs/${id}/questions`}
+                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        Manage Questions
+                      </Link>
+                      <Link
+                        href={`/dashboard/admin/jobs/${id}/resumes`}
+                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        View Resumes
+                      </Link>
+                      <Link
+                        href="/dashboard/admin/jobs"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        Back to Jobs
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

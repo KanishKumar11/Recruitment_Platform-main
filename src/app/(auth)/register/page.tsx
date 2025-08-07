@@ -10,7 +10,7 @@ import {
 } from "./../../store/services/authApi";
 import { setCredentials } from "./../../store/slices/authSlice";
 import { useDispatch } from "react-redux";
-import { UserRole } from "@/app/constants/userRoles";
+import { UserRole } from "@/app/models/User";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -31,7 +31,6 @@ import {
   Check,
   Home,
 } from "lucide-react";
-
 
 type RegistrationStep = "form" | "otp";
 
@@ -60,8 +59,10 @@ export default function RegisterPage() {
   const [designation, setDesignation] = useState("");
 
   // Recruiter-specific fields
-const [recruiterType, setRecruiterType] = useState<"individual" | "firm">("individual");
-const [recruitmentFirmName, setRecruitmentFirmName] = useState("");
+  const [recruiterType, setRecruiterType] = useState<"individual" | "firm">(
+    "individual"
+  );
+  const [recruitmentFirmName, setRecruitmentFirmName] = useState("");
 
   // Agreement and verification
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -177,11 +178,11 @@ const [recruitmentFirmName, setRecruitmentFirmName] = useState("");
     }
 
     if (role === UserRole.RECRUITER && recruiterType === "firm") {
-  if (!recruitmentFirmName.trim()) {
-    setError("Recruitment firm name is required");
-    return;
-  }
-}
+      if (!recruitmentFirmName.trim()) {
+        setError("Recruitment firm name is required");
+        return;
+      }
+    }
 
     if (!agreedToTerms) {
       setError("Please agree to the Terms of Service & Privacy Policy");
@@ -205,9 +206,10 @@ const [recruitmentFirmName, setRecruitmentFirmName] = useState("");
           companySize,
           designation,
         }),
-        ...(role === UserRole.RECRUITER && recruiterType === "firm" && {
-    recruitmentFirmName,
-  }),
+        ...(role === UserRole.RECRUITER &&
+          recruiterType === "firm" && {
+            recruitmentFirmName,
+          }),
       };
 
       const result = await registerWithOTP(registrationData).unwrap();
@@ -390,22 +392,22 @@ const [recruitmentFirmName, setRecruitmentFirmName] = useState("");
                     name="role"
                     value={role}
                     onChange={(e) => {
-  setRole(e.target.value as UserRole);
-  setEmail(""); // Clear email when role changes
-  setError(""); // Clear any existing errors
-  // Reset company fields when switching away from company
-  if (e.target.value !== UserRole.COMPANY) {
-    setCompanyName("");
-    setCompanySize("");
-    setDesignation("");
-    setIsAuthorizedRep(false);
-  }
-  // Reset recruiter fields when switching away from recruiter
-  if (e.target.value !== UserRole.RECRUITER) {
-    setRecruiterType("individual");
-    setRecruitmentFirmName("");
-  }
-}}
+                      setRole(e.target.value as UserRole);
+                      setEmail(""); // Clear email when role changes
+                      setError(""); // Clear any existing errors
+                      // Reset company fields when switching away from company
+                      if (e.target.value !== UserRole.COMPANY) {
+                        setCompanyName("");
+                        setCompanySize("");
+                        setDesignation("");
+                        setIsAuthorizedRep(false);
+                      }
+                      // Reset recruiter fields when switching away from recruiter
+                      if (e.target.value !== UserRole.RECRUITER) {
+                        setRecruiterType("individual");
+                        setRecruitmentFirmName("");
+                      }
+                    }}
                     className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 sm:text-sm"
                   >
                     <option value={UserRole.COMPANY}>Company</option>
@@ -413,61 +415,61 @@ const [recruitmentFirmName, setRecruitmentFirmName] = useState("");
                   </select>
                 </motion.div>
 
+                {/* Recruiter type selection */}
+                {role === UserRole.RECRUITER && (
+                  <motion.div variants={itemVariants} className="space-y-3">
+                    <label className="text-sm font-medium text-gray-300">
+                      Are you an individual recruiter or part of a recruitment
+                      firm?
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRecruiterType("individual");
+                          setRecruitmentFirmName(""); // Clear firm name when switching to individual
+                        }}
+                        className={`p-3 rounded-lg border transition-all duration-200 ${
+                          recruiterType === "individual"
+                            ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
+                            : "border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500"
+                        }`}
+                      >
+                        Individual
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecruiterType("firm")}
+                        className={`p-3 rounded-lg border transition-all duration-200 ${
+                          recruiterType === "firm"
+                            ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
+                            : "border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500"
+                        }`}
+                      >
+                        Recruitment Firm
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
 
-                    {/* Recruiter type selection */}
-{role === UserRole.RECRUITER && (
-  <motion.div variants={itemVariants} className="space-y-3">
-    <label className="text-sm font-medium text-gray-300">
-      Are you an individual recruiter or part of a recruitment firm?
-    </label>
-    <div className="grid grid-cols-2 gap-3">
-      <button
-        type="button"
-        onClick={() => {
-          setRecruiterType("individual");
-          setRecruitmentFirmName(""); // Clear firm name when switching to individual
-        }}
-        className={`p-3 rounded-lg border transition-all duration-200 ${
-          recruiterType === "individual"
-            ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-            : "border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500"
-        }`}
-      >
-        Individual
-      </button>
-      <button
-        type="button"
-        onClick={() => setRecruiterType("firm")}
-        className={`p-3 rounded-lg border transition-all duration-200 ${
-          recruiterType === "firm"
-            ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-            : "border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500"
-        }`}
-      >
-        Recruitment Firm
-      </button>
-    </div>
-  </motion.div>
-)}
-
-{/* Recruitment firm name field */}
-{role === UserRole.RECRUITER && recruiterType === "firm" && (
-  <motion.div variants={itemVariants} className="relative">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <Building className="h-5 w-5 text-gray-400" />
-    </div>
-    <input
-      id="recruitmentFirmName"
-      name="recruitmentFirmName"
-      type="text"
-      required
-      className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-gray-700 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 sm:text-sm"
-      placeholder="Recruitment Firm Name"
-      value={recruitmentFirmName}
-      onChange={(e) => setRecruitmentFirmName(e.target.value)}
-    />
-  </motion.div>
-)}
+                {/* Recruitment firm name field */}
+                {role === UserRole.RECRUITER && recruiterType === "firm" && (
+                  <motion.div variants={itemVariants} className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Building className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="recruitmentFirmName"
+                      name="recruitmentFirmName"
+                      type="text"
+                      required
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-gray-700 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 sm:text-sm"
+                      placeholder="Recruitment Firm Name"
+                      value={recruitmentFirmName}
+                      onChange={(e) => setRecruitmentFirmName(e.target.value)}
+                    />
+                  </motion.div>
+                )}
                 {/* Company-specific fields */}
                 {role === UserRole.COMPANY && (
                   <>

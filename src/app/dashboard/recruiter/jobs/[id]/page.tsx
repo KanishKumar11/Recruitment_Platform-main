@@ -226,6 +226,19 @@ export default function RecruiterJobDetailsPage() {
                         </dd>
                       </div>
 
+                      {/* Compensation Details */}
+                      {job.compensationDetails && (
+                        <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">
+                          <dt className="text-sm font-medium text-gray-500 flex items-center sm:col-span-1">
+                            <DollarSign className="mr-2 h-4 w-4 text-gray-400" />
+                            Compensation Details
+                          </dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-5">
+                            {job.compensationDetails}
+                          </dd>
+                        </div>
+                      )}
+
                       {/* Sixth Line - Payment Terms */}
                       <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">
                         <dt className="text-sm font-medium text-gray-500 sm:col-span-1">
@@ -247,19 +260,18 @@ export default function RecruiterJobDetailsPage() {
                       </div>
 
                       <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">
-  <dt className="text-sm font-medium text-gray-500 sm:col-span-1">
-    Company Description
-  </dt>
-  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-5">
-    <div
-      className="prose max-w-none"
-      dangerouslySetInnerHTML={{
-        __html: job.companyDescription || "Not specified",
-      }}
-    />
-  </dd>
-</div>
-
+                        <dt className="text-sm font-medium text-gray-500 sm:col-span-1">
+                          Company Description
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-5">
+                          <div
+                            className="prose max-w-none"
+                            dangerouslySetInnerHTML={{
+                              __html: job.companyDescription || "Not specified",
+                            }}
+                          />
+                        </dd>
+                      </div>
 
                       {/* Description */}
                       <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">

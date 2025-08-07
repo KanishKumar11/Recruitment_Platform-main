@@ -28,6 +28,8 @@ import {
   MessageSquare,
   Award,
   Copy, // Added for duplicate icon
+  Eye,
+  X,
 } from "lucide-react";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
@@ -43,6 +45,10 @@ export default function AdminResumeView({
   const router = useRouter();
   const { data: resume, isLoading, error } = useGetResumeByIdQuery(resumeId);
   const [updateResumeStatus] = useUpdateResumeStatusMutation();
+  const [previewDocument, setPreviewDocument] = useState<{
+    filename: string;
+    originalName: string;
+  } | null>(null);
 
   const getStatusColor = (status: ResumeStatus) => {
     switch (status) {
@@ -94,6 +100,63 @@ export default function AdminResumeView({
       await updateResumeStatus({ id: resumeId, status });
     } catch (error) {
       console.error("Error updating resume status:", error);
+    }
+  };
+
+  // Helper function to check if file can be previewed
+  const canPreviewFile = (filename: string) => {
+    const extension = filename.toLowerCase().split(".").pop();
+    return ["pdf", "jpg", "jpeg", "png", "gif", "bmp", "webp", "txt"].includes(
+      extension || ""
+    );
+  };
+
+  // Helper function to get preview URL for additional documents
+  const getDocumentPreviewUrl = (filename: string) => {
+    const token = localStorage.getItem("token") || "";
+    return `/api/resumes/download/${filename}?token=${encodeURIComponent(
+      token
+    )}`;
+  };
+
+  // Helper function to handle additional document download
+  const handleDocumentDownload = async (
+    filename: string,
+    originalName: string
+  ) => {
+    try {
+      const downloadUrl = `/api/resumes/download/${filename}?download=true`;
+
+      // Fetch the file with authentication headers
+      const response = await fetch(downloadUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.status}`);
+      }
+
+      // Get the file blob
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = originalName;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Document download failed:", error);
+      alert("Failed to download document. Please try again.");
     }
   };
 
@@ -318,6 +381,72 @@ export default function AdminResumeView({
                               </div>
                             </dd>
                           </div>
+
+                          {/* Additional Documents section */}
+                          {resume.additionalDocuments &&
+                            resume.additionalDocuments.length > 0 && (
+                              <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt className="text-sm font-medium text-gray-500 flex items-center">
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Additional Documents (
+                                  {resume.additionalDocuments.length})
+                                </dt>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                  <div className="space-y-2">
+                                    {resume.additionalDocuments.map(
+                                      (doc, index) => (
+                                        <div
+                                          key={index}
+                                          className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
+                                        >
+                                          <div className="flex items-center">
+                                            <FileText className="h-4 w-4 text-gray-400 mr-2" />
+                                            <div>
+                                              <span className="text-sm font-medium text-gray-900">
+                                                {doc.originalName}
+                                              </span>
+                                              <p className="text-xs text-gray-500">
+                                                Uploaded on{" "}
+                                                {new Date(
+                                                  doc.uploadedAt
+                                                ).toLocaleDateString()}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          <div className="flex space-x-2">
+                                            {canPreviewFile(doc.filename) && (
+                                              <button
+                                                onClick={() =>
+                                                  setPreviewDocument({
+                                                    filename: doc.filename,
+                                                    originalName:
+                                                      doc.originalName,
+                                                  })
+                                                }
+                                                className="flex-shrink-0 font-medium text-gray-600 hover:text-gray-500"
+                                              >
+                                                <Eye className="h-4 w-4" />
+                                              </button>
+                                            )}
+                                            <button
+                                              onClick={() =>
+                                                handleDocumentDownload(
+                                                  doc.filename,
+                                                  doc.originalName
+                                                )
+                                              }
+                                              className="flex-shrink-0 font-medium text-indigo-600 hover:text-indigo-500"
+                                            >
+                                              <Download className="h-4 w-4" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </dd>
+                              </div>
+                            )}
                         </dl>
                       </div>
                     </div>
@@ -625,6 +754,69 @@ export default function AdminResumeView({
             )}
           </div>
         </div>
+
+        {/* Document Preview Modal */}
+        {previewDocument && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60">
+            <div className="bg-white p-4 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Preview: {previewDocument.originalName}
+                </h3>
+                <button
+                  onClick={() => setPreviewDocument(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="w-full h-96">
+                {previewDocument.filename.toLowerCase().endsWith(".pdf") ? (
+                  <iframe
+                    src={getDocumentPreviewUrl(previewDocument.filename)}
+                    className="w-full h-full border border-gray-300 rounded-lg"
+                    title={`Preview of ${previewDocument.originalName}`}
+                  />
+                ) : previewDocument.filename
+                    .toLowerCase()
+                    .match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? (
+                  <img
+                    src={getDocumentPreviewUrl(previewDocument.filename)}
+                    alt={`Preview of ${previewDocument.originalName}`}
+                    className="w-full h-full object-contain border border-gray-300 rounded-lg"
+                  />
+                ) : previewDocument.filename.toLowerCase().endsWith(".txt") ? (
+                  <iframe
+                    src={getDocumentPreviewUrl(previewDocument.filename)}
+                    className="w-full h-full border border-gray-300 rounded-lg"
+                    title={`Preview of ${previewDocument.originalName}`}
+                  />
+                ) : (
+                  <div className="w-full h-full border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                      <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">
+                        Preview not available for this file type
+                      </p>
+                      <button
+                        onClick={() =>
+                          handleDocumentDownload(
+                            previewDocument.filename,
+                            previewDocument.originalName
+                          )
+                        }
+                        className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download File
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </DashboardLayout>
     </ProtectedLayout>
   );

@@ -97,6 +97,12 @@ export default function Home() {
                 Why Choose Us
               </Link>
               <Link
+                href="/faq"
+                className="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 px-3 py-2 font-medium text-sm"
+              >
+                FAQ
+              </Link>
+              <Link
                 href="#testimonials"
                 className="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 px-3 py-2 font-medium text-sm"
               >
@@ -164,6 +170,12 @@ export default function Home() {
                 className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400"
               >
                 Why Choose Us
+              </Link>
+              <Link
+                href="/faq"
+                className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400"
+              >
+                FAQ
               </Link>
               <Link
                 href="#testimonials"
@@ -393,11 +405,15 @@ export default function Home() {
                     ecosystem Whether you're hiring for technology, healthcare,
                     manufacturing, finance, or any other sector, we have
                     pre-vetted vendor partners across industries ready to
-                    deliver results. <Link href="/ourStory" className="text-blue-600 dark:text-blue-400 hover:underline">Learn more about our story</Link>
+                    deliver results.{" "}
+                    <Link
+                      href="/ourStory"
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Learn more about our story
+                    </Link>
                   </p>
                 </div>
-
-                
               </div>
             </motion.div>
           </div>

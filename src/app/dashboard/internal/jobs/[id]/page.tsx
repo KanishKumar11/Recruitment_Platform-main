@@ -20,103 +20,103 @@ import { JobStatus } from "@/app/constants/jobStatus";
 const getCurrencySymbol = (currencyCode: string): string => {
   // For common currencies, return their symbols
   const symbolMap: Record<string, string> = {
-    'USD': '$',
-    'EUR': '€',
-    'GBP': '£',
-    'JPY': '¥',
-    'CAD': 'C$',
-    'AUD': 'A$',
-    'CHF': 'CHF',
-    'CNY': '¥',
-    'INR': '₹',
-    'BRL': 'R$',
-    'MXN': '$',
-    'SGD': 'S$',
-    'NZD': 'NZ$',
-    'HKD': 'HK$',
-    'SEK': 'kr',
-    'NOK': 'kr',
-    'DKK': 'kr',
-    'PLN': 'zł',
-    'HUF': 'Ft',
-    'ILS': '₪',
-    'KRW': '₩',
-    'MYR': 'RM',
-    'PHP': '₱',
-    'THB': '฿',
-    'TRY': '₺',
-    'ZAR': 'R',
-    'RUB': '₽',
-    'AED': 'د.إ',
-    'SAR': '﷼',
-    'EGP': 'E£',
-    'PKR': '₨',
-    'BDT': '৳',
-    'IDR': 'Rp',
-    'VND': '₫',
-    'UAH': '₴',
-    'ARS': '$',
-    'CLP': '$',
-    'PEN': 'S/',
-    'COP': '$',
-    'BOB': 'Bs.',
-    'CRC': '₡',
-    'DOP': 'RD$',
-    'GTQ': 'Q',
-    'HNL': 'L',
-    'NIO': 'C$',
-    'PAB': 'B/.',
-    'PYG': '₲',
-    'UYU': '$U',
-    'VEF': 'Bs',
-    'IRR': '﷼',
-    'IQD': 'ع.د',
-    'KWD': 'د.ك',
-    'OMR': 'ر.ع.',
-    'QAR': 'ر.ق',
-    'YER': '﷼',
-    'LBP': 'ل.ل',
-    'JOD': 'د.ا',
-    'BHD': '.د.ب',
-    'LYD': 'ل.د',
-    'TND': 'د.ت',
-    'MAD': 'د.م.',
-    'DZD': 'د.ج',
-    'AZN': '₼',
-    'AMD': 'դր.',
-    'BYN': 'Br',
-    'BGN': 'лв',
-    'HRK': 'kn',
-    'GEL': '₾',
-    'ISK': 'kr',
-    'KZT': '₸',
-    'KGS': 'с',
-    'MKD': 'ден',
-    'MDL': 'L',
-    'RSD': 'дин',
-    'TJS': 'SM',
-    'TMT': 'm',
-    'UZS': 'сўм',
-    'AFN': '؋',
-    'ETB': 'Br',
-    'GHS': '₵',
-    'KES': 'KSh',
-    'MWK': 'MK',
-    'MUR': '₨',
-    'NGN': '₦',
-    'RWF': 'FRw',
-    'TZS': 'TSh',
-    'UGX': 'USh',
-    'ZMW': 'ZK',
-    'BWP': 'P',
-    'MZN': 'MT',
-    'AOA': 'Kz',
-    'CDF': 'FC',
-    'XOF': 'CFA',
-    'XAF': 'FCFA',
-    'XPF': '₣',
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    JPY: "¥",
+    CAD: "C$",
+    AUD: "A$",
+    CHF: "CHF",
+    CNY: "¥",
+    INR: "₹",
+    BRL: "R$",
+    MXN: "$",
+    SGD: "S$",
+    NZD: "NZ$",
+    HKD: "HK$",
+    SEK: "kr",
+    NOK: "kr",
+    DKK: "kr",
+    PLN: "zł",
+    HUF: "Ft",
+    ILS: "₪",
+    KRW: "₩",
+    MYR: "RM",
+    PHP: "₱",
+    THB: "฿",
+    TRY: "₺",
+    ZAR: "R",
+    RUB: "₽",
+    AED: "د.إ",
+    SAR: "﷼",
+    EGP: "E£",
+    PKR: "₨",
+    BDT: "৳",
+    IDR: "Rp",
+    VND: "₫",
+    UAH: "₴",
+    ARS: "$",
+    CLP: "$",
+    PEN: "S/",
+    COP: "$",
+    BOB: "Bs.",
+    CRC: "₡",
+    DOP: "RD$",
+    GTQ: "Q",
+    HNL: "L",
+    NIO: "C$",
+    PAB: "B/.",
+    PYG: "₲",
+    UYU: "$U",
+    VEF: "Bs",
+    IRR: "﷼",
+    IQD: "ع.د",
+    KWD: "د.ك",
+    OMR: "ر.ع.",
+    QAR: "ر.ق",
+    YER: "﷼",
+    LBP: "ل.ل",
+    JOD: "د.ا",
+    BHD: ".د.ب",
+    LYD: "ل.د",
+    TND: "د.ت",
+    MAD: "د.م.",
+    DZD: "د.ج",
+    AZN: "₼",
+    AMD: "դր.",
+    BYN: "Br",
+    BGN: "лв",
+    HRK: "kn",
+    GEL: "₾",
+    ISK: "kr",
+    KZT: "₸",
+    KGS: "с",
+    MKD: "ден",
+    MDL: "L",
+    RSD: "дин",
+    TJS: "SM",
+    TMT: "m",
+    UZS: "сўм",
+    AFN: "؋",
+    ETB: "Br",
+    GHS: "₵",
+    KES: "KSh",
+    MWK: "MK",
+    MUR: "₨",
+    NGN: "₦",
+    RWF: "FRw",
+    TZS: "TSh",
+    UGX: "USh",
+    ZMW: "ZK",
+    BWP: "P",
+    MZN: "MT",
+    AOA: "Kz",
+    CDF: "FC",
+    XOF: "CFA",
+    XAF: "FCFA",
+    XPF: "₣",
   };
-  
+
   return symbolMap[currencyCode] || currencyCode;
 };
 
@@ -197,36 +197,55 @@ export default function AdminJobDetailPage() {
       <DashboardLayout>
         <div className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center">
+            {/* Quick Actions - Moved to top */}
+            <div className="mb-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">
+                  Quick Actions
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href={`/dashboard/internal/jobs/${id}/apply`}
+                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                  >
+                    Apply to Job
+                  </Link>
+                  <Link
+                    href={`/dashboard/internal/jobs/${id}/edit`}
+                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                  >
+                    Edit Job
+                  </Link>
+                  <Link
+                    href={`/dashboard/internal/jobs/${id}/questions`}
+                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                  >
+                    Manage Questions
+                  </Link>
+                  <Link
+                    href={`/dashboard/internal/jobs/${id}/resumes`}
+                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                  >
+                    View Resumes
+                  </Link>
+                  <Link
+                    href="/dashboard/internal/jobs"
+                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                  >
+                    Back to Jobs
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Header with Title */}
+            <div className="mb-6">
               <h1 className="text-2xl font-semibold text-gray-900">
                 Job Details
               </h1>
-              <div className="flex space-x-4">
-                <Link
-                  href={`/dashboard/internal/jobs/${id}/apply`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  Apply to Job
-                </Link>
-                <Link
-                  href={`/dashboard/internal/jobs/${id}/edit`}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Edit Job
-                </Link>
-                <Link
-                  href={`/dashboard/internal/jobs/${id}/questions`}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Manage Questions
-                </Link>
-                <Link
-                  href="/dashboard/internal/jobs"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Back to Jobs
-                </Link>
-              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                Manage and view job information
+              </p>
             </div>
           </div>
 
@@ -323,11 +342,22 @@ export default function AdminJobDetailPage() {
                       Salary Range
                     </dt>
                     <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {getCurrencySymbol(job.salary.currency)} {job.salary.min.toLocaleString()} -{" "}
+                      {getCurrencySymbol(job.salary.currency)}{" "}
+                      {job.salary.min.toLocaleString()} -{" "}
                       {job.salary.max.toLocaleString()} ({job.salary.currency})
                     </dd>
                   </div>
-                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  {job.compensationDetails && (
+                    <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Compensation Details
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {job.compensationDetails}
+                      </dd>
+                    </div>
+                  )}
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt className="text-sm font-medium text-gray-500">
                       Experience Required
                     </dt>
@@ -350,20 +380,24 @@ export default function AdminJobDetailPage() {
                           } (${job.salary.currency}) (Fixed)`
                         : job.commission?.type === "percentage"
                         ? // Percentage commission display
-                          `${job.commission.originalPercentage}% (${
-                            getCurrencySymbol(job.salary.currency)
-                          } ${
+                          `${
+                            job.commission.originalPercentage
+                          }% (${getCurrencySymbol(job.salary.currency)} ${
                             job.commission.originalAmount?.toLocaleString() ||
                             job.commissionAmount.toLocaleString()
                           } ${job.salary.currency})`
                         : // Legacy fallback - only show if commissionPercentage is greater than 0
                         job.commissionPercentage > 0
-                        ? `${job.commissionPercentage}% (${
-                            getCurrencySymbol(job.salary.currency)
-                          } ${job.commissionAmount.toLocaleString()} ${job.salary.currency})`
-                        : `${
-                            getCurrencySymbol(job.salary.currency)
-                          } ${job.commissionAmount.toLocaleString()} (${job.salary.currency}) (Fixed)`}
+                        ? `${job.commissionPercentage}% (${getCurrencySymbol(
+                            job.salary.currency
+                          )} ${job.commissionAmount.toLocaleString()} ${
+                            job.salary.currency
+                          })`
+                        : `${getCurrencySymbol(
+                            job.salary.currency
+                          )} ${job.commissionAmount.toLocaleString()} (${
+                            job.salary.currency
+                          }) (Fixed)`}
                     </dd>
                   </div>
                   <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">

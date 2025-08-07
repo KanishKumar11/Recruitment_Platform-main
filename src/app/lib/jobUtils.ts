@@ -4,6 +4,8 @@ import { IJob } from "@/app/models/Job";
 // Commission configuration - should match frontend config
 const COMMISSION_CONFIG = {
   DEFAULT_REDUCTION_PERCENTAGE: 40,
+  MIN_REDUCTION_PERCENTAGE: 0,
+  MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
   MAX_COMMISSION_PERCENTAGE: 50,
 };
@@ -14,15 +16,21 @@ const calculateRecruiterCommission = (
   reductionPercentage: number = COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
 ): number => {
   if (originalCommission <= 0) return 0;
-  
+
   const reduction = (originalCommission * reductionPercentage) / 100;
   const recruiterCommission = originalCommission - reduction;
-  
-  return Math.max(recruiterCommission, COMMISSION_CONFIG.MIN_COMMISSION_PERCENTAGE);
+
+  return Math.max(
+    recruiterCommission,
+    COMMISSION_CONFIG.MIN_COMMISSION_PERCENTAGE
+  );
 };
 
 // Function to calculate commission amount
-export const calculateCommissionAmount = (salary: number, percentage: number): number => {
+export const calculateCommissionAmount = (
+  salary: number,
+  percentage: number
+): number => {
   return (salary * percentage) / 100;
 };
 
@@ -50,15 +58,22 @@ export const transformJobForUser = (job: any, userRole: string): IJob => {
   if (userRole === UserRole.RECRUITER) {
     // Get the original commission data
     const originalCommission = jobObj.commission || {};
-    const originalPercentage = originalCommission.originalPercentage || jobObj.commissionPercentage || 0;
-    const originalFixedAmount = originalCommission.fixedAmount || jobObj.fixedCommissionAmount || 0;
-    const reductionPercentage = originalCommission.reductionPercentage || COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE;
-    
+    const originalPercentage =
+      originalCommission.originalPercentage || jobObj.commissionPercentage || 0;
+    const originalFixedAmount =
+      originalCommission.fixedAmount || jobObj.fixedCommissionAmount || 0;
+    const reductionPercentage =
+      originalCommission.reductionPercentage ||
+      COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE;
+
     // Check if this is a fixed commission job
     if (originalFixedAmount > 0) {
       // Calculate fixed commission breakdown for recruiter
-      const { recruiterAmount } = calculateFixedCommissionBreakdown(originalFixedAmount, reductionPercentage);
-      
+      const { recruiterAmount } = calculateFixedCommissionBreakdown(
+        originalFixedAmount,
+        reductionPercentage
+      );
+
       // Return job with recruiter-visible fixed commission data
       return {
         ...jobObj,
@@ -68,16 +83,22 @@ export const transformJobForUser = (job: any, userRole: string): IJob => {
         commissionAmount: 0, // Not applicable for fixed commission
         commission: {
           ...jobObj.commission,
-          type: 'fixed',
+          type: "fixed",
           fixedAmount: originalFixedAmount,
           recruiterAmount,
         },
       };
     } else {
       // Handle percentage-based commission
-      const recruiterPercentage = calculateRecruiterCommission(originalPercentage, reductionPercentage);
-      const recruiterAmount = calculateCommissionAmount(jobObj.salary?.max || 0, recruiterPercentage);
-      
+      const recruiterPercentage = calculateRecruiterCommission(
+        originalPercentage,
+        reductionPercentage
+      );
+      const recruiterAmount = calculateCommissionAmount(
+        jobObj.salary?.max || 0,
+        recruiterPercentage
+      );
+
       // Return job with recruiter-visible percentage commission data
       return {
         ...jobObj,
@@ -87,7 +108,7 @@ export const transformJobForUser = (job: any, userRole: string): IJob => {
         fixedCommissionAmount: 0, // Not applicable for percentage commission
         commission: {
           ...jobObj.commission,
-          type: 'percentage',
+          type: "percentage",
           recruiterPercentage,
           recruiterAmount,
         },
@@ -99,6 +120,7 @@ export const transformJobForUser = (job: any, userRole: string): IJob => {
   return {
     ...jobObj,
     // Ensure both commission fields are available for non-recruiter roles
-    fixedCommissionAmount: jobObj.fixedCommissionAmount || jobObj.commission?.fixedAmount || 0,
+    fixedCommissionAmount:
+      jobObj.fixedCommissionAmount || jobObj.commission?.fixedAmount || 0,
   };
 };

@@ -20,6 +20,32 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/app/components/ui/pagination";
+import { Button } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { Input } from "@/app/components/ui/input";
 
 export default function JobsListPage() {
   const router = useRouter();
@@ -32,6 +58,14 @@ export default function JobsListPage() {
   const user = useSelector((state: RootState) => state.auth.user);
   const isPrimary = user?.isPrimary;
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
   // Status badge colors
   const statusColors = {
     DRAFT: "bg-gray-100 text-gray-800",
@@ -43,6 +77,36 @@ export default function JobsListPage() {
   // Format status text
   const formatStatus = (status: string) => {
     return status.charAt(0) + status.slice(1).toLowerCase();
+  };
+
+  // Filter jobs based on search and status
+  const filteredJobs = jobs?.filter((job) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.jobCode?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  }) || [];
+
+  // Calculate pagination
+  const totalItems = filteredJobs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = filteredJobs.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
   };
 
   // Handle job deletion
@@ -96,137 +160,279 @@ export default function JobsListPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
               </div>
             ) : (
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                {isPrimary && (
-                  <div className="bg-blue-50 p-4 border-b border-blue-100">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <FileQuestion className="h-5 w-5 text-blue-400" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm text-blue-700">
-                          As a primary account holder, you can see all jobs
-                          posted by your company members.
-                        </p>
-                      </div>
+              <>
+                {/* Search and Filters */}
+                <div className="bg-white shadow rounded-lg p-4 mb-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                    <div>
+                      <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+                        Search
+                      </label>
+                      <Input
+                        type="text"
+                        id="search"
+                        placeholder="Job title, code..."
+                        value={searchTerm}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                        Status
+                      </label>
+                      <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All Statuses" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Statuses</SelectItem>
+                          <SelectItem value="DRAFT">Draft</SelectItem>
+                          <SelectItem value="ACTIVE">Active</SelectItem>
+                          <SelectItem value="PAUSED">Paused</SelectItem>
+                          <SelectItem value="CLOSED">Closed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="itemsPerPage" className="block text-sm font-medium text-gray-700">
+                        Items per page
+                      </label>
+                      <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                        setItemsPerPage(parseInt(value));
+                        setCurrentPage(1);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                            <SelectItem key={option} value={option.toString()}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-end">
+                      <Button
+                        onClick={() => refetch()}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Refresh
+                      </Button>
                     </div>
                   </div>
-                )}
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Job Title
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Posted Date
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Status
-                      </th>
-                      {isPrimary && (
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Posted By
-                        </th>
-                      )}
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {jobs?.map((job) => (
-                      <tr key={job._id as string}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {job.title}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {format(new Date(job.postedDate), "MMMM dd, yyyy")}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              statusColors[job.status]
-                            }`}
-                          >
-                            {formatStatus(job.status)}
-                          </span>
-                        </td>
-                        {isPrimary && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {job.postedBy?.toString() === user?.id
-                              ? "You"
-                              : job.postedByName || "Team Member"}
-                          </td>
-                        )}
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end items-center space-x-3">
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/company/jobs/${job._id}`
-                                )
-                              }
-                              className="text-indigo-600 hover:text-indigo-900"
-                              title="View Job Details"
-                            >
-                              <Eye className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/company/jobs/${job._id}/edit`
-                                )
-                              }
-                              className="text-indigo-600 hover:text-indigo-900"
-                              title="Edit Job"
-                            >
-                              <Edit className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() => openDeleteModal(job._id as string)}
-                              className="text-red-600 hover:text-red-900"
-                              title="Delete Job"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/company/jobs/${job._id}/resumes`
-                                )
-                              }
-                              className="px-3 py-1 bg-green-600 text-white text-xs rounded-md hover:bg-green-700"
-                            >
-                              View Resumes
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {jobs?.length === 0 && (
-                  <div className="px-6 py-4 text-center text-gray-500">
-                    No jobs found.
+                </div>
+
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                  {isPrimary && (
+                    <div className="bg-blue-50 p-4 border-b border-blue-100">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <FileQuestion className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm text-blue-700">
+                            As a primary account holder, you can see all jobs
+                            posted by your company members.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center bg-white">
+                    <div>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Job Listings
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} jobs
+                      </p>
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[200px]">Actions</TableHead>
+                          <TableHead>Job Title</TableHead>
+                          <TableHead>Posted Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          {isPrimary && <TableHead>Posted By</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentJobs && currentJobs.length > 0 ? (
+                          currentJobs.map((job) => (
+                            <TableRow key={job._id as string}>
+                              <TableCell className="align-top">
+                                <div className="flex flex-col gap-2 py-2">
+                                  <div className="flex flex-wrap gap-1">
+                                    <button
+                                      onClick={() =>
+                                        router.push(
+                                          `/dashboard/company/jobs/${job._id}`
+                                        )
+                                      }
+                                      className="flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors"
+                                      title="View Job Details"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        router.push(
+                                          `/dashboard/company/jobs/${job._id}/edit`
+                                        )
+                                      }
+                                      className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit Job"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => openDeleteModal(job._id as string)}
+                                      className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete Job"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      router.push(
+                                        `/dashboard/company/jobs/${job._id}/resumes`
+                                      )
+                                    }
+                                    className="w-full text-xs"
+                                  >
+                                    View Resumes
+                                  </Button>
+                                </div>
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <div className="py-2">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {job.title}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <div className="py-2">
+                                  <div className="text-sm text-gray-500">
+                                    {format(new Date(job.postedDate), "MMMM dd, yyyy")}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <div className="py-2">
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                      statusColors[job.status]
+                                    }`}
+                                  >
+                                    {formatStatus(job.status)}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              {isPrimary && (
+                                <TableCell className="align-top">
+                                  <div className="py-2">
+                                    <div className="text-sm text-gray-500">
+                                      {job.postedBy?.toString() === user?.id
+                                        ? "You"
+                                        : job.postedByName || "Team Member"}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={isPrimary ? 5 : 4}
+                              className="px-6 py-4 text-center text-sm text-gray-500"
+                            >
+                              No jobs found
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-gray-200 bg-white">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
+                          
+                          {/* Page numbers */}
+                          {[...Array(totalPages)].map((_, index) => {
+                            const pageNumber = index + 1;
+                            const isCurrentPage = pageNumber === currentPage;
+                            
+                            // Show first page, last page, current page, and pages around current page
+                            if (
+                              pageNumber === 1 ||
+                              pageNumber === totalPages ||
+                              (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                            ) {
+                              return (
+                                <PaginationItem key={pageNumber}>
+                                  <PaginationLink
+                                    onClick={() => setCurrentPage(pageNumber)}
+                                    isActive={isCurrentPage}
+                                    className="cursor-pointer"
+                                  >
+                                    {pageNumber}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            }
+                            
+                            // Show ellipsis
+                            if (
+                              pageNumber === currentPage - 2 ||
+                              pageNumber === currentPage + 2
+                            ) {
+                              return (
+                                <PaginationItem key={pageNumber}>
+                                  <PaginationEllipsis />
+                                </PaginationItem>
+                              );
+                            }
+                            
+                            return null;
+                          })}
+                          
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
           {isModalOpen && (

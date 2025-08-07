@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Debug Redux State</title>
+</head>
+
+<body>
+  <h1>Redux State Debugger</h1>
+  <p>Open this in your browser where you're logged in as admin</p>
+  <div id="output"></div>
+
+  <script>
+    // This will help us see what's in your Redux state
+    function debugReduxState() {
+      const output = document.getElementById('output');
+
+      // Check localStorage
+      const token = localStorage.getItem('token');
+      const auth = localStorage.getItem('auth');
+
+      output.innerHTML = `
+                <h2>LocalStorage Data:</h2>
+                <p><strong>Token:</strong> ${token ? token.substring(0, 50) + '...' : 'Not found'}</p>
+                <p><strong>Auth State:</strong> ${auth || 'Not found'}</p>
+                
+                <h2>Parsed Auth State:</h2>
+                <pre>${auth ? JSON.stringify(JSON.parse(auth), null, 2) : 'No auth state'}</pre>
+                
+                <h2>Instructions:</h2>
+                <p>1. Copy the auth state above</p>
+                <p>2. Check if user.role is exactly "ADMIN"</p>
+                <p>3. If not, that's the issue!</p>
+            `;
+    }
+
+    debugReduxState();
+  </script>
+</body>
+
+</html>

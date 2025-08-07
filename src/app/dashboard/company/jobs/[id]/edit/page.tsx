@@ -12,6 +12,7 @@ import { Loader2, ArrowLeft, Save } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { JobType } from "../../../../../models/Job";
 import RichTextEditor from "@/app/components/RichTextEditor";
+import { useSelector } from "react-redux";
 
 export default function EditJobPage() {
   const router = useRouter();
@@ -24,9 +25,13 @@ export default function EditJobPage() {
   // Track if data has been loaded to prevent premature rich text editor initialization
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
+  // Get user data for company name
+  const user = useSelector((state: any) => state.auth?.user);
+
   // Form state
   const [formData, setFormData] = useState({
     title: "",
+    companyName: "",
     country: "",
     location: "",
     salary: {
@@ -69,6 +74,7 @@ export default function EditJobPage() {
 
       const newFormData = {
         title: job.title || "",
+        companyName: job.companyName || user?.companyName || user?.name || "",
         country: job.country || "",
         location: job.location || "",
         salary: {

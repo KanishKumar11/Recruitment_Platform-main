@@ -277,6 +277,17 @@ export default function ViewJobPage() {
                         </dd>
                       </div>
                     </div>
+                    {/* Compensation Details - Full width if present */}
+                    {job.compensationDetails && (
+                      <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Compensation Details
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-5">
+                          {job.compensationDetails}
+                        </dd>
+                      </div>
+                    )}
                     {/* // In your ViewJobPage component, replace the Commission row
                     with this updated version: */}
                     {/* Row 4: Commission & Payment Terms */}
@@ -334,7 +345,12 @@ export default function ViewJobPage() {
                         Company Description
                       </dt>
                       <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-5">
-                        {job.companyDescription || "Not specified"}
+                        <div
+                          className="prose prose-sm max-w-none text-left"
+                          dangerouslySetInnerHTML={{
+                            __html: job.companyDescription || "Not specified",
+                          }}
+                        />
                       </dd>
                     </div>
                     <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">

@@ -17,6 +17,8 @@ import {
   AlertCircle,
   AlertTriangle,
   Info,
+  X,
+  Download,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -66,7 +68,9 @@ export default function ApplyForJobPage() {
   const [qualification, setQualification] = useState("");
   const [remarks, setRemarks] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const additionalFilesRef = useRef<HTMLInputElement>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Validation states
@@ -182,6 +186,21 @@ export default function ApplyForJobPage() {
     }
   };
 
+  // Handle additional files selection
+  const handleAdditionalFilesChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setAdditionalFiles((prev) => [...prev, ...filesArray]);
+    }
+  };
+
+  // Remove additional file
+  const removeAdditionalFile = (index: number) => {
+    setAdditionalFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // Handle answer change for screening questions
   const handleAnswerChange = (questionId: string, value: string) => {
     setScreeningAnswers((prev) => ({
@@ -231,6 +250,11 @@ export default function ApplyForJobPage() {
       formData.append("remarks", remarks);
       formData.append("resumeFile", selectedFile);
 
+      // Add additional documents to form data
+      additionalFiles.forEach((file) => {
+        formData.append("additionalDocuments", file);
+      });
+
       // Add screening answers to form data
       if (job?.screeningQuestions && job.screeningQuestions.length > 0) {
         (
@@ -265,11 +289,15 @@ export default function ApplyForJobPage() {
       setQualification("");
       setRemarks("");
       setSelectedFile(null);
+      setAdditionalFiles([]);
       setScreeningAnswers({});
       setValidationResult(null);
       setHasValidated(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
+      }
+      if (additionalFilesRef.current) {
+        additionalFilesRef.current.value = "";
       }
 
       // After 3 seconds, hide the success message
@@ -748,6 +776,74 @@ export default function ApplyForJobPage() {
                           <p className="mt-2 text-sm text-gray-500">
                             Selected file: {selectedFile.name}
                           </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Additional Documents Section */}
+                    <div className="border-b border-gray-200 pb-4 mb-6">
+                      <h4 className="text-md font-medium text-gray-900 mb-4">
+                        Additional Documents
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Upload any additional documents such as certificates,
+                        portfolio, cover letter, etc. (Optional)
+                      </p>
+
+                      {/* Additional Documents Upload */}
+                      <div>
+                        <label
+                          htmlFor="additionalDocuments"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Upload Additional Documents
+                        </label>
+                        <input
+                          type="file"
+                          id="additionalDocuments"
+                          multiple
+                          ref={additionalFilesRef}
+                          onChange={handleAdditionalFilesChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          You can select multiple files. All file types are
+                          supported.
+                        </p>
+
+                        {/* Display selected additional files */}
+                        {additionalFiles.length > 0 && (
+                          <div className="mt-4">
+                            <h5 className="text-sm font-medium text-gray-700 mb-2">
+                              Selected Files ({additionalFiles.length}):
+                            </h5>
+                            <div className="space-y-2">
+                              {additionalFiles.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
+                                >
+                                  <div className="flex items-center">
+                                    <FileUp className="h-4 w-4 text-gray-400 mr-2" />
+                                    <span className="text-sm text-gray-700">
+                                      {file.name}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-2">
+                                      ({(file.size / 1024 / 1024).toFixed(2)}{" "}
+                                      MB)
+                                    </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeAdditionalFile(index)}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

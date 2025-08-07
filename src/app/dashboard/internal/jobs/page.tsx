@@ -23,6 +23,32 @@ import {
   useDeleteJobMutation,
 } from "../../../store/services/jobsApi";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/app/components/ui/pagination";
+import { Button } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { Input } from "@/app/components/ui/input";
 import { UserRole } from "@/app/constants/userRoles";
 import { JobType } from "@/app/constants/jobType";
 import { JobStatus } from "@/app/constants/jobStatus";
@@ -39,13 +65,19 @@ export default function InternalJobsPage() {
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [jobTypeFilter, setJobTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [jobTypeFilter, setJobTypeFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Delete modal states
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -104,8 +136,8 @@ export default function InternalJobsPage() {
       job.jobCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.location.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "" || job.status === statusFilter;
-    const matchesType = jobTypeFilter === "" || job.jobType === jobTypeFilter;
+    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
+    const matchesType = jobTypeFilter === "all" || job.jobType === jobTypeFilter;
 
     // Note: We would need to add company name to the job object when fetching from API
     const matchesCompany =
@@ -115,7 +147,35 @@ export default function InternalJobsPage() {
         .includes(companyFilter.toLowerCase());
 
     return matchesSearch && matchesStatus && matchesType && matchesCompany;
-  });
+  }) || [];
+
+  // Calculate pagination
+  const totalItems = filteredJobs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = filteredJobs.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleTypeFilterChange = (value: string) => {
+    setJobTypeFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleCompanyFilterChange = (value: string) => {
+    setCompanyFilter(value);
+    setCurrentPage(1);
+  };
 
   // Function to format salary range
   const formatSalary = (job: IJob) => {
@@ -196,7 +256,7 @@ export default function InternalJobsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
             {/* Search and Filters */}
             <div className="bg-white shadow rounded-lg p-4 mb-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                 <div>
                   <label
                     htmlFor="search"
@@ -204,13 +264,12 @@ export default function InternalJobsPage() {
                   >
                     Search
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="search"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     placeholder="Job title, code, location..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                   />
                 </div>
 
@@ -221,19 +280,19 @@ export default function InternalJobsPage() {
                   >
                     Status
                   </label>
-                  <select
-                    id="status"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="">All Statuses</option>
-                    {Object.values(JobStatus).map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {Object.values(JobStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -243,19 +302,19 @@ export default function InternalJobsPage() {
                   >
                     Job Type
                   </label>
-                  <select
-                    id="jobType"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    value={jobTypeFilter}
-                    onChange={(e) => setJobTypeFilter(e.target.value)}
-                  >
-                    <option value="">All Types</option>
-                    {Object.values(JobType).map((type) => (
-                      <option key={type} value={type}>
-                        {type.replace("_", " ")}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={jobTypeFilter} onValueChange={handleTypeFilterChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      {Object.values(JobType).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type.replace("_", " ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -265,14 +324,37 @@ export default function InternalJobsPage() {
                   >
                     Company
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="company"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     placeholder="Company name"
                     value={companyFilter}
-                    onChange={(e) => setCompanyFilter(e.target.value)}
+                    onChange={(e) => handleCompanyFilterChange(e.target.value)}
                   />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="itemsPerPage"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Items per page
+                  </label>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                    setItemsPerPage(parseInt(value));
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option.toString()}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -285,7 +367,7 @@ export default function InternalJobsPage() {
                     All Jobs
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    {filteredJobs?.length || 0} jobs found
+                    Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} jobs
                   </p>
                 </div>
                 <button
@@ -296,185 +378,227 @@ export default function InternalJobsPage() {
                   Refresh
                 </button>
               </div>
+              
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Job Info
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Company
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Location
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Salary & Experience
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Status
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredJobs && filteredJobs.length > 0 ? (
-                      filteredJobs.map((job: IJob) => (
-                        <tr key={job._id as string}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {job.title}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  Code: {job.jobCode}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  Posted:{" "}
-                                  {new Date(
-                                    job.postedDate
-                                  ).toLocaleDateString()}
-                                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">Actions</TableHead>
+                      <TableHead>Job Info</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Salary & Experience</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentJobs && currentJobs.length > 0 ? (
+                      currentJobs.map((job: IJob) => (
+                        <TableRow key={job._id as string}>
+                          <TableCell className="align-top">
+                            <div className="flex flex-col gap-2 py-2">
+                              <div className="flex flex-wrap gap-1">
+                                <Link
+                                  href={`/dashboard/internal/jobs/${job._id}`}
+                                  className="flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors"
+                                  title="View Job"
+                                >
+                                  <EyeIcon className="h-4 w-4" />
+                                </Link>
+                                <Link
+                                  href={`/dashboard/internal/jobs/${job._id}/edit`}
+                                  className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                  title="Edit Job"
+                                >
+                                  <PencilIcon className="h-4 w-4" />
+                                </Link>
+                                <Link
+                                  href={`/dashboard/internal/jobs/${job._id}/questions`}
+                                  className="flex items-center justify-center w-8 h-8 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition-colors"
+                                  title="Job Questions"
+                                >
+                                  <QuestionMarkCircleIcon className="h-4 w-4" />
+                                </Link>
+                                <button
+                                  onClick={() => openDeleteModal(job._id as string)}
+                                  className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                                  title="Delete Job"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </button>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {(job as any).postedByName || "Unknown"}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              Positions: {job.positions}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {job.country}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {job.location}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {job.jobType.replace("_", " ")}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {formatSalary(job)}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              Exp: {formatExperience(job)}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              Commission: {formatCommission(job)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <select
-                              value={job.status}
-                              onChange={(e) =>
-                                handleStatusChange(
-                                  job._id as string,
-                                  e.target.value as JobStatus
-                                )
-                              }
-                              className={`p-1 text-xs font-medium rounded ${
-                                job.status === JobStatus.ACTIVE
-                                  ? "bg-green-100 text-green-800"
-                                  : job.status === JobStatus.PAUSED
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : job.status === JobStatus.CLOSED
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {Object.values(JobStatus).map((status) => (
-                                <option key={status} value={status}>
-                                  {status}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end items-center space-x-3">
-                              <Link
-                                href={`/dashboard/internal/jobs/${job._id}`}
-                                className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded transition-colors"
-                                title="View Job"
-                              >
-                                <EyeIcon className="h-4 w-4" />
-                              </Link>
-                              <Link
-                                href={`/dashboard/internal/jobs/${job._id}/edit`}
-                                className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded transition-colors"
-                                title="Edit Job"
-                              >
-                                <PencilIcon className="h-4 w-4" />
-                              </Link>
-                              <Link
-                                href={`/dashboard/internal/jobs/${job._id}/questions`}
-                                className="text-purple-600 hover:text-purple-900 p-1 hover:bg-purple-50 rounded transition-colors"
-                                title="Job Questions"
-                              >
-                                <QuestionMarkCircleIcon className="h-4 w-4" />
-                              </Link>
-                              <button
+                              <Button
+                                size="sm"
                                 onClick={() =>
                                   router.push(
                                     `/dashboard/internal/jobs/${job._id}/resumes`
                                   )
                                 }
-                                className="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded-md hover:bg-green-700 transition-colors"
+                                className="w-full text-xs bg-green-600 hover:bg-green-700 text-white"
                                 title="View Resumes"
                               >
                                 <DocumentTextIcon className="h-3 w-3 mr-1" />
                                 Resumes
-                              </button>
-                              <button
-                                onClick={() => openDeleteModal(job._id as string)}
-                                className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-colors"
-                                title="Delete Job"
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </button>
+                              </Button>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm font-medium text-gray-900">
+                                {job.title}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Code: {job.jobCode}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Posted:{" "}
+                                {new Date(
+                                  job.postedDate
+                                ).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm text-gray-900">
+                                {(job as any).postedByName || "Unknown"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Positions: {job.positions}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm text-gray-900">
+                                {job.country}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {job.location}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {job.jobType.replace("_", " ")}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm text-gray-900">
+                                {formatSalary(job)}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Exp: {formatExperience(job)}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Commission: {formatCommission(job)}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <select
+                                value={job.status}
+                                onChange={(e) =>
+                                  handleStatusChange(
+                                    job._id as string,
+                                    e.target.value as JobStatus
+                                  )
+                                }
+                                className={`p-1 text-xs font-medium rounded ${
+                                  job.status === JobStatus.ACTIVE
+                                    ? "bg-green-100 text-green-800"
+                                    : job.status === JobStatus.PAUSED
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : job.status === JobStatus.CLOSED
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {Object.values(JobStatus).map((status) => (
+                                  <option key={status} value={status}>
+                                    {status}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))
                     ) : (
-                      <tr>
-                        <td
+                      <TableRow>
+                        <TableCell
                           colSpan={6}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No jobs found
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {/* Page numbers */}
+                      {[...Array(totalPages)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        const isCurrentPage = pageNumber === currentPage;
+                        
+                        // Show first page, last page, current page, and pages around current page
+                        if (
+                          pageNumber === 1 ||
+                          pageNumber === totalPages ||
+                          (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                        ) {
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNumber)}
+                                isActive={isCurrentPage}
+                                className="cursor-pointer"
+                              >
+                                {pageNumber}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        // Show ellipsis
+                        if (
+                          pageNumber === currentPage - 2 ||
+                          pageNumber === currentPage + 2
+                        ) {
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        return null;
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </div>
           </div>
 

@@ -14,6 +14,32 @@ import {
   useDeleteJobMutation,
 } from "../../../store/services/jobsApi";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/app/components/ui/pagination";
+import { Button } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { Input } from "@/app/components/ui/input";
 import { UserRole } from "@/app/constants/userRoles";
 import { JobType } from "@/app/constants/jobType";
 import { JobStatus } from "@/app/constants/jobStatus";
@@ -39,13 +65,19 @@ export default function AdminJobsPage() {
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [jobTypeFilter, setJobTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [jobTypeFilter, setJobTypeFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Delete modal states
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -104,8 +136,8 @@ export default function AdminJobsPage() {
       job.jobCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.location.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "" || job.status === statusFilter;
-    const matchesType = jobTypeFilter === "" || job.jobType === jobTypeFilter;
+    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
+    const matchesType = jobTypeFilter === "all" || job.jobType === jobTypeFilter;
 
     // Note: We would need to add company name to the job object when fetching from API
     const matchesCompany =
@@ -115,7 +147,35 @@ export default function AdminJobsPage() {
         .includes(companyFilter.toLowerCase());
 
     return matchesSearch && matchesStatus && matchesType && matchesCompany;
-  });
+  }) || [];
+
+  // Calculate pagination
+  const totalItems = filteredJobs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = filteredJobs.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleTypeFilterChange = (value: string) => {
+    setJobTypeFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleCompanyFilterChange = (value: string) => {
+    setCompanyFilter(value);
+    setCurrentPage(1);
+  };
 
   // Function to format salary range
   const formatSalary = (job: IJob) => {
@@ -129,20 +189,33 @@ export default function AdminJobsPage() {
     return `${job.experienceLevel.min} - ${job.experienceLevel.max} years`;
   };
 
-  // Function to format commission information
+  // Function to format commission
   const formatCommission = (job: IJob) => {
-    if (job.commissionAmount && job.commissionAmount > 0) {
-      // Fixed commission
-      return `Fixed: ${
+    // Check if commission type exists and is fixed
+    if (job.commission?.type === "fixed") {
+      const amount = job.commission.fixedAmount || job.commissionAmount;
+      return `${job.salary.currency} ${amount.toLocaleString()} (Fixed)`;
+    }
+    // Check if commission type is percentage
+    else if (job.commission?.type === "percentage") {
+      const percentage =
+        job.commission.originalPercentage || job.commissionPercentage;
+      const amount = job.commission.originalAmount || job.commissionAmount;
+      return `${percentage}% (${
         job.salary.currency
-      } ${job.commissionAmount.toLocaleString()}`;
-    } else if (job.commissionPercentage > 0) {
-      // Percentage commission
-      return `${job.commissionPercentage}% (${
-        job.salary.currency
-      } ${job.commissionAmount.toLocaleString()})`;
-    } else {
-      return "No commission set";
+      } ${amount.toLocaleString()})`;
+    }
+    // Legacy fallback - determine based on commissionPercentage value
+    else {
+      if (job.commissionPercentage > 0) {
+        return `${job.commissionPercentage}% (${
+          job.salary.currency
+        } ${job.commissionAmount.toLocaleString()})`;
+      } else {
+        return `${
+          job.salary.currency
+        } ${job.commissionAmount.toLocaleString()} (Fixed)`;
+      }
     }
   };
 
@@ -182,421 +255,351 @@ export default function AdminJobsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
             {/* Search and Filters */}
             <div className="bg-white shadow rounded-lg p-4 mb-6">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                 <div>
                   <label
                     htmlFor="search"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Search
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="search"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                     placeholder="Job title, code, location..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="status"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Status
                   </label>
-                  <select
-                    id="status"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="">All Statuses</option>
-                    {Object.values(JobStatus).map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {Object.values(JobStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
                   <label
                     htmlFor="jobType"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Job Type
                   </label>
-                  <select
-                    id="jobType"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                    value={jobTypeFilter}
-                    onChange={(e) => setJobTypeFilter(e.target.value)}
-                  >
-                    <option value="">All Types</option>
-                    {Object.values(JobType).map((type) => (
-                      <option key={type} value={type}>
-                        {type.replace("_", " ")}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={jobTypeFilter} onValueChange={handleTypeFilterChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      {Object.values(JobType).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type.replace("_", " ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Company
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="company"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                     placeholder="Company name"
                     value={companyFilter}
-                    onChange={(e) => setCompanyFilter(e.target.value)}
+                    onChange={(e) => handleCompanyFilterChange(e.target.value)}
                   />
                 </div>
-              </div>
-            </div>
 
-            {/* Jobs Grid/Cards Layout for Mobile and Small Screens */}
-            <div className="block lg:hidden">
-              <div className="bg-white shadow rounded-lg p-4 mb-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      All Jobs
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {filteredJobs?.length || 0} jobs found
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => refetch()}
-                    className="p-2 text-indigo-600 hover:text-indigo-500"
+                <div>
+                  <label
+                    htmlFor="itemsPerPage"
+                    className="block text-sm font-medium text-gray-700"
                   >
-                    <ArrowPathIcon className="w-5 h-5" />
-                  </button>
+                    Items per page
+                  </label>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                    setItemsPerPage(parseInt(value));
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option.toString()}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-
-              <div className="space-y-4">
-                {filteredJobs && filteredJobs.length > 0 ? (
-                  filteredJobs.map((job: IJob) => (
-                    <div
-                      key={job._id as string}
-                      className="bg-white shadow rounded-lg p-4"
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <h4 className="text-lg font-medium text-gray-900 mb-1">
-                            {job.title}
-                          </h4>
-                          <p className="text-sm text-gray-500">
-                            Code: {job.jobCode}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Posted:{" "}
-                            {new Date(job.postedDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <select
-                          value={job.status}
-                          onChange={(e) =>
-                            handleStatusChange(
-                              job._id as string,
-                              e.target.value as JobStatus
-                            )
-                          }
-                          className={`px-2 py-1 text-xs font-medium rounded ${
-                            job.status === JobStatus.ACTIVE
-                              ? "bg-green-100 text-green-800"
-                              : job.status === JobStatus.PAUSED
-                              ? "bg-yellow-100 text-yellow-800"
-                              : job.status === JobStatus.CLOSED
-                              ? "bg-red-100 text-red-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {Object.values(JobStatus).map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">
-                            Company
-                          </p>
-                          <p className="text-sm text-gray-900">
-                            {(job as any).postedByName || "Unknown"}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Positions: {job.positions}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">
-                            Location
-                          </p>
-                          <p className="text-sm text-gray-900">{job.country}</p>
-                          <p className="text-xs text-gray-500">
-                            {job.location}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {job.jobType.replace("_", " ")}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <p className="text-sm font-medium text-gray-700">
-                          Salary & Experience
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {formatSalary(job)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Exp: {formatExperience(job)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Commission: {formatCommission(job)}
-                        </p>
-                      </div>
-
-                      <div className="flex justify-end space-x-2">
-                        <Link
-                          href={`/dashboard/admin/jobs/${job._id}`}
-                          className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded"
-                          title="View Job"
-                        >
-                          <EyeIcon className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href={`/dashboard/admin/jobs/${job._id}/edit`}
-                          className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded"
-                          title="Edit Job"
-                        >
-                          <PencilIcon className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href={`/dashboard/admin/jobs/${job._id}/questions`}
-                          className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded"
-                          title="Manage Questions"
-                        >
-                          <QuestionMarkCircleIcon className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() =>
-                            router.push(
-                              `/dashboard/admin/jobs/${job._id}/resumes`
-                            )
-                          }
-                          className="p-2 bg-green-600 text-white hover:bg-green-700 rounded"
-                          title="View Resumes"
-                        >
-                          <DocumentTextIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => openDeleteModal(job._id as string)}
-                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
-                          title="Delete Job"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="bg-white shadow rounded-lg p-8 text-center">
-                    <p className="text-gray-500">No jobs found</p>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* Jobs Table for Desktop */}
-            <div className="hidden lg:block bg-white shadow overflow-hidden sm:rounded-lg">
+            {/* Jobs Table */}
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
               <div className="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
                 <div>
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
                     All Jobs
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    {filteredJobs?.length || 0} jobs found
+                    Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} jobs
                   </p>
                 </div>
                 <button
                   onClick={() => refetch()}
-                  className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500"
                 >
-                  <ArrowPathIcon className="w-4 h-4 mr-1" />
+                  <ArrowPathIcon className="h-4 w-4 mr-1" />
                   Refresh
                 </button>
               </div>
+              
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Job Info
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Company
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Location
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Salary & Exp
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredJobs && filteredJobs.length > 0 ? (
-                      filteredJobs.map((job: IJob) => (
-                        <tr
-                          key={job._id as string}
-                          className="hover:bg-gray-50"
-                        >
-                          <td className="px-4 py-4">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                                {job.title}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">Actions</TableHead>
+                      <TableHead>Job Info</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Salary & Experience</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentJobs && currentJobs.length > 0 ? (
+                      currentJobs.map((job: IJob) => (
+                        <TableRow key={job._id as string}>
+                          <TableCell className="align-top">
+                            <div className="flex flex-col gap-2 py-2">
+                              <div className="flex flex-wrap gap-1">
+                                <Link
+                                  href={`/dashboard/admin/jobs/${job._id}`}
+                                  className="flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors"
+                                  title="View Job"
+                                >
+                                  <EyeIcon className="h-4 w-4" />
+                                </Link>
+                                <Link
+                                  href={`/dashboard/admin/jobs/${job._id}/edit`}
+                                  className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                  title="Edit Job"
+                                >
+                                  <PencilIcon className="h-4 w-4" />
+                                </Link>
+                                <Link
+                                  href={`/dashboard/admin/jobs/${job._id}/questions`}
+                                  className="flex items-center justify-center w-8 h-8 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition-colors"
+                                  title="Job Questions"
+                                >
+                                  <QuestionMarkCircleIcon className="h-4 w-4" />
+                                </Link>
+                                <button
+                                  onClick={() => openDeleteModal(job._id as string)}
+                                  className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                                  title="Delete Job"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </button>
                               </div>
-                              <div className="text-xs text-gray-500">
-                                {job.jobCode}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(job.postedDate).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="text-sm text-gray-900 truncate max-w-xs">
-                              {(job as any).postedByName || "Unknown"}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {job.positions} positions
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="text-sm text-gray-900">
-                              {job.country}
-                            </div>
-                            <div className="text-xs text-gray-500 truncate max-w-xs">
-                              {job.location}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {job.jobType.replace("_", " ")}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="text-xs text-gray-900">
-                              {formatSalary(job)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatExperience(job)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <select
-                              value={job.status}
-                              onChange={(e) =>
-                                handleStatusChange(
-                                  job._id as string,
-                                  e.target.value as JobStatus
-                                )
-                              }
-                              className={`px-2 py-1 text-xs font-medium rounded ${
-                                job.status === JobStatus.ACTIVE
-                                  ? "bg-green-100 text-green-800"
-                                  : job.status === JobStatus.PAUSED
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : job.status === JobStatus.CLOSED
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {Object.values(JobStatus).map((status) => (
-                                <option key={status} value={status}>
-                                  {status}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="flex justify-center items-center space-x-1">
-                              <Link
-                                href={`/dashboard/admin/jobs/${job._id}`}
-                                className="p-1 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded"
-                                title="View Job"
-                              >
-                                <EyeIcon className="w-4 h-4" />
-                              </Link>
-                              <Link
-                                href={`/dashboard/admin/jobs/${job._id}/edit`}
-                                className="p-1 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded"
-                                title="Edit Job"
-                              >
-                                <PencilIcon className="w-4 h-4" />
-                              </Link>
-                              <Link
-                                href={`/dashboard/admin/jobs/${job._id}/questions`}
-                                className="p-1 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded"
-                                title="Questions"
-                              >
-                                <QuestionMarkCircleIcon className="w-4 h-4" />
-                              </Link>
-                              <button
+                              <Button
+                                size="sm"
                                 onClick={() =>
                                   router.push(
                                     `/dashboard/admin/jobs/${job._id}/resumes`
                                   )
                                 }
-                                className="p-1 bg-green-600 text-white hover:bg-green-700 rounded"
+                                className="w-full text-xs bg-green-600 hover:bg-green-700 text-white"
                                 title="View Resumes"
                               >
-                                <DocumentTextIcon className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => openDeleteModal(job._id as string)}
-                                className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
-                                title="Delete Job"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
+                                <DocumentTextIcon className="h-3 w-3 mr-1" />
+                                Resumes
+                              </Button>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm font-medium text-gray-900">
+                                {job.title}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Code: {job.jobCode}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Posted:{" "}
+                                {new Date(
+                                  job.postedDate
+                                ).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm text-gray-900">
+                                {(job as any).postedByName || "Unknown"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Positions: {job.positions}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm text-gray-900">
+                                {job.country}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {job.location}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {job.jobType.replace("_", " ")}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm text-gray-900">
+                                {formatSalary(job)}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Exp: {formatExperience(job)}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Commission: {formatCommission(job)}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <select
+                                value={job.status}
+                                onChange={(e) =>
+                                  handleStatusChange(
+                                    job._id as string,
+                                    e.target.value as JobStatus
+                                  )
+                                }
+                                className={`p-1 text-xs font-medium rounded ${
+                                  job.status === JobStatus.ACTIVE
+                                    ? "bg-green-100 text-green-800"
+                                    : job.status === JobStatus.PAUSED
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : job.status === JobStatus.CLOSED
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {Object.values(JobStatus).map((status) => (
+                                  <option key={status} value={status}>
+                                    {status}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))
                     ) : (
-                      <tr>
-                        <td
+                      <TableRow>
+                        <TableCell
                           colSpan={6}
-                          className="px-6 py-8 text-center text-sm text-gray-500"
+                          className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No jobs found
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {/* Page numbers */}
+                      {[...Array(totalPages)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        const isCurrentPage = pageNumber === currentPage;
+                        
+                        // Show first page, last page, current page, and pages around current page
+                        if (
+                          pageNumber === 1 ||
+                          pageNumber === totalPages ||
+                          (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                        ) {
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNumber)}
+                                isActive={isCurrentPage}
+                                className="cursor-pointer"
+                              >
+                                {pageNumber}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        // Show ellipsis
+                        if (
+                          pageNumber === currentPage - 2 ||
+                          pageNumber === currentPage + 2
+                        ) {
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        return null;
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </div>
+
           </div>
 
           {/* Delete Confirmation Modal */}
