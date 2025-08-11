@@ -1,9 +1,9 @@
 //lib/auth.ts
-import jwt from 'jsonwebtoken';
-import { NextRequest, NextResponse } from 'next/server';
-import { UserRole } from './../models/User';
+import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
+import { UserRole } from "./../models/User";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-default-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || "your-default-secret-key";
 
 export interface JwtPayload {
   userId: string;
@@ -12,7 +12,7 @@ export interface JwtPayload {
 }
 
 export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 };
 
 export const verifyToken = (token: string): JwtPayload | null => {
@@ -24,16 +24,16 @@ export const verifyToken = (token: string): JwtPayload | null => {
 };
 
 export const getTokenFromHeader = (req: NextRequest): string | null => {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
   }
-  return authHeader.split(' ')[1];
+  return authHeader.split(" ")[1];
 };
 
 export const getTokenFromQuery = (req: NextRequest): string | null => {
   const url = new URL(req.url);
-  return url.searchParams.get('token');
+  return url.searchParams.get("token");
 };
 
 export const authenticateRequest = (req: NextRequest): JwtPayload | null => {
@@ -46,16 +46,19 @@ export const authenticateRequest = (req: NextRequest): JwtPayload | null => {
   return verifyToken(token);
 };
 
-export const authorizeRoles = (req: NextRequest, allowedRoles: UserRole[]): boolean => {
+export const authorizeRoles = (
+  req: NextRequest,
+  allowedRoles: UserRole[]
+): boolean => {
   const userData = authenticateRequest(req);
   if (!userData) return false;
   return allowedRoles.includes(userData.role);
 };
 
 export const unauthorized = () => {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 };
 
 export const forbidden = () => {
-  return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 };

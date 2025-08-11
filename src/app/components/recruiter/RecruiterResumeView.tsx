@@ -82,7 +82,7 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
     }
 
     // Extract filename from path
-    const filename = filePath.startsWith("/uploads/") 
+    const filename = filePath.startsWith("/uploads/")
       ? filePath.replace("/uploads/", "")
       : filePath.split("/").pop() || filePath;
 
@@ -90,8 +90,10 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
     if (!token) {
       console.warn("No authentication token found");
     }
-    
-    return `/api/resumes/download/${filename}?token=${encodeURIComponent(token)}`;
+
+    return `/api/resumes/download/${filename}?token=${encodeURIComponent(
+      token
+    )}`;
   };
 
   // Function to check if file is PDF
@@ -115,7 +117,9 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
   // Helper function to get preview URL for additional documents
   const getDocumentPreviewUrl = (filename: string) => {
     const token = getAuthToken();
-    return `/api/resumes/download/${filename}?token=${encodeURIComponent(token)}`;
+    return `/api/resumes/download/${filename}?token=${encodeURIComponent(
+      token
+    )}`;
   };
 
   // Helper function to handle additional document download
