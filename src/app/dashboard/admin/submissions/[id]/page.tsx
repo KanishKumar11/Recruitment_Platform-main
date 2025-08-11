@@ -91,7 +91,7 @@ export default function AdminResumeView() {
   const handleStatusChange = async (newStatus: ResumeStatus) => {
     try {
       await updateResumeStatus({
-        resumeId: id,
+        id: id,
         status: newStatus,
       }).unwrap();
     } catch (error) {
@@ -105,7 +105,7 @@ export default function AdminResumeView() {
     setIsAddingNote(true);
     try {
       await addResumeNote({
-        resumeId: id,
+        id: id,
         note: newNote.trim(),
       }).unwrap();
       setNewNote("");
