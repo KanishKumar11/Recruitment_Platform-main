@@ -87,7 +87,8 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       document.body.removeChild(link);
     } catch (error) {
       console.error("Download failed:", error);
-      alert(`Failed to download file: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      alert(`Failed to download file: ${errorMessage}`);
     }
   };
 
@@ -128,7 +129,8 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       document.body.removeChild(link);
     } catch (error) {
       console.error("Document download failed:", error);
-      alert(`Failed to download document: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      alert(`Failed to download document: ${errorMessage}`);
     }
   };
 
@@ -391,9 +393,9 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                         <li key={index} className="px-2 py-1.5">
                           <div className="flex justify-between items-start">
                             <span className="text-xs font-medium text-gray-900">
-                              {note.userId?.name ||
-                                note.userId?.email ||
-                                "Unknown User"}
+                              {typeof note.userId === 'object' && note.userId && 'name' in note.userId
+                                ? (note.userId.name || note.userId.email || "Unknown User")
+                                : "Unknown User"}
                             </span>
                             <span className="text-xs text-gray-500">
                               {new Date(note.createdAt).toLocaleDateString()}
