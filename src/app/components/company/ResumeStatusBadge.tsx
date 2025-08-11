@@ -18,6 +18,10 @@ const ResumeStatusBadge: React.FC<ResumeStatusBadgeProps> = ({ status }) => {
     OFFERED: "bg-cyan-100 text-cyan-800",
     OFFER_DECLINED: "bg-rose-100 text-rose-800",
     HIRED: "bg-emerald-100 text-emerald-800",
+    JOINED: "bg-emerald-200 text-emerald-900",
+    TRIAL_FAILED: "bg-red-200 text-red-900",
+    BACKOUT: "bg-orange-200 text-orange-900",
+    QUIT_AFTER_JOINED: "bg-red-300 text-red-900",
     REJECTED: "bg-red-100 text-red-800",
     DUPLICATE: "bg-gray-100 text-gray-800",
   };
@@ -31,6 +35,10 @@ const ResumeStatusBadge: React.FC<ResumeStatusBadgeProps> = ({ status }) => {
         return "Selected in Final Interview";
       case "OFFER_DECLINED":
         return "Offer Declined";
+      case "TRIAL_FAILED":
+        return "Trial Failed";
+      case "QUIT_AFTER_JOINED":
+        return "Quit After Joined";
       case "DUPLICATE":
         return "Duplicate";
       default:
