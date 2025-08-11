@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDb from "./../../../../lib/db";
 import Resume from "./../../../../models/Resume";
 import User, { UserRole } from "./../../../../models/User";
+import mongoose from "mongoose";
 import {
   authenticateRequest,
   unauthorized,
@@ -49,7 +50,7 @@ export async function POST(
     // Add the note
     const newNote = {
       note: note.trim(),
-      userId: userData.userId,
+      userId: new mongoose.Types.ObjectId(userData.userId),
       createdAt: new Date(),
     };
 
