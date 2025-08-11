@@ -201,9 +201,7 @@ export default function HelpPage() {
                       <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                         Submit a Support Request
                       </h3>
-                      <SupportTicketForm
-                        onSuccess={handleTicketCreated}
-                      />
+                      <SupportTicketForm onSuccess={handleTicketCreated} />
                     </div>
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import {
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { UserRole } from "@/app/constants/userRoles";
 import { JobStatus } from "@/app/constants/jobStatus";
+import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 
 // Helper function to get currency symbol from currency code
 const getCurrencySymbol = (currencyCode: string): string => {
@@ -292,102 +293,126 @@ export default function AdminJobDetailPage() {
               </div>
             </div>
 
-            {/* Job Details */}
+            {/* Job Details - Compact Layout */}
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Job Information
-                </h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                  Posted on {new Date(job.postedDate).toLocaleDateString()}
-                </p>
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Job Information
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Posted on {new Date(job.postedDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">
+                      Job Code
+                    </p>
+                    <p className="text-sm text-gray-500">{job.jobCode}</p>
+                  </div>
+                </div>
               </div>
-              <div className="border-t border-gray-200">
-                <dl>
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Company/Posted By
+
+              {/* Compact Grid Layout */}
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Company */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      Company
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {job.postedByCompany ||
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
+                      {job.companyName ||
+                        job.postedByCompany ||
                         "Company Information Not Available"}
                     </dd>
                   </div>
-                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Location */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Location
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {job.location}, {job.country}
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
+                      {job.location}, {getCountryNameFromCode(job.country)}
                     </dd>
                   </div>
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Job Type */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Job Type
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.jobType.replace("_", " ")}
                     </dd>
                   </div>
-                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Positions */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Positions
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.positions}
                     </dd>
                   </div>
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Salary Range */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Salary Range
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
                       {getCurrencySymbol(job.salary.currency)}{" "}
                       {job.salary.min.toLocaleString()} -{" "}
                       {job.salary.max.toLocaleString()} ({job.salary.currency})
                     </dd>
                   </div>
-                  {job.compensationDetails && (
-                    <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Compensation Details
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {job.compensationDetails}
-                      </dd>
-                    </div>
-                  )}
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Experience */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Experience Required
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.experienceLevel.min} - {job.experienceLevel.max}{" "}
                       years
                     </dd>
                   </div>
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Compensation Details */}
+                  {job.compensationDetails && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Compensation Details
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium text-gray-900">
+                        {job.compensationDetails}
+                      </dd>
+                    </div>
+                  )}
+
+                  {/* Commission */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Commission
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {/* Check if commission type exists and is fixed, otherwise fall back to percentage logic */}
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.commission?.type === "fixed"
-                        ? // Fixed commission display
-                          `${getCurrencySymbol(job.salary.currency)} ${
+                        ? `${getCurrencySymbol(job.salary.currency)} ${
                             job.commission.fixedAmount?.toLocaleString() ||
                             job.commissionAmount.toLocaleString()
                           } (${job.salary.currency}) (Fixed)`
                         : job.commission?.type === "percentage"
-                        ? // Percentage commission display
-                          `${
+                        ? `${
                             job.commission.originalPercentage
                           }% (${getCurrencySymbol(job.salary.currency)} ${
                             job.commission.originalAmount?.toLocaleString() ||
                             job.commissionAmount.toLocaleString()
                           } ${job.salary.currency})`
-                        : // Legacy fallback - only show if commissionPercentage is greater than 0
-                        job.commissionPercentage > 0
+                        : job.commissionPercentage > 0
                         ? `${job.commissionPercentage}% (${getCurrencySymbol(
                             job.salary.currency
                           )} ${job.commissionAmount.toLocaleString()} ${
@@ -400,69 +425,80 @@ export default function AdminJobDetailPage() {
                           }) (Fixed)`}
                     </dd>
                   </div>
-                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Payment Terms */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Payment Terms
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.paymentTerms || "Not specified"}
                     </dd>
                   </div>
-                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
+
+                  {/* Replacement Terms */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Replacement Terms
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.replacementTerms || "Not specified"}
                     </dd>
                   </div>
-                </dl>
+                </div>
               </div>
             </div>
 
-            {/* Job Description */}
-            <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Job Description
-                </h3>
-              </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                <div
-                  className="prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: job.description }}
-                />
-              </div>
-            </div>
-
-            {/* Company Description */}
-            {job.companyDescription && (
-              <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Company Description
+            {/* Descriptions Section - Compact Layout */}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Job Description */}
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Job Description
                   </h3>
                 </div>
-                <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+                <div className="p-4">
                   <div
-                    className="prose max-w-none"
-                    dangerouslySetInnerHTML={{ __html: job.companyDescription }}
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: job.description }}
                   />
                 </div>
               </div>
-            )}
+
+              {/* Company Description */}
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Company Description
+                  </h3>
+                </div>
+                <div className="p-4">
+                  {job.companyDescription ? (
+                    <div
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: job.companyDescription,
+                      }}
+                    />
+                  ) : (
+                    <p className="text-gray-500 italic">Not specified</p>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Sourcing Guidelines */}
             {job.sourcingGuidelines && (
               <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
                     Sourcing Guidelines
                   </h3>
                 </div>
-                <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+                <div className="p-4">
                   <div
-                    className="prose max-w-none"
+                    className="prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: job.sourcingGuidelines }}
                   />
                 </div>

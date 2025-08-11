@@ -8,6 +8,7 @@ import Link from "next/link";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import RichTextEditor from "@/app/components/RichTextEditor";
 
 import { RootState } from "../../../../../store/index";
 import {
@@ -232,6 +233,14 @@ export default function InternalJobEditPage() {
         [name]: name === "positions" ? Number(value) : value,
       }));
     }
+  };
+
+  // Handle rich text editor changes
+  const handleRichTextChange = (field: string) => (content: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      [field]: content,
+    }));
   };
 
   // Handle commission percentage change (original commission set by company)
@@ -542,19 +551,12 @@ export default function InternalJobEditPage() {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="companyDescription"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Company Description
-                    </label>
-                    <textarea
-                      name="companyDescription"
-                      id="companyDescription"
-                      rows={4}
+                    <RichTextEditor
+                      label="Company Description"
                       value={formData.companyDescription}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      onChange={handleRichTextChange("companyDescription")}
+                      required={false}
+                      placeholder="Brief description of the company..."
                     />
                   </div>
                 </div>
@@ -644,171 +646,252 @@ export default function InternalJobEditPage() {
                 </div>
               </div>
 
-              {/* Enhanced Commission Control Section */}
-              <div className="bg-white shadow sm:rounded-lg p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Commission Management (Internal Control)
-                </h3>
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-blue-400"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-blue-800">
-                        Internal Commission Control
-                      </h3>
-                      <div className="mt-2 text-sm text-blue-700">
-                        <p>
-                          You have control over commission settings. Choose
-                          between fixed amount or percentage-based commission.
-                          For percentage-based, you can adjust how much
-                          recruiters see based on platform fees.
-                        </p>
+              {/* Enhanced Commission Control Section - Only for Admin users */}
+              {user?.role === UserRole.ADMIN && (
+                <div className="bg-white shadow sm:rounded-lg p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Commission Management (Internal Control)
+                  </h3>
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-5 w-5 text-blue-400"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">
+                          Internal Commission Control
+                        </h3>
+                        <div className="mt-2 text-sm text-blue-700">
+                          <p>
+                            You have control over commission settings. Choose
+                            between fixed amount or percentage-based commission.
+                            For percentage-based, you can adjust how much
+                            recruiters see based on platform fees.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Commission Type Selection */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Commission Type
-                  </label>
-                  <div className="flex space-x-4">
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        name="commissionType"
-                        value="percentage"
-                        checked={formData.commission.type !== "fixed"}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              commission: {
-                                ...prev.commission,
-                                type: "percentage",
-                              },
-                            }));
-                          }
-                        }}
-                        className="form-radio h-4 w-4 text-indigo-600"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">
-                        Percentage-based
-                      </span>
+                  {/* Commission Type Selection */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Commission Type
                     </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        name="commissionType"
-                        value="fixed"
-                        checked={formData.commission.type === "fixed"}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              commission: {
-                                ...prev.commission,
-                                type: "fixed",
-                                fixedAmount:
-                                  prev.commission.originalAmount ||
-                                  prev.commissionAmount ||
-                                  0,
-                              },
-                            }));
-                          }
-                        }}
-                        className="form-radio h-4 w-4 text-indigo-600"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">
-                        Fixed amount
-                      </span>
-                    </label>
+                    <div className="flex space-x-4">
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          name="commissionType"
+                          value="percentage"
+                          checked={formData.commission.type !== "fixed"}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                commission: {
+                                  ...prev.commission,
+                                  type: "percentage",
+                                },
+                              }));
+                            }
+                          }}
+                          className="form-radio h-4 w-4 text-indigo-600"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          Percentage-based
+                        </span>
+                      </label>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          name="commissionType"
+                          value="fixed"
+                          checked={formData.commission.type === "fixed"}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                commission: {
+                                  ...prev.commission,
+                                  type: "fixed",
+                                  fixedAmount:
+                                    prev.commission.originalAmount ||
+                                    prev.commissionAmount ||
+                                    0,
+                                },
+                              }));
+                            }
+                          }}
+                          className="form-radio h-4 w-4 text-indigo-600"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          Fixed amount
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
 
-                {/* Fixed Commission Section */}
-                {formData.commission.type === "fixed" && (
-                  <div className="space-y-6">
+                  {/* Fixed Commission Section */}
+                  {formData.commission.type === "fixed" && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="fixedCommission"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Fixed Commission Amount ({formData.salary.currency})
+                          </label>
+                          <input
+                            type="number"
+                            id="fixedCommission"
+                            value={formData.commission.fixedAmount || ""}
+                            onChange={(e) => {
+                              const fixedAmount =
+                                parseFloat(e.target.value) || 0;
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                commission: {
+                                  ...prev.commission,
+                                  fixedAmount,
+                                },
+                                // Update legacy field for backward compatibility
+                                commissionAmount: fixedAmount,
+                              }));
+                            }}
+                            min="0"
+                            step="0.01"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          />
+                          <p className="mt-1 text-sm text-gray-500">
+                            Fixed amount paid regardless of salary
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Equivalent Percentage (Based on Max Salary)
+                          </label>
+                          <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                            {formData.salary.max > 0 &&
+                            formData.commission.fixedAmount > 0
+                              ? (
+                                  (formData.commission.fixedAmount /
+                                    formData.salary.max) *
+                                  100
+                                ).toFixed(2)
+                              : "0.00"}
+                            %
+                          </div>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Reference percentage for comparison
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Platform Fee Control for Fixed Commission */}
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="fixedReductionPercentage"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Platform Fee Reduction % (Internal Control)
+                          </label>
+                          <input
+                            type="number"
+                            id="fixedReductionPercentage"
+                            value={
+                              formData.commission.reductionPercentage || ""
+                            }
+                            onChange={handleReductionChange}
+                            step="1"
+                            placeholder="40"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-orange-50"
+                          />
+                          <p className="mt-1 text-sm text-orange-600">
+                            Percentage to reduce from fixed commission (default:{" "}
+                            {COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE}%,
+                            range: {COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}
+                            %-
+                            {COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}%)
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Recruiter Amount ({formData.salary.currency})
+                          </label>
+                          <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                            {formData.commission.fixedAmount > 0 &&
+                            formData.commission.reductionPercentage !==
+                              undefined
+                              ? (
+                                  (formData.commission.fixedAmount *
+                                    (100 -
+                                      formData.commission
+                                        .reductionPercentage)) /
+                                  100
+                                ).toLocaleString()
+                              : "0"}
+                          </div>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Amount recruiters will receive after platform fee
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Percentage Commission Section */}
+                  {formData.commission.type !== "fixed" && (
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      {/* Original Commission (Company Set) */}
                       <div>
                         <label
-                          htmlFor="fixedCommission"
+                          htmlFor="originalCommission"
                           className="block text-sm font-medium text-gray-700"
                         >
-                          Fixed Commission Amount ({formData.salary.currency})
+                          Original Commission % (Company Set)
                         </label>
                         <input
                           type="number"
-                          id="fixedCommission"
-                          value={formData.commission.fixedAmount || ""}
-                          onChange={(e) => {
-                            const fixedAmount = parseFloat(e.target.value) || 0;
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              commission: {
-                                ...prev.commission,
-                                fixedAmount,
-                              },
-                              // Update legacy field for backward compatibility
-                              commissionAmount: fixedAmount,
-                            }));
-                          }}
+                          id="originalCommission"
+                          value={formData.commission.originalPercentage || ""}
+                          onChange={handleCommissionChange}
                           min="0"
-                          step="0.01"
+                          max={COMMISSION_CONFIG.MAX_COMMISSION_PERCENTAGE}
+                          step="0.1"
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         />
                         <p className="mt-1 text-sm text-gray-500">
-                          Fixed amount paid regardless of salary
+                          The commission percentage set by the company
                         </p>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Equivalent Percentage (Based on Max Salary)
-                        </label>
-                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
-                          {formData.salary.max > 0 &&
-                          formData.commission.fixedAmount > 0
-                            ? (
-                                (formData.commission.fixedAmount /
-                                  formData.salary.max) *
-                                100
-                              ).toFixed(2)
-                            : "0.00"}
-                          %
-                        </div>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Reference percentage for comparison
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Platform Fee Control for Fixed Commission */}
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      {/* Internal Reduction Control */}
                       <div>
                         <label
-                          htmlFor="fixedReductionPercentage"
+                          htmlFor="reductionPercentage"
                           className="block text-sm font-medium text-gray-700"
                         >
                           Platform Fee Reduction % (Internal Control)
                         </label>
                         <input
                           type="number"
-                          id="fixedReductionPercentage"
+                          id="reductionPercentage"
                           value={formData.commission.reductionPercentage || ""}
                           onChange={handleReductionChange}
                           step="1"
@@ -816,233 +899,163 @@ export default function InternalJobEditPage() {
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-orange-50"
                         />
                         <p className="mt-1 text-sm text-orange-600">
-                          Percentage to reduce from fixed commission (default:{" "}
+                          Percentage to reduce from original commission
+                          (default:{" "}
                           {COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE}%,
                           range: {COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}%-
                           {COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}%)
                         </p>
                       </div>
 
+                      {/* Alternative: Direct Recruiter Commission Control */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Recruiter Amount ({formData.salary.currency})
+                        <label
+                          htmlFor="recruiterPercentage"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Recruiter Commission % (What Recruiters See)
                         </label>
-                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
-                          {formData.commission.fixedAmount > 0 &&
-                          formData.commission.reductionPercentage !== undefined
-                            ? (
-                                (formData.commission.fixedAmount *
-                                  (100 -
-                                    formData.commission.reductionPercentage)) /
-                                100
-                              ).toLocaleString()
-                            : "0"}
-                        </div>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Amount recruiters will receive after platform fee
+                        <input
+                          type="number"
+                          id="recruiterPercentage"
+                          value={
+                            formData.commission.recruiterPercentage?.toFixed(
+                              2
+                            ) || ""
+                          }
+                          onChange={handleRecruiterPercentageChange}
+                          min={COMMISSION_CONFIG.MIN_COMMISSION_PERCENTAGE}
+                          max={
+                            formData.commission.originalPercentage ||
+                            COMMISSION_CONFIG.MAX_COMMISSION_PERCENTAGE
+                          }
+                          step="0.01"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 bg-green-50"
+                        />
+                        <p className="mt-1 text-sm text-green-600">
+                          Direct control: Set exactly what recruiters will see
                         </p>
                       </div>
-                    </div>
-                  </div>
-                )}
 
-                {/* Percentage Commission Section */}
-                {formData.commission.type !== "fixed" && (
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {/* Original Commission (Company Set) */}
-                    <div>
-                      <label
-                        htmlFor="originalCommission"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Original Commission % (Company Set)
-                      </label>
-                      <input
-                        type="number"
-                        id="originalCommission"
-                        value={formData.commission.originalPercentage || ""}
-                        onChange={handleCommissionChange}
-                        min="0"
-                        max={COMMISSION_CONFIG.MAX_COMMISSION_PERCENTAGE}
-                        step="0.1"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                      <p className="mt-1 text-sm text-gray-500">
-                        The commission percentage set by the company
-                      </p>
-                    </div>
-
-                    {/* Internal Reduction Control */}
-                    <div>
-                      <label
-                        htmlFor="reductionPercentage"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Platform Fee Reduction % (Internal Control)
-                      </label>
-                      <input
-                        type="number"
-                        id="reductionPercentage"
-                        value={formData.commission.reductionPercentage || ""}
-                        onChange={handleReductionChange}
-                        step="1"
-                        placeholder="40"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-orange-50"
-                      />
-                      <p className="mt-1 text-sm text-orange-600">
-                        Percentage to reduce from original commission (default:{" "}
-                        {COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE}%,
-                        range: {COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}%-
-                        {COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}%)
-                      </p>
-                    </div>
-
-                    {/* Alternative: Direct Recruiter Commission Control */}
-                    <div>
-                      <label
-                        htmlFor="recruiterPercentage"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Recruiter Commission % (What Recruiters See)
-                      </label>
-                      <input
-                        type="number"
-                        id="recruiterPercentage"
-                        value={
-                          formData.commission.recruiterPercentage?.toFixed(2) ||
-                          ""
-                        }
-                        onChange={handleRecruiterPercentageChange}
-                        min={COMMISSION_CONFIG.MIN_COMMISSION_PERCENTAGE}
-                        max={
-                          formData.commission.originalPercentage ||
-                          COMMISSION_CONFIG.MAX_COMMISSION_PERCENTAGE
-                        }
-                        step="0.01"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 bg-green-50"
-                      />
-                      <p className="mt-1 text-sm text-green-600">
-                        Direct control: Set exactly what recruiters will see
-                      </p>
-                    </div>
-
-                    {/* Platform Fee (Calculated) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Platform Fee % (Calculated)
-                      </label>
-                      <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
-                        {formData.commission.platformFeePercentage?.toFixed(
-                          2
-                        ) || "0.00"}
-                        %
-                      </div>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Platform fee = Original Commission - Recruiter
-                        Commission
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Commission Summary */}
-                <div className="mt-6 bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-md font-medium text-gray-900 mb-3">
-                    Commission Breakdown Summary
-                  </h4>
-
-                  {formData.commission.type === "fixed" ? (
-                    // Fixed Commission Summary
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="bg-blue-100 p-3 rounded">
-                        <div className="font-medium text-blue-800">
-                          Total Commission (Fixed)
-                        </div>
-                        <div className="text-lg font-bold text-blue-900">
-                          {formData.salary.currency}{" "}
-                          {formData.commission.fixedAmount?.toLocaleString() ||
-                            "0"}
-                        </div>
-                        <div className="text-blue-700">
-                          Fixed amount regardless of salary
-                        </div>
-                      </div>
-                      <div className="bg-gray-100 p-3 rounded">
-                        <div className="font-medium text-gray-800">
-                          Equivalent Rate
-                        </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {formData.salary.max > 0 &&
-                          formData.commission.fixedAmount > 0
-                            ? (
-                                (formData.commission.fixedAmount /
-                                  formData.salary.max) *
-                                100
-                              ).toFixed(2)
-                            : "0.00"}
-                          %
-                        </div>
-                        <div className="text-gray-700">
-                          Based on maximum salary
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    // Percentage Commission Summary
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div className="bg-blue-100 p-3 rounded">
-                        <div className="font-medium text-blue-800">
-                          Company Pays
-                        </div>
-                        <div className="text-lg font-bold text-blue-900">
-                          {formData.commission.originalPercentage?.toFixed(2) ||
-                            "0.00"}
-                          %
-                        </div>
-                        <div className="text-blue-700">
-                          {formData.salary.currency}{" "}
-                          {formData.commission.originalAmount?.toLocaleString() ||
-                            "0"}
-                        </div>
-                      </div>
-                      <div className="bg-green-100 p-3 rounded">
-                        <div className="font-medium text-green-800">
-                          Recruiter Gets
-                        </div>
-                        <div className="text-lg font-bold text-green-900">
-                          {formData.commission.recruiterPercentage?.toFixed(
-                            2
-                          ) || "0.00"}
-                          %
-                        </div>
-                        <div className="text-green-700">
-                          {formData.salary.currency}{" "}
-                          {formData.commission.recruiterAmount?.toLocaleString() ||
-                            "0"}
-                        </div>
-                      </div>
-                      <div className="bg-orange-100 p-3 rounded">
-                        <div className="font-medium text-orange-800">
-                          Platform Fee
-                        </div>
-                        <div className="text-lg font-bold text-orange-900">
+                      {/* Platform Fee (Calculated) */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Platform Fee % (Calculated)
+                        </label>
+                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
                           {formData.commission.platformFeePercentage?.toFixed(
                             2
                           ) || "0.00"}
                           %
                         </div>
-                        <div className="text-orange-700">
-                          {formData.salary.currency}{" "}
-                          {(
-                            (formData.commission.originalAmount || 0) -
-                            (formData.commission.recruiterAmount || 0)
-                          ).toLocaleString()}
-                        </div>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Platform fee = Original Commission - Recruiter
+                          Commission
+                        </p>
                       </div>
                     </div>
                   )}
+
+                  {/* Commission Summary */}
+                  <div className="mt-6 bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-md font-medium text-gray-900 mb-3">
+                      Commission Breakdown Summary
+                    </h4>
+
+                    {formData.commission.type === "fixed" ? (
+                      // Fixed Commission Summary
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="bg-blue-100 p-3 rounded">
+                          <div className="font-medium text-blue-800">
+                            Total Commission (Fixed)
+                          </div>
+                          <div className="text-lg font-bold text-blue-900">
+                            {formData.salary.currency}{" "}
+                            {formData.commission.fixedAmount?.toLocaleString() ||
+                              "0"}
+                          </div>
+                          <div className="text-blue-700">
+                            Fixed amount regardless of salary
+                          </div>
+                        </div>
+                        <div className="bg-gray-100 p-3 rounded">
+                          <div className="font-medium text-gray-800">
+                            Equivalent Rate
+                          </div>
+                          <div className="text-lg font-bold text-gray-900">
+                            {formData.salary.max > 0 &&
+                            formData.commission.fixedAmount > 0
+                              ? (
+                                  (formData.commission.fixedAmount /
+                                    formData.salary.max) *
+                                  100
+                                ).toFixed(2)
+                              : "0.00"}
+                            %
+                          </div>
+                          <div className="text-gray-700">
+                            Based on maximum salary
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // Percentage Commission Summary
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="bg-blue-100 p-3 rounded">
+                          <div className="font-medium text-blue-800">
+                            Company Pays
+                          </div>
+                          <div className="text-lg font-bold text-blue-900">
+                            {formData.commission.originalPercentage?.toFixed(
+                              2
+                            ) || "0.00"}
+                            %
+                          </div>
+                          <div className="text-blue-700">
+                            {formData.salary.currency}{" "}
+                            {formData.commission.originalAmount?.toLocaleString() ||
+                              "0"}
+                          </div>
+                        </div>
+                        <div className="bg-green-100 p-3 rounded">
+                          <div className="font-medium text-green-800">
+                            Recruiter Gets
+                          </div>
+                          <div className="text-lg font-bold text-green-900">
+                            {formData.commission.recruiterPercentage?.toFixed(
+                              2
+                            ) || "0.00"}
+                            %
+                          </div>
+                          <div className="text-green-700">
+                            {formData.salary.currency}{" "}
+                            {formData.commission.recruiterAmount?.toLocaleString() ||
+                              "0"}
+                          </div>
+                        </div>
+                        <div className="bg-orange-100 p-3 rounded">
+                          <div className="font-medium text-orange-800">
+                            Platform Fee
+                          </div>
+                          <div className="text-lg font-bold text-orange-900">
+                            {formData.commission.platformFeePercentage?.toFixed(
+                              2
+                            ) || "0.00"}
+                            %
+                          </div>
+                          <div className="text-orange-700">
+                            {formData.salary.currency}{" "}
+                            {(
+                              (formData.commission.originalAmount || 0) -
+                              (formData.commission.recruiterAmount || 0)
+                            ).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Description & Guidelines */}
               <div className="bg-white shadow sm:rounded-lg p-6">
@@ -1051,37 +1064,22 @@ export default function InternalJobEditPage() {
                 </h3>
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label
-                      htmlFor="description"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Job Description
-                    </label>
-                    <textarea
-                      name="description"
-                      id="description"
-                      rows={6}
-                      required
+                    <RichTextEditor
+                      label="Job Description"
                       value={formData.description}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      onChange={handleRichTextChange("description")}
+                      required={true}
+                      placeholder="Describe the role, responsibilities, and requirements..."
                     />
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="sourcingGuidelines"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Sourcing Guidelines (Optional)
-                    </label>
-                    <textarea
-                      name="sourcingGuidelines"
-                      id="sourcingGuidelines"
-                      rows={4}
+                    <RichTextEditor
+                      label="Sourcing Guidelines"
                       value={formData.sourcingGuidelines}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      onChange={handleRichTextChange("sourcingGuidelines")}
+                      required={false}
+                      placeholder="Specific instructions for recruiters on candidate sourcing..."
                     />
                   </div>
                 </div>

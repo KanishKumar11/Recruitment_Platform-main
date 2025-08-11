@@ -2,134 +2,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
-import jwt from "jsonwebtoken";
-import {
-  authenticateRequest,
-  unauthorized,
-  verifyToken,
-} from "../../../../lib/auth";
+import { authenticateRequest, unauthorized } from "../../../../lib/auth";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-    // Check for token in query params (for iframe previews) or headers
-    const url = new URL(req.url);
-    const tokenFromQuery = url.searchParams.get("token");
-
-    let userData;
-    if (tokenFromQuery) {
-      // First try our standard token verification
-      userData = verifyToken(tokenFromQuery);
-
-      if (!userData) {
-        // If that fails, try to decode the token to see if it's a different format
-        try {
-          // Try to decode without verification to see if it's a different format
-          const decodedToken = jwt.decode(tokenFromQuery);
-
-          if (decodedToken) {
-            // Map the .NET-style claims to our expected format
-            const decodedPayload = decodedToken as any;
-            const nameIdentifier =
-              decodedPayload[
-                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-              ];
-            const emailAddress =
-              decodedPayload[
-                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-              ];
-            const role =
-              decodedPayload[
-                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-              ];
-
-            if (nameIdentifier && emailAddress) {
-              // Create a compatible user data object
-              userData = {
-                userId: nameIdentifier,
-                email: emailAddress,
-                role: role || "USER",
-              };
-              console.log("Mapped user data:", userData);
-            }
-          }
-        } catch (decodeError) {
-          console.error("Failed to decode token:", decodeError);
-        }
-      }
-
-      if (!userData) {
-        console.error("Token validation failed for query token");
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-      }
-    } else {
-      // Use standard authentication
-      console.log("No token in query, using header authentication");
-      const authHeader = req.headers.get("authorization");
-      console.log("Authorization header:", authHeader ? "Present" : "Missing");
-
-      if (authHeader) {
-        const token = authHeader.startsWith("Bearer ")
-          ? authHeader.split(" ")[1]
-          : null;
-        console.log(
-          "Extracted token:",
-          token ? "Token extracted" : "No token extracted"
-        );
-
-        if (token) {
-          // Try to verify the token directly
-          const verifiedToken = verifyToken(token);
-          console.log(
-            "Token verification result:",
-            verifiedToken ? "Success" : "Failed"
-          );
-
-          if (verifiedToken) {
-            userData = verifiedToken;
-          } else {
-            // Try to decode without verification to see the payload
-            try {
-              const decodedToken = jwt.decode(token) as any;
-              console.log("Token payload (decoded):", decodedToken);
-
-              // Check if it's a .NET-style token
-              const nameIdentifier =
-                decodedToken?.[
-                  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-                ];
-              const emailAddress =
-                decodedToken?.[
-                  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-                ];
-              const role =
-                decodedToken?.[
-                  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-                ];
-
-              if (nameIdentifier && emailAddress) {
-                console.log("Mapping .NET-style token");
-                userData = {
-                  userId: nameIdentifier,
-                  email: emailAddress,
-                  role: role || "USER",
-                };
-              }
-            } catch (e) {
-              console.log("Failed to decode token:", e);
-            }
-          }
-        }
-      }
-
-      if (!userData) {
-        console.log("Header authentication failed - no valid token found");
-        return unauthorized();
-      }
-      console.log("Header authentication successful:", userData);
-    }
+    // Check authentication - allow any authenticated user to download files
+    const userData = authenticateRequest(req);
+    if (!userData) return unauthorized();
 
     const { filename } = await params;
 
@@ -146,7 +28,58 @@ export async function GET(
     const uploadsDir = path.join(process.cwd(), "uploads");
     const filePath = path.join(uploadsDir, filename);
 
+    // Check if this is a download request or preview request
+    const url = new URL(req.url);
+    const isDownloadRequest = url.searchParams.get("download") === "true";
+
     try {
+      // First check if file exists using fs.access
+      const fs = require("fs").promises;
+
+      try {
+        await fs.access(filePath);
+      } catch (accessError) {
+        console.error("File access failed:", filePath, accessError);
+
+        // Try to find similar files in the uploads directory
+        try {
+          const uploadsFiles = await fs.readdir(uploadsDir);
+          const similarFiles = uploadsFiles.filter(
+            (file: string) =>
+              file
+                .toLowerCase()
+                .includes(filename.toLowerCase().split("_")[0]) ||
+              filename.toLowerCase().includes(file.toLowerCase().split("_")[0])
+          );
+
+          console.log("Similar files found:", similarFiles);
+
+          if (similarFiles.length > 0) {
+            return NextResponse.json(
+              {
+                error: "File not found",
+                suggestion: `Similar files available: ${similarFiles.join(
+                  ", "
+                )}`,
+                availableFiles: similarFiles,
+              },
+              { status: 404 }
+            );
+          }
+        } catch (dirError) {
+          console.error("Failed to read uploads directory:", dirError);
+        }
+
+        return NextResponse.json(
+          {
+            error: "File not found",
+            requestedFile: filename,
+            filePath: filePath,
+          },
+          { status: 404 }
+        );
+      }
+
       // Read the file
       const fileBuffer = await readFile(filePath);
 
@@ -156,9 +89,6 @@ export async function GET(
         // If it looks like a UUID-prefixed filename, extract the original name
         originalName = filename.substring(37);
       }
-
-      // Check if this is a download request or preview request
-      const isDownloadRequest = url.searchParams.get("download") === "true";
 
       // Determine content type based on file extension
       const ext = path.extname(filename).toLowerCase();
@@ -188,10 +118,19 @@ export async function GET(
         case ".doc":
           contentType = "application/msword";
           break;
+        case ".webp":
+          contentType = "image/webp";
+          break;
+        case ".bmp":
+          contentType = "image/bmp";
+          break;
+        case ".zip":
+          contentType = "application/zip";
+          break;
       }
 
       // Set appropriate headers
-      const response = new NextResponse(fileBuffer);
+      const response = new NextResponse(fileBuffer as any);
       response.headers.set("Content-Type", contentType);
 
       // Only set attachment disposition if explicitly requested for download
@@ -210,8 +149,15 @@ export async function GET(
 
       return response;
     } catch (fileError) {
-      console.error("File not found:", filePath, fileError);
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
+      console.error("File read error:", filePath, fileError);
+      return NextResponse.json(
+        {
+          error: "Failed to read file",
+          details: (fileError as Error).message,
+          requestedFile: filename,
+        },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error("Download file error:", error);

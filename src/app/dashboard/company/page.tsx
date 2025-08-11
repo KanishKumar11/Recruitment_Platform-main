@@ -11,15 +11,18 @@ import { useGetJobsQuery } from "../../store/services/jobsApi";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 
 export default function CompanyDashboard() {
   const router = useRouter();
   const { user } = useSelector((state: RootState) => state.auth);
-  const [activePage, setActivePage] = useState<"dashboard" | "team">("dashboard");
+  const [activePage, setActivePage] = useState<"dashboard" | "team">(
+    "dashboard"
+  );
   const { data: teamMembers } = useGetTeamMembersQuery();
   const { data: jobs, isLoading: jobsLoading } = useGetJobsQuery();
   const [teamMemberCount, setTeamMemberCount] = useState(0);
-  
+
   // Stats for cards
   const [activeJobCount, setActiveJobCount] = useState(0);
   const [totalJobCount, setTotalJobCount] = useState(0);
@@ -34,15 +37,18 @@ export default function CompanyDashboard() {
   useEffect(() => {
     if (jobs) {
       // Count active jobs
-      const activeJobs = jobs.filter(job => job.status === "ACTIVE");
+      const activeJobs = jobs.filter((job) => job.status === "ACTIVE");
       setActiveJobCount(activeJobs.length);
-      
+
       // Set total job count
       setTotalJobCount(jobs.length);
-      
+
       // Get recent jobs (most recent 3)
       const sortedJobs = [...jobs]
-        .sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime())
+        .sort(
+          (a, b) =>
+            new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
+        )
         .slice(0, 3);
       setRecentJobs(sortedJobs);
     }
@@ -50,15 +56,20 @@ export default function CompanyDashboard() {
 
   // Format status badge
   const getStatusBadge = (status: "DRAFT" | "ACTIVE" | "PAUSED" | "CLOSED") => {
-    const statusColors: Record<"DRAFT" | "ACTIVE" | "PAUSED" | "CLOSED", string> = {
+    const statusColors: Record<
+      "DRAFT" | "ACTIVE" | "PAUSED" | "CLOSED",
+      string
+    > = {
       DRAFT: "bg-gray-100 text-gray-800",
       ACTIVE: "bg-green-100 text-green-800",
       PAUSED: "bg-yellow-100 text-yellow-800",
       CLOSED: "bg-red-100 text-red-800",
     };
-    
+
     return (
-      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[status]}`}>
+      <span
+        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[status]}`}
+      >
         {status.charAt(0) + status.slice(1).toLowerCase()}
       </span>
     );
@@ -229,7 +240,9 @@ export default function CompanyDashboard() {
                   <div className="flex flex-col sm:flex-row sm:space-x-4">
                     <button
                       type="button"
-                      onClick={() => router.push("/dashboard/company/jobs/create")}
+                      onClick={() =>
+                        router.push("/dashboard/company/jobs/create")
+                      }
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-3 sm:mb-0"
                     >
                       Post New Job
@@ -321,24 +334,36 @@ export default function CompanyDashboard() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
-                                  {job.location}, {job.country}
+                                  {job.location},{" "}
+                                  {getCountryNameFromCode(job.country)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 {getStatusBadge(job.status)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {format(new Date(job.postedDate), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(job.postedDate),
+                                  "MMM dd, yyyy"
+                                )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
-                                  onClick={() => router.push(`/dashboard/company/jobs/${job._id}/edit`)}
+                                  onClick={() =>
+                                    router.push(
+                                      `/dashboard/company/jobs/${job._id}/edit`
+                                    )
+                                  }
                                   className="text-indigo-600 hover:text-indigo-900 mr-4"
                                 >
                                   Edit
                                 </button>
                                 <button
-                                  onClick={() => router.push(`/dashboard/company/jobs/${job._id}`)}
+                                  onClick={() =>
+                                    router.push(
+                                      `/dashboard/company/jobs/${job._id}`
+                                    )
+                                  }
                                   className="text-indigo-600 hover:text-indigo-900"
                                 >
                                   View Applications ({job.applicantCount || 0})
@@ -348,8 +373,12 @@ export default function CompanyDashboard() {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
-                              No job postings found. Create your first job to get started.
+                            <td
+                              colSpan={6}
+                              className="px-6 py-4 text-center text-sm text-gray-500"
+                            >
+                              No job postings found. Create your first job to
+                              get started.
                             </td>
                           </tr>
                         )}

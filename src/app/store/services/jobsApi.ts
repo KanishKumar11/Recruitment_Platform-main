@@ -149,6 +149,10 @@ export const jobsApi = createApi({
       }),
       invalidatesTags: (_result, _error, { id }) => [{ type: "Job", id }],
     }),
+    getResumeCounts: builder.query<Record<string, number>, void>({
+      query: () => "/resume-counts",
+      providesTags: ["Job"],
+    }),
   }),
 });
 
@@ -162,4 +166,5 @@ export const {
   useUpdateScreeningQuestionMutation,
   useDeleteScreeningQuestionMutation,
   useUpdateJobStatusMutation,
+  useGetResumeCountsQuery,
 } = jobsApi;

@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserRole } from '../../constants/userRoles';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { UserRole } from "../../constants/userRoles";
 
 // Server-side user with MongoDB _id
 interface ServerUser {
@@ -43,39 +43,42 @@ let initialState: AuthState = {
 };
 
 // Only run on client side
-if (typeof window !== 'undefined') {
-  const savedAuth = localStorage.getItem('auth');
+if (typeof window !== "undefined") {
+  const savedAuth = localStorage.getItem("auth");
   if (savedAuth) {
     try {
       initialState = JSON.parse(savedAuth);
     } catch (e) {
-      console.error('Failed to parse saved auth state', e);
+      console.error("Failed to parse saved auth state", e);
     }
   }
 }
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ user: ClientUser; token: string }>) => {
+    setCredentials: (
+      state,
+      action: PayloadAction<{ user: ClientUser; token: string }>
+    ) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      
+
       // Save to localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth', JSON.stringify(state));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("auth", JSON.stringify(state));
       }
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      
+
       // Clear from localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth');
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("auth");
       }
     },
   },

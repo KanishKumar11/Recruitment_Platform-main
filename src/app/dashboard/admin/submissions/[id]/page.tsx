@@ -3,7 +3,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useGetResumeByIdQuery } from "../../../../store/services/resumesApi";
+import {
+  useGetResumeByIdQuery,
+  useUpdateResumeStatusMutation,
+  useAddResumeNoteMutation,
+} from "../../../../store/services/resumesApi";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
 import {
   ArrowLeft,
@@ -24,6 +28,7 @@ import {
   Loader2,
   MessageSquare,
   Award,
+  Eye,
 } from "lucide-react";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
@@ -34,7 +39,13 @@ export default function AdminResumeView() {
   const params = useParams();
   const id = params?.id as string;
 
+  const [newNote, setNewNote] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
+
   const { data: resume, isLoading, error } = useGetResumeByIdQuery(id);
+
+  const [updateResumeStatus] = useUpdateResumeStatusMutation();
+  const [addResumeNote] = useAddResumeNoteMutation();
 
   const getStatusColor = (status: ResumeStatus) => {
     switch (status) {
@@ -74,6 +85,34 @@ export default function AdminResumeView() {
       return format(new Date(dateString), "MMM dd, yyyy");
     } catch (e) {
       return "Invalid Date";
+    }
+  };
+
+  const handleStatusChange = async (newStatus: ResumeStatus) => {
+    try {
+      await updateResumeStatus({
+        resumeId: id,
+        status: newStatus,
+      }).unwrap();
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim()) return;
+
+    setIsAddingNote(true);
+    try {
+      await addResumeNote({
+        resumeId: id,
+        note: newNote.trim(),
+      }).unwrap();
+      setNewNote("");
+    } catch (error) {
+      console.error("Failed to add note:", error);
+    } finally {
+      setIsAddingNote(false);
     }
   };
 
@@ -133,9 +172,9 @@ export default function AdminResumeView() {
               </div>
             ) : resume ? (
               <div>
-                {/* Header with status */}
+                {/* Header with status control */}
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-                  <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <div className="px-4 py-5 sm:px-6 flex justify-between items-start">
                     <div>
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
                         {resume.candidateName}
@@ -144,15 +183,84 @@ export default function AdminResumeView() {
                         Submitted on {formatDate(resume.submittedAt)}
                       </p>
                     </div>
-                    <div className="flex items-center">
-                      {getStatusIcon(resume.status)}
-                      <span
-                        className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          resume.status
-                        )}`}
-                      >
-                        {resume.status}
-                      </span>
+                    <div className="flex flex-col items-end space-y-3">
+                      {/* Status Update Control */}
+                      <div className="flex items-center space-x-3">
+                        <select
+                          value={resume.status}
+                          onChange={(e) =>
+                            handleStatusChange(e.target.value as ResumeStatus)
+                          }
+                          className="block w-48 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                        >
+                          <option value={ResumeStatus.SUBMITTED}>
+                            Submitted
+                          </option>
+                          <option value={ResumeStatus.REVIEWED}>
+                            Reviewed
+                          </option>
+                          <option value={ResumeStatus.SHORTLISTED}>
+                            Shortlisted
+                          </option>
+                          <option value={ResumeStatus.DUPLICATE}>
+                            Duplicate
+                          </option>
+                          <option value={ResumeStatus.ONHOLD}>On Hold</option>
+                          <option value={ResumeStatus.INTERVIEWED}>
+                            Interviewed
+                          </option>
+                          <option value={ResumeStatus.HIRED}>Hired</option>
+                          <option value={ResumeStatus.REJECTED}>
+                            Rejected
+                          </option>
+                        </select>
+                        <div className="flex items-center">
+                          {getStatusIcon(resume.status)}
+                          <span
+                            className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                              resume.status
+                            )}`}
+                          >
+                            {resume.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Note Section */}
+                  <div className="border-t border-gray-200 px-4 py-4">
+                    <div className="flex items-start space-x-3">
+                      <MessageSquare className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <div className="flex-1">
+                        <label
+                          htmlFor="note"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          Add Note
+                        </label>
+                        <div className="flex space-x-3">
+                          <textarea
+                            id="note"
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                            placeholder="Add a note about this submission..."
+                            className="flex-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            rows={2}
+                          />
+                          <button
+                            onClick={handleAddNote}
+                            disabled={!newNote.trim() || isAddingNote}
+                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isAddingNote ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Add Note"
+                            )}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -167,31 +275,31 @@ export default function AdminResumeView() {
                         </h3>
                       </div>
                       <div className="border-t border-gray-200">
-                        <dl>
-                          <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dl className="divide-y divide-gray-200">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <User className="h-4 w-4 mr-2" />
-                              Full Name
+                              Full Name:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.candidateName}
                             </dd>
                           </div>
-                          <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <Mail className="h-4 w-4 mr-2" />
-                              Email
+                              Email:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.email}
                             </dd>
                           </div>
-                          <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <Phone className="h-4 w-4 mr-2" />
-                              Phone
+                              Phone:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.phone}
                             </dd>
                           </div>
@@ -279,19 +387,35 @@ export default function AdminResumeView() {
                               Resume File
                             </dt>
                             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                              <div className="flex items-center">
-                                <div className="flex-1 truncate">
+                              <div className="flex items-center space-x-3">
+                                <span className="truncate max-w-xs">
                                   {resume.resumeFile
                                     ? resume.resumeFile
                                     : "No file uploaded"}
-                                </div>
+                                </span>
                                 {resume.resumeFile && (
-                                  <a
-                                    href={`/api/resumes/${resume._id}/download`}
-                                    className="ml-4 flex-shrink-0 font-medium text-indigo-600 hover:text-indigo-500"
-                                  >
-                                    <Download className="h-5 w-5" />
-                                  </a>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() =>
+                                        window.open(
+                                          `/api/resumes/download/${resume.resumeFile}?preview=true`,
+                                          "_blank"
+                                        )
+                                      }
+                                      className="flex-shrink-0 text-indigo-600 hover:text-indigo-500"
+                                      title="Preview Resume"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </button>
+                                    <a
+                                      href={`/api/resumes/download/${resume.resumeFile}?download=true`}
+                                      className="flex-shrink-0 text-indigo-600 hover:text-indigo-500"
+                                      title="Download Resume"
+                                      download
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </a>
+                                  </div>
                                 )}
                               </div>
                             </dd>

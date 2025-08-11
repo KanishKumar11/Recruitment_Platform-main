@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import connectDb from './../../../lib/db';
-import Resume from './../../../models/Resume';
-import Job from './../../../models/Job';
-import User, { UserRole } from './../../../models/User';
-import { authenticateRequest, unauthorized, forbidden } from './../../../lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import connectDb from "./../../../lib/db";
+import Resume from "./../../../models/Resume";
+import Job from "./../../../models/Job";
+import User, { UserRole } from "./../../../models/User";
+import {
+  authenticateRequest,
+  unauthorized,
+  forbidden,
+} from "./../../../lib/auth";
 
 export async function GET(
   req: NextRequest,
@@ -17,22 +21,34 @@ export async function GET(
 
     const { id } = await params;
 
-    const resume = await Resume.findById(id).populate({
-      path: 'screeningAnswers.questionId',
-      model: 'ScreeningQuestion',
-    });
+    const resume = await Resume.findById(id)
+      .populate({
+        path: "screeningAnswers.questionId",
+        model: "ScreeningQuestion",
+      })
+      .populate({
+        path: "notes.userId",
+        model: "User",
+        select: "name email",
+      });
 
     if (!resume) {
-      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }
 
     const job = await Job.findById(resume.jobId);
     if (!job) {
-      return NextResponse.json({ error: 'Associated job not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Associated job not found" },
+        { status: 404 }
+      );
     }
 
     // Admins/Internal can view all resumes
-    if (userData.role === UserRole.ADMIN || userData.role === UserRole.INTERNAL) {
+    if (
+      userData.role === UserRole.ADMIN ||
+      userData.role === UserRole.INTERNAL
+    ) {
       return NextResponse.json(resume);
     }
 
@@ -43,52 +59,37 @@ export async function GET(
 
       if (currentUser.isPrimary) {
         const members = await User.find({
-          $or: [
-            { _id: currentUser._id },
-            { parentId: currentUser._id },
-          ],
-        }).select('_id');
+          $or: [{ _id: currentUser._id }, { parentId: currentUser._id }],
+        }).select("_id");
 
-        const memberIds = members.map(m => m._id.toString());
+        const memberIds = members.map((m) => m._id.toString());
         if (!memberIds.includes(job.postedBy.toString())) return forbidden();
 
         return NextResponse.json(resume);
       } else {
-        if (job.postedBy.toString() !== currentUser._id.toString()) return forbidden();
+        if (job.postedBy.toString() !== currentUser._id.toString())
+          return forbidden();
         return NextResponse.json(resume);
       }
     }
 
-    // ✅ Recruiter logic — including primary recruiter access
+    // ✅ Recruiter logic — allow access to all resumes for any authenticated recruiter
     if (userData.role === UserRole.RECRUITER) {
       const currentUser = await User.findById(userData.userId);
       if (!currentUser) return forbidden();
 
-      // If the recruiter is the one who submitted the resume
-      if (resume.submittedBy.toString() === userData.userId) {
-        return NextResponse.json(resume);
-      }
-
-      // If recruiter is primary, check if submission was from their team
-      if (currentUser.isPrimary) {
-        const teamMember = await User.findOne({
-          _id: resume.submittedBy,
-          parentId: currentUser._id,
-        });
-
-        if (teamMember) {
-          return NextResponse.json(resume);
-        }
-      }
-
-      return forbidden();
+      // Allow any authenticated recruiter to view any resume
+      return NextResponse.json(resume);
     }
 
     // All other roles forbidden
     return forbidden();
   } catch (error) {
-    console.error('Get resume error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Get resume error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -103,7 +104,7 @@ export async function DELETE(
     // Only admins can delete resumes
     if (userData.role !== UserRole.ADMIN) {
       return NextResponse.json(
-        { error: 'Only administrators can delete resumes' },
+        { error: "Only administrators can delete resumes" },
         { status: 403 }
       );
     }
@@ -114,7 +115,7 @@ export async function DELETE(
 
     const resume = await Resume.findById(id);
     if (!resume) {
-      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }
 
     // Delete the physical file if it exists
@@ -132,13 +133,13 @@ export async function DELETE(
     await Resume.findByIdAndDelete(id);
 
     return NextResponse.json(
-      { message: 'Resume deleted successfully' },
+      { message: "Resume deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Delete resume error:', error);
+    console.error("Delete resume error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

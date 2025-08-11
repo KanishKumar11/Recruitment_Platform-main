@@ -3,7 +3,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useGetResumeByIdQuery } from "../../../../store/services/resumesApi";
+import {
+  useGetResumeByIdQuery,
+  useUpdateResumeStatusMutation,
+  useAddResumeNoteMutation,
+} from "../../../../store/services/resumesApi";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
 import {
   ArrowLeft,
@@ -24,6 +28,7 @@ import {
   Loader2,
   MessageSquare,
   Award,
+  Eye,
 } from "lucide-react";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
@@ -34,8 +39,14 @@ export default function AdminResumeView() {
   const params = useParams();
   const id = params?.id as string;
 
+  const [newNote, setNewNote] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
+
   // const { user } = useSelector((state: RootState) => state.auth);
   const { data: resume, isLoading, error } = useGetResumeByIdQuery(id);
+
+  const [updateResumeStatus] = useUpdateResumeStatusMutation();
+  const [addResumeNote] = useAddResumeNoteMutation();
 
   const getStatusColor = (status: ResumeStatus) => {
     switch (status) {
@@ -75,6 +86,34 @@ export default function AdminResumeView() {
       return format(new Date(dateString), "MMM dd, yyyy");
     } catch (e) {
       return "Invalid Date";
+    }
+  };
+
+  const handleStatusChange = async (newStatus: ResumeStatus) => {
+    try {
+      await updateResumeStatus({
+        resumeId: id,
+        status: newStatus,
+      }).unwrap();
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim()) return;
+
+    setIsAddingNote(true);
+    try {
+      await addResumeNote({
+        resumeId: id,
+        note: newNote.trim(),
+      }).unwrap();
+      setNewNote("");
+    } catch (error) {
+      console.error("Failed to add note:", error);
+    } finally {
+      setIsAddingNote(false);
     }
   };
 
@@ -134,9 +173,9 @@ export default function AdminResumeView() {
               </div>
             ) : resume ? (
               <div>
-                {/* Header with status */}
+                {/* Header with status control */}
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-                  <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <div className="px-4 py-5 sm:px-6 flex justify-between items-start">
                     <div>
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
                         {resume.candidateName}
@@ -145,15 +184,84 @@ export default function AdminResumeView() {
                         Submitted on {formatDate(resume.submittedAt)}
                       </p>
                     </div>
-                    <div className="flex items-center">
-                      {getStatusIcon(resume.status)}
-                      <span
-                        className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          resume.status
-                        )}`}
-                      >
-                        {resume.status}
-                      </span>
+                    <div className="flex flex-col items-end space-y-3">
+                      {/* Status Update Control */}
+                      <div className="flex items-center space-x-3">
+                        <select
+                          value={resume.status}
+                          onChange={(e) =>
+                            handleStatusChange(e.target.value as ResumeStatus)
+                          }
+                          className="block w-48 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                        >
+                          <option value={ResumeStatus.SUBMITTED}>
+                            Submitted
+                          </option>
+                          <option value={ResumeStatus.REVIEWED}>
+                            Reviewed
+                          </option>
+                          <option value={ResumeStatus.SHORTLISTED}>
+                            Shortlisted
+                          </option>
+                          <option value={ResumeStatus.DUPLICATE}>
+                            Duplicate
+                          </option>
+                          <option value={ResumeStatus.ONHOLD}>On Hold</option>
+                          <option value={ResumeStatus.INTERVIEWED}>
+                            Interviewed
+                          </option>
+                          <option value={ResumeStatus.HIRED}>Hired</option>
+                          <option value={ResumeStatus.REJECTED}>
+                            Rejected
+                          </option>
+                        </select>
+                        <div className="flex items-center">
+                          {getStatusIcon(resume.status)}
+                          <span
+                            className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                              resume.status
+                            )}`}
+                          >
+                            {resume.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Note Section */}
+                  <div className="border-t border-gray-200 px-4 py-4">
+                    <div className="flex items-start space-x-3">
+                      <MessageSquare className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <div className="flex-1">
+                        <label
+                          htmlFor="note"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          Add Note
+                        </label>
+                        <div className="flex space-x-3">
+                          <textarea
+                            id="note"
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                            placeholder="Add a note about this submission..."
+                            className="flex-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            rows={2}
+                          />
+                          <button
+                            onClick={handleAddNote}
+                            disabled={!newNote.trim() || isAddingNote}
+                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isAddingNote ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Add Note"
+                            )}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -168,131 +276,137 @@ export default function AdminResumeView() {
                         </h3>
                       </div>
                       <div className="border-t border-gray-200">
-                        <dl>
-                          <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dl className="divide-y divide-gray-200">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <User className="h-4 w-4 mr-2" />
-                              Full Name
+                              Full Name:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.candidateName}
                             </dd>
                           </div>
-                          <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <Mail className="h-4 w-4 mr-2" />
-                              Email
+                              Email:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.email}
                             </dd>
                           </div>
-                          <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <Phone className="h-4 w-4 mr-2" />
-                              Phone
+                              Phone:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.phone}
                             </dd>
                           </div>
                           {resume.alternativePhone && (
-                            <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <div className="px-4 py-3 flex items-center justify-between">
                               <dt className="text-sm font-medium text-gray-500 flex items-center">
                                 <Phone className="h-4 w-4 mr-2" />
-                                Alternative Phone
+                                Alternative Phone:
                               </dt>
-                              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                              <dd className="text-sm text-gray-900 font-medium">
                                 {resume.alternativePhone}
                               </dd>
                             </div>
                           )}
-                          <div
-                            className={`${
-                              resume.alternativePhone
-                                ? "bg-gray-50"
-                                : "bg-white"
-                            } px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6`}
-                          >
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <MapPin className="h-4 w-4 mr-2" />
-                              Location
+                              Location:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.location}, {resume.country}
                             </dd>
                           </div>
-                          <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <School className="h-4 w-4 mr-2" />
-                              Qualification
+                              Qualification:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.qualification}
                             </dd>
                           </div>
-                          <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <DollarSign className="h-4 w-4 mr-2" />
-                              Current Annual CTC
+                              Current Annual CTC:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.currentCTC}
                             </dd>
                           </div>
-                          <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <DollarSign className="h-4 w-4 mr-2" />
-                              Expected Annual CTC
+                              Expected Annual CTC:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.expectedCTC}
                             </dd>
                           </div>
-                          <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <Clock className="h-4 w-4 mr-2" />
-                              Notice Period
+                              Notice Period:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <dd className="text-sm text-gray-900 font-medium">
                               {resume.noticePeriod} days
                             </dd>
                           </div>
                           {resume.remarks && (
-                            <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <div className="px-4 py-3 flex items-start justify-between">
                               <dt className="text-sm font-medium text-gray-500 flex items-center">
                                 <MessageSquare className="h-4 w-4 mr-2" />
-                                Remarks
+                                Remarks:
                               </dt>
-                              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                              <dd className="text-sm text-gray-900 font-medium max-w-md text-right">
                                 {resume.remarks}
                               </dd>
                             </div>
                           )}
                           {/* Resume file section */}
-                          <div
-                            className={`${
-                              resume.remarks ? "bg-white" : "bg-gray-50"
-                            } px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6`}
-                          >
+                          <div className="px-4 py-3 flex items-center justify-between">
                             <dt className="text-sm font-medium text-gray-500 flex items-center">
                               <FileText className="h-4 w-4 mr-2" />
-                              Resume File
+                              Resume File:
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                              <div className="flex items-center">
-                                <div className="flex-1 truncate">
+                            <dd className="text-sm text-gray-900 font-medium">
+                              <div className="flex items-center space-x-3">
+                                <span className="truncate max-w-xs">
                                   {resume.resumeFile
                                     ? resume.resumeFile
                                     : "No file uploaded"}
-                                </div>
+                                </span>
                                 {resume.resumeFile && (
-                                  <a
-                                    href={`/api/resumes/${resume._id}/download`}
-                                    className="ml-4 flex-shrink-0 font-medium text-indigo-600 hover:text-indigo-500"
-                                  >
-                                    <Download className="h-5 w-5" />
-                                  </a>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() =>
+                                        window.open(
+                                          `/api/resumes/download/${resume.resumeFile}?preview=true`,
+                                          "_blank"
+                                        )
+                                      }
+                                      className="flex-shrink-0 text-indigo-600 hover:text-indigo-500"
+                                      title="Preview Resume"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </button>
+                                    <a
+                                      href={`/api/resumes/download/${resume.resumeFile}?download=true`}
+                                      className="flex-shrink-0 text-indigo-600 hover:text-indigo-500"
+                                      title="Download Resume"
+                                      download
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </a>
+                                  </div>
                                 )}
                               </div>
                             </dd>
@@ -310,24 +424,21 @@ export default function AdminResumeView() {
                             </h3>
                           </div>
                           <div className="border-t border-gray-200">
-                            <dl>
+                            <dl className="divide-y divide-gray-200">
                               {resume.screeningAnswers.map((answer, index) => (
                                 <div
                                   key={index}
-                                  className={
-                                    index % 2 === 0
-                                      ? "bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-                                      : "bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-                                  }
+                                  className="px-4 py-3 flex items-start justify-between"
                                 >
-                                  <dt className="text-sm font-medium text-gray-500">
+                                  <dt className="text-sm font-medium text-gray-500 max-w-xs">
                                     {typeof answer.questionId === "object" &&
                                     "question" in answer.questionId
                                       ? (answer.questionId
                                           .question as React.ReactNode)
                                       : `Question ${index + 1}`}
+                                    :
                                   </dt>
-                                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                  <dd className="text-sm text-gray-900 font-medium max-w-md text-right">
                                     {answer.answer || "No answer provided"}
                                   </dd>
                                 </div>
@@ -347,39 +458,39 @@ export default function AdminResumeView() {
                       </div>
                       <div className="border-t border-gray-200">
                         {resume.jobTitle && (
-                          <dl>
-                            <div className="bg-gray-50 px-4 py-4 sm:px-6">
-                              <dt className="text-sm font-medium text-gray-500 flex items-center mb-1">
-                                <Briefcase className="h-4 w-4 mr-1" />
-                                Job Title
+                          <dl className="divide-y divide-gray-200">
+                            <div className="px-4 py-3 flex items-center justify-between">
+                              <dt className="text-sm font-medium text-gray-500 flex items-center">
+                                <Briefcase className="h-4 w-4 mr-2" />
+                                Job Title:
                               </dt>
-                              <dd className="text-sm text-gray-900">
+                              <dd className="text-sm text-gray-900 font-medium">
                                 {resume.jobTitle}
                               </dd>
                             </div>
-                            <div className="bg-white px-4 py-4 sm:px-6">
-                              <dt className="text-sm font-medium text-gray-500 flex items-center mb-1">
-                                <Calendar className="h-4 w-4 mr-1" />
-                                Posted Date
+                            <div className="px-4 py-3 flex items-center justify-between">
+                              <dt className="text-sm font-medium text-gray-500 flex items-center">
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Posted Date:
                               </dt>
-                              <dd className="text-sm text-gray-900">
+                              <dd className="text-sm text-gray-900 font-medium">
                                 {formatDate(resume.submittedAt)}
                               </dd>
                             </div>
-                            <div className="bg-gray-50 px-4 py-4 sm:px-6">
-                              <dt className="text-sm font-medium text-gray-500 flex items-center mb-1">
-                                <MapPin className="h-4 w-4 mr-1" />
-                                Location
+                            <div className="px-4 py-3 flex items-center justify-between">
+                              <dt className="text-sm font-medium text-gray-500 flex items-center">
+                                <MapPin className="h-4 w-4 mr-2" />
+                                Location:
                               </dt>
-                              <dd className="text-sm text-gray-900">
+                              <dd className="text-sm text-gray-900 font-medium">
                                 {resume.location}, {resume.country}
                               </dd>
                             </div>
-                            <div className="bg-gray-50 px-4 py-4 sm:px-6">
+                            <div className="px-4 py-4">
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/admin/jobs/${resume.jobId}`
+                                    `/dashboard/internal/jobs/${resume.jobId}`
                                   )
                                 }
                                 className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import ErrorAlert from "@/app/components/ui/ErrorAlert";
 import ResumeDetailModal from "@/app/components/company/ResumeDetailModal";
+
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
@@ -36,6 +37,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminSubmissionsPage() {
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [jobFilter, setJobFilter] = useState<string>("");
@@ -53,7 +55,7 @@ export default function AdminSubmissionsPage() {
   const [selectedResumeForModal, setSelectedResumeForModal] = useState<
     string | null
   >(null);
-  
+
   // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<{
@@ -75,10 +77,6 @@ export default function AdminSubmissionsPage() {
 
   const [updateResumeStatus] = useUpdateResumeStatusMutation();
   const [deleteResume] = useDeleteResumeMutation();
-
-  const handleViewResume = (resumeId: string) => {
-    router.push(`/dashboard/admin/submissions/${resumeId}`);
-  };
 
   const handleStatusChange = async (
     resumeId: string,
@@ -126,7 +124,9 @@ export default function AdminSubmissionsPage() {
 
     try {
       await deleteResume(resumeToDelete.id).unwrap();
-      setDeleteSuccess(`Resume for ${resumeToDelete.candidateName} deleted successfully`);
+      setDeleteSuccess(
+        `Resume for ${resumeToDelete.candidateName} deleted successfully`
+      );
       setShowDeleteConfirm(false);
       setResumeToDelete(null);
 
@@ -160,34 +160,40 @@ export default function AdminSubmissionsPage() {
   };
 
   // Get unique job IDs and titles from resumes
-   const uniqueJobs = resumes
-    ? [...new Set(resumes.map(resume => resume.jobId?._id || ''))]
-      .filter(id => id)
-      .map(jobId => {
-        const resume = resumes.find(r => r.jobId?._id === jobId);
-        return {
-          id: jobId,
-          title: typeof resume?.jobId === "object" && "title" in (resume?.jobId ?? {}) 
-            ? (resume.jobId as { title?: string }).title || "Unknown Job"
-            : "Unknown Job",
-        };
-      })
+  const uniqueJobs = resumes
+    ? [...new Set(resumes.map((resume) => resume.jobId?._id || ""))]
+        .filter((id) => id)
+        .map((jobId) => {
+          const resume = resumes.find((r) => r.jobId?._id === jobId);
+          return {
+            id: jobId,
+            title:
+              typeof resume?.jobId === "object" &&
+              "title" in (resume?.jobId ?? {})
+                ? (resume.jobId as { title?: string }).title || "Unknown Job"
+                : "Unknown Job",
+          };
+        })
     : [];
 
   // Get unique recruiters - Fixed to properly handle null/undefined values
- const uniqueRecruiters = resumes
-    ? [...new Set(resumes.map(resume => resume.submittedBy?._id || ''))]
-      .filter(id => id)
-      .map(recruiterId => {
-        const resume = resumes.find(r => r.submittedBy?._id === recruiterId);
-        return {
-          id: recruiterId,
-          name:
-            typeof resume?.submittedBy === "object" && "name" in (resume?.submittedBy ?? {})
-              ? (resume.submittedBy as { name?: string }).name || "Unknown Recruiter"
-              : "Unknown Recruiter",
-        };
-      })
+  const uniqueRecruiters = resumes
+    ? [...new Set(resumes.map((resume) => resume.submittedBy?._id || ""))]
+        .filter((id) => id)
+        .map((recruiterId) => {
+          const resume = resumes.find(
+            (r) => r.submittedBy?._id === recruiterId
+          );
+          return {
+            id: recruiterId,
+            name:
+              typeof resume?.submittedBy === "object" &&
+              "name" in (resume?.submittedBy ?? {})
+                ? (resume.submittedBy as { name?: string }).name ||
+                  "Unknown Recruiter"
+                : "Unknown Recruiter",
+          };
+        })
     : [];
 
   const handleOpenModal = (resumeId: string) => {
@@ -205,21 +211,31 @@ export default function AdminSubmissionsPage() {
     ? resumes.filter((resume) => {
         const matchesSearch =
           searchTerm === "" ||
-          resume.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (typeof resume.jobId === "object" && "title" in (resume.jobId ?? {}) && (resume.jobId as { title?: string }).title
-            ? ((resume.jobId as { title?: string }).title as string).toLowerCase().includes(searchTerm.toLowerCase())
+          resume.candidateName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (typeof resume.jobId === "object" &&
+          "title" in (resume.jobId ?? {}) &&
+          (resume.jobId as { title?: string }).title
+            ? ((resume.jobId as { title?: string }).title as string)
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
             : false) ||
-          resume.qualification.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          resume.qualification
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           (resume.email || "").toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus =
           statusFilter === "" || resume.status === statusFilter;
 
         const matchesJob =
-          jobFilter === "" || (resume.jobId?._id?.toString() || "") === jobFilter;
+          jobFilter === "" ||
+          (resume.jobId?._id?.toString() || "") === jobFilter;
 
         const matchesRecruiter =
-          recruiterFilter === "" || (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
+          recruiterFilter === "" ||
+          (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
 
         return matchesSearch && matchesStatus && matchesJob && matchesRecruiter;
       })
@@ -441,7 +457,10 @@ export default function AdminSubmissionsPage() {
                   >
                     <option value="">All Jobs</option>
                     {uniqueJobs.map((job) => (
-                      <option key={job.id?.toString()} value={job.id?.toString()}>
+                      <option
+                        key={job.id?.toString()}
+                        value={job.id?.toString()}
+                      >
                         {job.title}
                       </option>
                     ))}
@@ -464,7 +483,10 @@ export default function AdminSubmissionsPage() {
                   >
                     <option value="">All Recruiters</option>
                     {uniqueRecruiters.map((recruiter) => (
-                      <option key={recruiter.id?.toString()} value={recruiter.id?.toString()}>
+                      <option
+                        key={recruiter.id?.toString()}
+                        value={recruiter.id?.toString()}
+                      >
                         {recruiter.name}
                       </option>
                     ))}
@@ -522,16 +544,14 @@ export default function AdminSubmissionsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Last Updated
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredResumes.map((resume) => (
                       <tr
                         key={resume._id as string}
-                        className="hover:bg-gray-50"
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleOpenModal(resume._id as string)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
@@ -542,82 +562,34 @@ export default function AdminSubmissionsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 flex items-center">
-                  {typeof resume.jobId === "object" && "title" in (resume.jobId ?? {}) 
-                    ? (resume.jobId as { title?: string }).title || "Unknown Job"
-                    : "Unknown Job"}
-                  <Eye
-                    className="ml-2 h-4 w-4 text-indigo-500 cursor-pointer hover:text-indigo-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenModal(resume._id as string);
-                    }}
-                  />
-                </div>
-                <div className="text-sm text-gray-500">
-                  {resume.qualification}
-                </div>
-              </td>
+                          <div className="text-sm text-gray-900 flex items-center">
+                            {typeof resume.jobId === "object" &&
+                            "title" in (resume.jobId ?? {})
+                              ? (resume.jobId as { title?: string }).title ||
+                                "Unknown Job"
+                              : "Unknown Job"}
+                            <Eye
+                              className="ml-2 h-4 w-4 text-indigo-500 cursor-pointer hover:text-indigo-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenModal(resume._id as string);
+                              }}
+                            />
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {resume.qualification}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {typeof resume.submittedBy === "object" && "name" in (resume.submittedBy ?? {}) 
-                  ? (resume.submittedBy as { name?: string }).name || "Unknown Recruiter"
-                  : "Unknown Recruiter"}
-              </td>
+                          {typeof resume.submittedBy === "object" &&
+                          "name" in (resume.submittedBy ?? {})
+                            ? (resume.submittedBy as { name?: string }).name ||
+                              "Unknown Recruiter"
+                            : "Unknown Recruiter"}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col space-y-2">
                             <ResumeStatusBadge status={resume.status} />
-
-                            {/* Status Update Dropdown */}
-                            <div>
-                              <select
-                                onChange={(e) =>
-                                  handleStatusChange(
-                                    resume._id as string,
-                                    e.target.value as ResumeStatus
-                                  )
-                                }
-                                disabled={
-                                  updateStatusLoading[resume._id as string]
-                                }
-                                defaultValue=""
-                                className="mt-1 block w-full pl-3 pr-10 py-2 text-xs border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs rounded-md"
-                              >
-                                <option value="" disabled>
-                                  {updateStatusLoading[resume._id as string]
-                                    ? "Updating..."
-                                    : "Change status"}
-                                </option>
-                                <option value={ResumeStatus.SUBMITTED}>
-                                  Set as Submitted
-                                </option>
-                                <option value={ResumeStatus.REVIEWED}>
-                                  Set as Reviewed
-                                </option>
-                                <option value={ResumeStatus.SHORTLISTED}>
-                                  Set as Shortlisted
-                                </option>
-                                <option value={ResumeStatus.DUPLICATE}>
-                                  Set as Duplicate
-                                </option>
-                                <option value={ResumeStatus.ONHOLD}>
-                                  Set as On Hold
-                                </option>
-                                <option value={ResumeStatus.INTERVIEWED}>
-                                  Set as Interviewed
-                                </option>
-                                <option value={ResumeStatus.HIRED}>
-                                  Set as Hired
-                                </option>
-                                <option value={ResumeStatus.REJECTED}>
-                                  Set as Rejected
-                                </option>
-                              </select>
-                              {updateStatusLoading[resume._id as string] && (
-                                <div className="mt-1 flex justify-center">
-                                  <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
-                                </div>
-                              )}
-                            </div>
 
                             {/* Show timestamp for the latest status change */}
                             {resume.status === ResumeStatus.HIRED &&
@@ -683,27 +655,6 @@ export default function AdminSubmissionsPage() {
                             {new Date(resume.createdAt).toLocaleDateString()}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex flex-col space-y-2">
-                            <button
-                              onClick={() =>
-                                handleViewResume(resume._id as string)
-                              }
-                              className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md text-xs"
-                            >
-                              View Details
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleDeleteClick(resume._id as string, resume.candidateName)
-                              }
-                              className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-md text-xs flex items-center justify-center"
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
-                            </button>
-                          </div>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -725,8 +676,8 @@ export default function AdminSubmissionsPage() {
                   Delete Resume for {resumeToDelete.candidateName}?
                 </h3>
                 <p className="text-sm text-gray-500 mt-1">
-                  Are you sure you want to delete this resume? This action cannot
-                  be undone.
+                  Are you sure you want to delete this resume? This action
+                  cannot be undone.
                 </p>
                 <div className="mt-4">
                   <button

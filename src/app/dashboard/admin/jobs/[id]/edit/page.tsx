@@ -1133,6 +1133,16 @@ export default function AdminJobEditPage() {
 
                   <div>
                     <RichTextEditor
+                      label="Company Description"
+                      value={formData.companyDescription}
+                      onChange={handleRichTextChange("companyDescription")}
+                      required={false}
+                      placeholder="Brief description of the company..."
+                    />
+                  </div>
+
+                  <div>
+                    <RichTextEditor
                       label="Sourcing Guidelines"
                       value={formData.sourcingGuidelines}
                       onChange={handleRichTextChange("sourcingGuidelines")}

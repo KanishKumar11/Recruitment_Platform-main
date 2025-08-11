@@ -118,7 +118,8 @@ export async function GET(request: NextRequest) {
     };
     priorityStats.forEach((stat) => {
       if (stat._id && stat._id in priorityDistribution) {
-        priorityDistribution[stat._id as keyof typeof priorityDistribution] = stat.count;
+        priorityDistribution[stat._id as keyof typeof priorityDistribution] =
+          stat.count;
       }
     });
 

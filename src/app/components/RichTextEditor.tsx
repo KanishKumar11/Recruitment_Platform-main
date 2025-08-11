@@ -7,6 +7,8 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Palette,
+  ChevronDown,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -26,6 +28,8 @@ const WYSIWYGRichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showTextColorPicker, setShowTextColorPicker] = useState(false);
+  const [showBgColorPicker, setShowBgColorPicker] = useState(false);
 
   // Initialize editor content
   useEffect(() => {
@@ -34,6 +38,22 @@ const WYSIWYGRichTextEditor: React.FC<RichTextEditorProps> = ({
       setIsLoaded(true);
     }
   }, [value, isLoaded]);
+
+  // Close color pickers when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest(".color-picker-container")) {
+        setShowTextColorPicker(false);
+        setShowBgColorPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Handle content changes
   const handleInput = () => {
@@ -101,6 +121,46 @@ const WYSIWYGRichTextEditor: React.FC<RichTextEditorProps> = ({
           break;
       }
     }
+  };
+
+  // Color options
+  const colors = [
+    { name: "Black", value: "#000000" },
+    { name: "Dark Gray", value: "#374151" },
+    { name: "Gray", value: "#6B7280" },
+    { name: "Light Gray", value: "#9CA3AF" },
+    { name: "Red", value: "#EF4444" },
+    { name: "Orange", value: "#F97316" },
+    { name: "Yellow", value: "#EAB308" },
+    { name: "Green", value: "#22C55E" },
+    { name: "Blue", value: "#3B82F6" },
+    { name: "Indigo", value: "#6366F1" },
+    { name: "Purple", value: "#A855F7" },
+    { name: "Pink", value: "#EC4899" },
+  ];
+
+  // Apply text color
+  const applyTextColor = (color: string) => {
+    formatText("foreColor", color);
+    setShowTextColorPicker(false);
+  };
+
+  // Apply background color
+  const applyBackgroundColor = (color: string) => {
+    formatText("hiliteColor", color);
+    setShowBgColorPicker(false);
+  };
+
+  // Remove text color
+  const removeTextColor = () => {
+    formatText("removeFormat");
+    setShowTextColorPicker(false);
+  };
+
+  // Remove background color
+  const removeBackgroundColor = () => {
+    formatText("hiliteColor", "transparent");
+    setShowBgColorPicker(false);
   };
 
   return (
@@ -196,6 +256,88 @@ const WYSIWYGRichTextEditor: React.FC<RichTextEditorProps> = ({
 
           <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
+          {/* Text Color Picker */}
+          <div className="relative color-picker-container">
+            <button
+              type="button"
+              onClick={() => {
+                setShowTextColorPicker(!showTextColorPicker);
+                setShowBgColorPicker(false);
+              }}
+              className="inline-flex items-center px-2 py-1 rounded text-sm bg-white border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Text Color"
+            >
+              <Type className="h-4 w-4 mr-1" />
+              <ChevronDown className="h-3 w-3" />
+            </button>
+
+            {showTextColorPicker && (
+              <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 p-2">
+                <div className="grid grid-cols-4 gap-1 mb-2">
+                  {colors.map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => applyTextColor(color.value)}
+                      className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={removeTextColor}
+                  className="w-full text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700"
+                >
+                  Remove Color
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Background Color Picker */}
+          <div className="relative color-picker-container">
+            <button
+              type="button"
+              onClick={() => {
+                setShowBgColorPicker(!showBgColorPicker);
+                setShowTextColorPicker(false);
+              }}
+              className="inline-flex items-center px-2 py-1 rounded text-sm bg-white border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Background Color"
+            >
+              <Palette className="h-4 w-4 mr-1" />
+              <ChevronDown className="h-3 w-3" />
+            </button>
+
+            {showBgColorPicker && (
+              <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 p-2">
+                <div className="grid grid-cols-4 gap-1 mb-2">
+                  {colors.map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => applyBackgroundColor(color.value)}
+                      className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={removeBackgroundColor}
+                  className="w-full text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700"
+                >
+                  Remove Background
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="w-px h-6 bg-gray-300 mx-1"></div>
+
           {/* Headings */}
           <select
             onChange={(e) => {
@@ -241,7 +383,7 @@ const WYSIWYGRichTextEditor: React.FC<RichTextEditorProps> = ({
               Ctrl+B for bold, Ctrl+I for italic, Ctrl+U for underline
             </span>
             <span>•</span>
-            <span>Use toolbar for lists and headings</span>
+            <span>Use toolbar for lists, headings, and colors</span>
           </div>
         </div>
       </div>

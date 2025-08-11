@@ -12,6 +12,7 @@ import { Loader2, ArrowLeft, Edit, FileQuestion } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 import { JobStatus } from "@/app/constants/jobStatus";
+import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 
 export default function ViewJobPage() {
   const router = useRouter();
@@ -232,7 +233,7 @@ export default function ViewJobPage() {
                           Location
                         </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                          {job.location}, {job.country}
+                          {job.location}, {getCountryNameFromCode(job.country)}
                         </dd>
                       </div>
                     </div>

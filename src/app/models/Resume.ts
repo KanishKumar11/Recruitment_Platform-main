@@ -12,6 +12,10 @@ export enum ResumeStatus {
   OFFERED = "OFFERED",
   OFFER_DECLINED = "OFFER_DECLINED",
   HIRED = "HIRED",
+  JOINED = "JOINED",
+  TRIAL_FAILED = "TRIAL_FAILED",
+  BACKOUT = "BACKOUT",
+  QUIT_AFTER_JOINED = "QUIT_AFTER_JOINED",
   REJECTED = "REJECTED",
   DUPLICATE = "DUPLICATE",
 }
@@ -54,6 +58,10 @@ export interface IResume extends Document {
   offeredAt: Date | null;
   offerDeclinedAt: Date | null;
   hiredAt: Date | null;
+  joinedAt: Date | null;
+  trialFailedAt: Date | null;
+  backoutAt: Date | null;
+  quitAfterJoinedAt: Date | null;
   rejectedAt: Date | null;
   duplicateAt: Date | null;
 
@@ -62,7 +70,9 @@ export interface IResume extends Document {
     answer: string;
   }[];
   notes: {
-    userId: mongoose.Types.ObjectId;
+    userId:
+      | mongoose.Types.ObjectId
+      | { name?: string; email?: string; _id: mongoose.Types.ObjectId };
     note: string;
     createdAt: Date;
   }[];
@@ -132,6 +142,10 @@ const ResumeSchema = new Schema<IResume>(
     offeredAt: { type: Date, default: null },
     offerDeclinedAt: { type: Date, default: null },
     hiredAt: { type: Date, default: null },
+    joinedAt: { type: Date, default: null },
+    trialFailedAt: { type: Date, default: null },
+    backoutAt: { type: Date, default: null },
+    quitAfterJoinedAt: { type: Date, default: null },
     rejectedAt: { type: Date, default: null },
     duplicateAt: { type: Date, default: null },
 

@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useGetAllSubmissionsQuery,
-  useUpdateResumeStatusMutation,
-} from "../../../store/services/resumesApi";
+import { useGetAllSubmissionsQuery } from "../../../store/services/resumesApi";
 import ResumeStatusBadge from "@/app/components/company/ResumeStatusBadge";
 import {
   Loader2,
@@ -19,9 +16,6 @@ import {
   User,
   Eye,
   Award,
-  FileQuestion,
-  CheckCircle,
-  AlertCircle,
   Copy,
 } from "lucide-react";
 import ErrorAlert from "@/app/components/ui/ErrorAlert";
@@ -29,28 +23,16 @@ import ResumeDetailModal from "@/app/components/company/ResumeDetailModal";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
-import { useRouter } from "next/navigation";
 
 export default function InternalSubmissionsPage() {
-  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [jobFilter, setJobFilter] = useState<string>("");
   const [recruiterFilter, setRecruiterFilter] = useState<string>("");
-  const [updateStatusLoading, setUpdateStatusLoading] = useState<
-    Record<string, boolean>
-  >({});
-  const [statusUpdateSuccess, setStatusUpdateSuccess] = useState<string | null>(
-    null
-  );
-  const [statusUpdateError, setStatusUpdateError] = useState<string | null>(
-    null
-  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedResumeForModal, setSelectedResumeForModal] = useState<
     string | null
   >(null);
-  const router = useRouter();
 
   const {
     data: resumes,
@@ -58,43 +40,6 @@ export default function InternalSubmissionsPage() {
     isError,
     error,
   } = useGetAllSubmissionsQuery();
-
-  const [updateResumeStatus] = useUpdateResumeStatusMutation();
-
-  const handleViewResume = (resumeId: string) => {
-    router.push(`/dashboard/internal/submissions/${resumeId}`);
-  };
-
-  const handleStatusChange = async (
-    resumeId: string,
-    newStatus: ResumeStatus
-  ) => {
-    setUpdateStatusLoading((prev) => ({ ...prev, [resumeId]: true }));
-    setStatusUpdateSuccess(null);
-    setStatusUpdateError(null);
-
-    try {
-      await updateResumeStatus({ id: resumeId, status: newStatus }).unwrap();
-      setStatusUpdateSuccess(
-        `Resume status updated successfully to ${newStatus}`
-      );
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setStatusUpdateSuccess(null);
-      }, 3000);
-    } catch (err) {
-      console.error("Failed to update status:", err);
-      setStatusUpdateError("Failed to update status. Please try again.");
-
-      // Clear error message after 3 seconds
-      setTimeout(() => {
-        setStatusUpdateError(null);
-      }, 3000);
-    } finally {
-      setUpdateStatusLoading((prev) => ({ ...prev, [resumeId]: false }));
-    }
-  };
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -105,33 +50,39 @@ export default function InternalSubmissionsPage() {
 
   // Get unique job IDs and titles from resumes - Fixed to handle object structure
   const uniqueJobs = resumes
-    ? [...new Set(resumes.map(resume => resume.jobId?._id || ''))]
-      .filter(id => id)
-      .map(jobId => {
-        const resume = resumes.find(r => r.jobId?._id === jobId);
-        return {
-          id: jobId,
-          title: typeof resume?.jobId === "object" && "title" in (resume?.jobId ?? {}) 
-            ? (resume.jobId as { title?: string }).title || "Unknown Job"
-            : "Unknown Job",
-        };
-      })
+    ? [...new Set(resumes.map((resume) => resume.jobId?._id || ""))]
+        .filter((id) => id)
+        .map((jobId) => {
+          const resume = resumes.find((r) => r.jobId?._id === jobId);
+          return {
+            id: jobId,
+            title:
+              typeof resume?.jobId === "object" &&
+              "title" in (resume?.jobId ?? {})
+                ? (resume.jobId as { title?: string }).title || "Unknown Job"
+                : "Unknown Job",
+          };
+        })
     : [];
 
   // Get unique recruiters - Fixed to properly handle null/undefined values
   const uniqueRecruiters = resumes
-    ? [...new Set(resumes.map(resume => resume.submittedBy?._id || ''))]
-      .filter(id => id)
-      .map(recruiterId => {
-        const resume = resumes.find(r => r.submittedBy?._id === recruiterId);
-        return {
-          id: recruiterId,
-          name:
-            typeof resume?.submittedBy === "object" && "name" in (resume?.submittedBy ?? {})
-              ? (resume.submittedBy as { name?: string }).name || "Unknown Recruiter"
-              : "Unknown Recruiter",
-        };
-      })
+    ? [...new Set(resumes.map((resume) => resume.submittedBy?._id || ""))]
+        .filter((id) => id)
+        .map((recruiterId) => {
+          const resume = resumes.find(
+            (r) => r.submittedBy?._id === recruiterId
+          );
+          return {
+            id: recruiterId,
+            name:
+              typeof resume?.submittedBy === "object" &&
+              "name" in (resume?.submittedBy ?? {})
+                ? (resume.submittedBy as { name?: string }).name ||
+                  "Unknown Recruiter"
+                : "Unknown Recruiter",
+          };
+        })
     : [];
 
   const handleOpenModal = (resumeId: string) => {
@@ -149,21 +100,31 @@ export default function InternalSubmissionsPage() {
     ? resumes.filter((resume) => {
         const matchesSearch =
           searchTerm === "" ||
-          resume.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (typeof resume.jobId === "object" && "title" in (resume.jobId ?? {}) && (resume.jobId as { title?: string }).title
-            ? ((resume.jobId as { title?: string }).title as string).toLowerCase().includes(searchTerm.toLowerCase())
+          resume.candidateName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (typeof resume.jobId === "object" &&
+          "title" in (resume.jobId ?? {}) &&
+          (resume.jobId as { title?: string }).title
+            ? ((resume.jobId as { title?: string }).title as string)
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
             : false) ||
-          resume.qualification.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          resume.qualification
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           (resume.email || "").toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus =
           statusFilter === "" || resume.status === statusFilter;
 
         const matchesJob =
-          jobFilter === "" || (resume.jobId?._id?.toString() || "") === jobFilter;
+          jobFilter === "" ||
+          (resume.jobId?._id?.toString() || "") === jobFilter;
 
         const matchesRecruiter =
-          recruiterFilter === "" || (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
+          recruiterFilter === "" ||
+          (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
 
         return matchesSearch && matchesStatus && matchesJob && matchesRecruiter;
       })
@@ -217,21 +178,6 @@ export default function InternalSubmissionsPage() {
       <DashboardLayout>
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-6">All Submissions</h1>
-
-          {/* Status update notifications */}
-          {statusUpdateSuccess && (
-            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2" />
-              {statusUpdateSuccess}
-            </div>
-          )}
-
-          {statusUpdateError && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              {statusUpdateError}
-            </div>
-          )}
 
           {/* Stats Section */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-6">
@@ -370,7 +316,10 @@ export default function InternalSubmissionsPage() {
                   >
                     <option value="">All Jobs</option>
                     {uniqueJobs.map((job) => (
-                      <option key={job.id?.toString()} value={job.id?.toString()}>
+                      <option
+                        key={job.id?.toString()}
+                        value={job.id?.toString()}
+                      >
                         {job.title}
                       </option>
                     ))}
@@ -393,7 +342,10 @@ export default function InternalSubmissionsPage() {
                   >
                     <option value="">All Recruiters</option>
                     {uniqueRecruiters.map((recruiter) => (
-                      <option key={recruiter.id?.toString()} value={recruiter.id?.toString()}>
+                      <option
+                        key={recruiter.id?.toString()}
+                        value={recruiter.id?.toString()}
+                      >
                         {recruiter.name}
                       </option>
                     ))}
@@ -451,16 +403,14 @@ export default function InternalSubmissionsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Last Updated
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredResumes.map((resume) => (
                       <tr
                         key={resume._id as string}
-                        className="hover:bg-gray-50"
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleOpenModal(resume._id as string)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
@@ -472,8 +422,10 @@ export default function InternalSubmissionsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900 flex items-center">
-                            {typeof resume.jobId === "object" && "title" in (resume.jobId ?? {}) 
-                              ? (resume.jobId as { title?: string }).title || "Unknown Job"
+                            {typeof resume.jobId === "object" &&
+                            "title" in (resume.jobId ?? {})
+                              ? (resume.jobId as { title?: string }).title ||
+                                "Unknown Job"
                               : "Unknown Job"}
                             <Eye
                               className="ml-2 h-4 w-4 text-indigo-500 cursor-pointer hover:text-indigo-700"
@@ -488,65 +440,15 @@ export default function InternalSubmissionsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {typeof resume.submittedBy === "object" && "name" in (resume.submittedBy ?? {}) 
-                            ? (resume.submittedBy as { name?: string }).name || "Unknown Recruiter"
+                          {typeof resume.submittedBy === "object" &&
+                          "name" in (resume.submittedBy ?? {})
+                            ? (resume.submittedBy as { name?: string }).name ||
+                              "Unknown Recruiter"
                             : "Unknown Recruiter"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col space-y-2">
                             <ResumeStatusBadge status={resume.status} />
-
-                            {/* Status Update Dropdown */}
-                            <div>
-                              <select
-                                onChange={(e) =>
-                                  handleStatusChange(
-                                    resume._id as string,
-                                    e.target.value as ResumeStatus
-                                  )
-                                }
-                                disabled={
-                                  updateStatusLoading[resume._id as string]
-                                }
-                                defaultValue=""
-                                className="mt-1 block w-full pl-3 pr-10 py-2 text-xs border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs rounded-md"
-                              >
-                                <option value="" disabled>
-                                  {updateStatusLoading[resume._id as string]
-                                    ? "Updating..."
-                                    : "Change status"}
-                                </option>
-                                <option value={ResumeStatus.SUBMITTED}>
-                                  Set as Submitted
-                                </option>
-                                <option value={ResumeStatus.REVIEWED}>
-                                  Set as Reviewed
-                                </option>
-                                <option value={ResumeStatus.SHORTLISTED}>
-                                  Set as Shortlisted
-                                </option>
-                                <option value={ResumeStatus.DUPLICATE}>
-                                  Set as Duplicate
-                                </option>
-                                <option value={ResumeStatus.ONHOLD}>
-                                  Set as On Hold
-                                </option>
-                                <option value={ResumeStatus.INTERVIEWED}>
-                                  Set as Interviewed
-                                </option>
-                                <option value={ResumeStatus.HIRED}>
-                                  Set as Hired
-                                </option>
-                                <option value={ResumeStatus.REJECTED}>
-                                  Set as Rejected
-                                </option>
-                              </select>
-                              {updateStatusLoading[resume._id as string] && (
-                                <div className="mt-1 flex justify-center">
-                                  <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
-                                </div>
-                              )}
-                            </div>
 
                             {/* Show timestamp for the latest status change */}
                             {resume.status === ResumeStatus.HIRED &&
@@ -611,16 +513,6 @@ export default function InternalSubmissionsPage() {
                             Created:{" "}
                             {new Date(resume.createdAt).toLocaleDateString()}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() =>
-                              handleViewResume(resume._id as string)
-                            }
-                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md"
-                          >
-                            View Details
-                          </button>
                         </td>
                       </tr>
                     ))}

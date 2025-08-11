@@ -60,24 +60,38 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
     return "Question";
   };
 
-  // Function to get the proper file URL
+  // Helper function to get authentication token
+  const getAuthToken = (): string => {
+    try {
+      const authData = localStorage.getItem("auth");
+      if (authData) {
+        const parsedAuth = JSON.parse(authData);
+        return parsedAuth.token || "";
+      }
+    } catch (error) {
+      console.warn("Failed to parse auth data from localStorage:", error);
+    }
+    return "";
+  };
+
+  // Function to get the proper file URL with authentication
   const getFileUrl = (filePath: string) => {
     // If it's already a full URL, return as is
     if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
       return filePath;
     }
 
-    // If it starts with /uploads, it's likely a server path
-    if (filePath.startsWith("/uploads")) {
-      return `${window.location.origin}${filePath}`;
-    }
+    // Extract filename from path
+    const filename = filePath.startsWith("/uploads/") 
+      ? filePath.replace("/uploads/", "")
+      : filePath.split("/").pop() || filePath;
 
-    // If it's a relative path, construct the full URL
-    if (!filePath.startsWith("/")) {
-      return `${window.location.origin}/uploads/${filePath}`;
+    const token = getAuthToken();
+    if (!token) {
+      console.warn("No authentication token found");
     }
-
-    return `${window.location.origin}${filePath}`;
+    
+    return `/api/resumes/download/${filename}?token=${encodeURIComponent(token)}`;
   };
 
   // Function to check if file is PDF
@@ -100,10 +114,8 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
 
   // Helper function to get preview URL for additional documents
   const getDocumentPreviewUrl = (filename: string) => {
-    const token = localStorage.getItem("token") || "";
-    return `/api/resumes/download/${filename}?token=${encodeURIComponent(
-      token
-    )}`;
+    const token = getAuthToken();
+    return `/api/resumes/download/${filename}?token=${encodeURIComponent(token)}`;
   };
 
   // Helper function to handle additional document download
@@ -113,12 +125,13 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
   ) => {
     try {
       const downloadUrl = `/api/resumes/download/${filename}?download=true`;
+      const token = getAuthToken();
 
       // Fetch the file with authentication headers
       const response = await fetch(downloadUrl, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          Authorization: `Bearer ${token}`,
         },
         credentials: "include",
       });
@@ -308,7 +321,6 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
               <span className="text-sm text-gray-500 truncate">
                 {resume.resumeFile.split("/").pop()}
               </span>
-              <span className="text-xs text-gray-400">File URL: {fileUrl}</span>
             </div>
             <div className="flex space-x-2">
               <a

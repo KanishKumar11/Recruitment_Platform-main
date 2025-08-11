@@ -57,26 +57,27 @@ export default function RecruiterJobs() {
   const [clients, setClients] = useState<string[]>([]);
 
   // Filter jobs based on current filter settings
-  const filteredJobs = jobs?.filter((job) => {
-    // Only show ACTIVE jobs for recruiters
-    if (job.status !== "ACTIVE") return false;
+  const filteredJobs =
+    jobs?.filter((job) => {
+      // Only show ACTIVE jobs for recruiters
+      if (job.status !== "ACTIVE") return false;
 
-    // Apply search filter
-    if (
-      searchTerm &&
-      !job.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !job.jobCode.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
-    }
+      // Apply search filter
+      if (
+        searchTerm &&
+        !job.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !job.jobCode.toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
+        return false;
+      }
 
-    // Apply dropdown filters
-    if (locationFilter && job.location !== locationFilter) return false;
-    if (countryFilter && job.country !== countryFilter) return false;
-    if (clientFilter && job.postedByName !== clientFilter) return false;
+      // Apply dropdown filters
+      if (locationFilter && job.location !== locationFilter) return false;
+      if (countryFilter && job.country !== countryFilter) return false;
+      if (clientFilter && job.postedByName !== clientFilter) return false;
 
-    return true;
-  }) || [];
+      return true;
+    }) || [];
 
   // Calculate pagination
   const totalItems = filteredJobs.length;
@@ -91,7 +92,10 @@ export default function RecruiterJobs() {
     setCurrentPage(1);
   };
 
-  const handleFilterChange = (setValue: (value: string) => void, value: string) => {
+  const handleFilterChange = (
+    setValue: (value: string) => void,
+    value: string
+  ) => {
     setValue(value);
     setCurrentPage(1);
   };
@@ -215,7 +219,9 @@ export default function RecruiterJobs() {
                   <select
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={locationFilter}
-                    onChange={(e) => handleFilterChange(setLocationFilter, e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange(setLocationFilter, e.target.value)
+                    }
                   >
                     <option value="">All Locations</option>
                     {locations.map((location) => (
@@ -231,7 +237,9 @@ export default function RecruiterJobs() {
                   <select
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={countryFilter}
-                    onChange={(e) => handleFilterChange(setCountryFilter, e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange(setCountryFilter, e.target.value)
+                    }
                   >
                     <option value="">All Countries</option>
                     {countries.map((country) => (
@@ -247,7 +255,9 @@ export default function RecruiterJobs() {
                   <select
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     value={clientFilter}
-                    onChange={(e) => handleFilterChange(setClientFilter, e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange(setClientFilter, e.target.value)
+                    }
                   >
                     <option value="">All Clients</option>
                     {clients.map((client) => (
@@ -262,10 +272,13 @@ export default function RecruiterJobs() {
               {/* Filter actions */}
               <div className="flex justify-between items-center mt-4">
                 <div>
-                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
-                    setItemsPerPage(parseInt(value));
-                    setCurrentPage(1);
-                  }}>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(parseInt(value));
+                      setCurrentPage(1);
+                    }}
+                  >
                     <SelectTrigger className="w-[120px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -295,7 +308,8 @@ export default function RecruiterJobs() {
                   Available Jobs
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} jobs
+                  Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+                  {totalItems} jobs
                 </p>
               </div>
               {isLoading ? (
@@ -424,29 +438,36 @@ export default function RecruiterJobs() {
                   </p>
                 </div>
               )}
-              
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="px-6 py-4 border-t border-gray-200 bg-white">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
-                      
+
                       {/* Page numbers */}
                       {[...Array(totalPages)].map((_, index) => {
                         const pageNumber = index + 1;
                         const isCurrentPage = pageNumber === currentPage;
-                        
+
                         // Show first page, last page, current page, and pages around current page
                         if (
                           pageNumber === 1 ||
                           pageNumber === totalPages ||
-                          (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                          (pageNumber >= currentPage - 1 &&
+                            pageNumber <= currentPage + 1)
                         ) {
                           return (
                             <PaginationItem key={pageNumber}>
@@ -460,7 +481,7 @@ export default function RecruiterJobs() {
                             </PaginationItem>
                           );
                         }
-                        
+
                         // Show ellipsis
                         if (
                           pageNumber === currentPage - 2 ||
@@ -472,14 +493,22 @@ export default function RecruiterJobs() {
                             </PaginationItem>
                           );
                         }
-                        
+
                         return null;
                       })}
-                      
+
                       <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        <PaginationNext
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages, currentPage + 1)
+                            )
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>

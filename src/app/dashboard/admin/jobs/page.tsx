@@ -12,6 +12,7 @@ import {
   useGetJobsQuery,
   useUpdateJobStatusMutation,
   useDeleteJobMutation,
+  useGetResumeCountsQuery,
 } from "../../../store/services/jobsApi";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import {
@@ -54,12 +55,15 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
+import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 
 export default function AdminJobsPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
 
   const { data: jobs, isLoading, error, refetch } = useGetJobsQuery();
+  const { data: resumeCounts, isLoading: isLoadingCounts } =
+    useGetResumeCountsQuery();
   const [updateJobStatus] = useUpdateJobStatusMutation();
   const [deleteJob, { isLoading: isDeleting }] = useDeleteJobMutation();
 
@@ -129,25 +133,28 @@ export default function AdminJobsPage() {
   };
 
   // Filter jobs based on search term and filters
-  const filteredJobs = jobs?.filter((job) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.jobCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredJobs =
+    jobs?.filter((job) => {
+      const matchesSearch =
+        searchTerm === "" ||
+        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.jobCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.location.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
-    const matchesType = jobTypeFilter === "all" || job.jobType === jobTypeFilter;
+      const matchesStatus =
+        statusFilter === "all" || job.status === statusFilter;
+      const matchesType =
+        jobTypeFilter === "all" || job.jobType === jobTypeFilter;
 
-    // Note: We would need to add company name to the job object when fetching from API
-    const matchesCompany =
-      companyFilter === "" ||
-      (job as any).companyName
-        ?.toLowerCase()
-        .includes(companyFilter.toLowerCase());
+      // Note: We would need to add company name to the job object when fetching from API
+      const matchesCompany =
+        companyFilter === "" ||
+        (job as any).companyName
+          ?.toLowerCase()
+          .includes(companyFilter.toLowerCase());
 
-    return matchesSearch && matchesStatus && matchesType && matchesCompany;
-  }) || [];
+      return matchesSearch && matchesStatus && matchesType && matchesCompany;
+    }) || [];
 
   // Calculate pagination
   const totalItems = filteredJobs.length;
@@ -279,7 +286,10 @@ export default function AdminJobsPage() {
                   >
                     Status
                   </label>
-                  <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={handleStatusFilterChange}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
@@ -301,7 +311,10 @@ export default function AdminJobsPage() {
                   >
                     Job Type
                   </label>
-                  <Select value={jobTypeFilter} onValueChange={handleTypeFilterChange}>
+                  <Select
+                    value={jobTypeFilter}
+                    onValueChange={handleTypeFilterChange}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
@@ -339,10 +352,13 @@ export default function AdminJobsPage() {
                   >
                     Items per page
                   </label>
-                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
-                    setItemsPerPage(parseInt(value));
-                    setCurrentPage(1);
-                  }}>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(parseInt(value));
+                      setCurrentPage(1);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -366,7 +382,8 @@ export default function AdminJobsPage() {
                     All Jobs
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} jobs
+                    Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+                    {totalItems} jobs
                   </p>
                 </div>
                 <button
@@ -377,7 +394,7 @@ export default function AdminJobsPage() {
                   Refresh
                 </button>
               </div>
-              
+
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -385,6 +402,7 @@ export default function AdminJobsPage() {
                       <TableHead className="w-[200px]">Actions</TableHead>
                       <TableHead>Job Info</TableHead>
                       <TableHead>Company</TableHead>
+                      <TableHead>Resumes</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Salary & Experience</TableHead>
                       <TableHead>Status</TableHead>
@@ -419,7 +437,9 @@ export default function AdminJobsPage() {
                                   <QuestionMarkCircleIcon className="h-4 w-4" />
                                 </Link>
                                 <button
-                                  onClick={() => openDeleteModal(job._id as string)}
+                                  onClick={() =>
+                                    openDeleteModal(job._id as string)
+                                  }
                                   className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
                                   title="Delete Job"
                                 >
@@ -451,9 +471,7 @@ export default function AdminJobsPage() {
                               </div>
                               <div className="text-sm text-gray-500">
                                 Posted:{" "}
-                                {new Date(
-                                  job.postedDate
-                                ).toLocaleDateString()}
+                                {new Date(job.postedDate).toLocaleDateString()}
                               </div>
                             </div>
                           </TableCell>
@@ -470,7 +488,27 @@ export default function AdminJobsPage() {
                           <TableCell className="align-top">
                             <div className="py-2">
                               <div className="text-sm text-gray-900">
-                                {job.country}
+                                {isLoadingCounts ? (
+                                  <span className="text-gray-400">
+                                    Loading...
+                                  </span>
+                                ) : (
+                                  <span className="font-medium">
+                                    {resumeCounts?.[job._id as string] || 0}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {(resumeCounts?.[job._id as string] || 0) === 1
+                                  ? "resume"
+                                  : "resumes"}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="py-2">
+                              <div className="text-sm text-gray-900">
+                                {getCountryNameFromCode(job.country)}
                               </div>
                               <div className="text-sm text-gray-500">
                                 {job.location}
@@ -526,7 +564,7 @@ export default function AdminJobsPage() {
                     ) : (
                       <TableRow>
                         <TableCell
-                          colSpan={6}
+                          colSpan={7}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No jobs found
@@ -543,22 +581,29 @@ export default function AdminJobsPage() {
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
-                      
+
                       {/* Page numbers */}
                       {[...Array(totalPages)].map((_, index) => {
                         const pageNumber = index + 1;
                         const isCurrentPage = pageNumber === currentPage;
-                        
+
                         // Show first page, last page, current page, and pages around current page
                         if (
                           pageNumber === 1 ||
                           pageNumber === totalPages ||
-                          (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                          (pageNumber >= currentPage - 1 &&
+                            pageNumber <= currentPage + 1)
                         ) {
                           return (
                             <PaginationItem key={pageNumber}>
@@ -572,7 +617,7 @@ export default function AdminJobsPage() {
                             </PaginationItem>
                           );
                         }
-                        
+
                         // Show ellipsis
                         if (
                           pageNumber === currentPage - 2 ||
@@ -584,14 +629,22 @@ export default function AdminJobsPage() {
                             </PaginationItem>
                           );
                         }
-                        
+
                         return null;
                       })}
-                      
+
                       <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        <PaginationNext
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages, currentPage + 1)
+                            )
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>
@@ -599,7 +652,6 @@ export default function AdminJobsPage() {
                 </div>
               )}
             </div>
-
           </div>
 
           {/* Delete Confirmation Modal */}

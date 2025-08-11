@@ -80,16 +80,18 @@ export default function JobsListPage() {
   };
 
   // Filter jobs based on search and status
-  const filteredJobs = jobs?.filter((job) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.jobCode?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredJobs =
+    jobs?.filter((job) => {
+      const matchesSearch =
+        searchTerm === "" ||
+        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.jobCode?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || job.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
-  }) || [];
+      return matchesSearch && matchesStatus;
+    }) || [];
 
   // Calculate pagination
   const totalItems = filteredJobs.length;
@@ -165,7 +167,10 @@ export default function JobsListPage() {
                 <div className="bg-white shadow rounded-lg p-4 mb-6">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                     <div>
-                      <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="search"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Search
                       </label>
                       <Input
@@ -178,10 +183,16 @@ export default function JobsListPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="status"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Status
                       </label>
-                      <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                      <Select
+                        value={statusFilter}
+                        onValueChange={handleStatusFilterChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="All Statuses" />
                         </SelectTrigger>
@@ -196,13 +207,19 @@ export default function JobsListPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="itemsPerPage" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="itemsPerPage"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Items per page
                       </label>
-                      <Select value={itemsPerPage.toString()} onValueChange={(value) => {
-                        setItemsPerPage(parseInt(value));
-                        setCurrentPage(1);
-                      }}>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(parseInt(value));
+                          setCurrentPage(1);
+                        }}
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -244,14 +261,15 @@ export default function JobsListPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center bg-white">
                     <div>
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
                         Job Listings
                       </h3>
                       <p className="mt-1 text-sm text-gray-500">
-                        Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} jobs
+                        Showing {startIndex + 1}-
+                        {Math.min(endIndex, totalItems)} of {totalItems} jobs
                       </p>
                     </div>
                   </div>
@@ -297,7 +315,9 @@ export default function JobsListPage() {
                                       <Edit className="h-4 w-4" />
                                     </button>
                                     <button
-                                      onClick={() => openDeleteModal(job._id as string)}
+                                      onClick={() =>
+                                        openDeleteModal(job._id as string)
+                                      }
                                       className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
                                       title="Delete Job"
                                     >
@@ -328,7 +348,10 @@ export default function JobsListPage() {
                               <TableCell className="align-top">
                                 <div className="py-2">
                                   <div className="text-sm text-gray-500">
-                                    {format(new Date(job.postedDate), "MMMM dd, yyyy")}
+                                    {format(
+                                      new Date(job.postedDate),
+                                      "MMMM dd, yyyy"
+                                    )}
                                   </div>
                                 </div>
                               </TableCell>
@@ -376,22 +399,29 @@ export default function JobsListPage() {
                       <Pagination>
                         <PaginationContent>
                           <PaginationItem>
-                            <PaginationPrevious 
-                              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            <PaginationPrevious
+                              onClick={() =>
+                                setCurrentPage(Math.max(1, currentPage - 1))
+                              }
+                              className={
+                                currentPage === 1
+                                  ? "pointer-events-none opacity-50"
+                                  : "cursor-pointer"
+                              }
                             />
                           </PaginationItem>
-                          
+
                           {/* Page numbers */}
                           {[...Array(totalPages)].map((_, index) => {
                             const pageNumber = index + 1;
                             const isCurrentPage = pageNumber === currentPage;
-                            
+
                             // Show first page, last page, current page, and pages around current page
                             if (
                               pageNumber === 1 ||
                               pageNumber === totalPages ||
-                              (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                              (pageNumber >= currentPage - 1 &&
+                                pageNumber <= currentPage + 1)
                             ) {
                               return (
                                 <PaginationItem key={pageNumber}>
@@ -405,7 +435,7 @@ export default function JobsListPage() {
                                 </PaginationItem>
                               );
                             }
-                            
+
                             // Show ellipsis
                             if (
                               pageNumber === currentPage - 2 ||
@@ -417,14 +447,22 @@ export default function JobsListPage() {
                                 </PaginationItem>
                               );
                             }
-                            
+
                             return null;
                           })}
-                          
+
                           <PaginationItem>
-                            <PaginationNext 
-                              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            <PaginationNext
+                              onClick={() =>
+                                setCurrentPage(
+                                  Math.min(totalPages, currentPage + 1)
+                                )
+                              }
+                              className={
+                                currentPage === totalPages
+                                  ? "pointer-events-none opacity-50"
+                                  : "cursor-pointer"
+                              }
                             />
                           </PaginationItem>
                         </PaginationContent>

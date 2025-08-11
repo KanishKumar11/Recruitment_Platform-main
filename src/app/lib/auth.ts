@@ -31,8 +31,17 @@ export const getTokenFromHeader = (req: NextRequest): string | null => {
   return authHeader.split(' ')[1];
 };
 
+export const getTokenFromQuery = (req: NextRequest): string | null => {
+  const url = new URL(req.url);
+  return url.searchParams.get('token');
+};
+
 export const authenticateRequest = (req: NextRequest): JwtPayload | null => {
-  const token = getTokenFromHeader(req);
+  // Try to get token from header first, then from query parameter
+  let token = getTokenFromHeader(req);
+  if (!token) {
+    token = getTokenFromQuery(req);
+  }
   if (!token) return null;
   return verifyToken(token);
 };
