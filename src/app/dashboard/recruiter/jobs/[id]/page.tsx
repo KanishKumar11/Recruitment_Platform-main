@@ -33,6 +33,20 @@ export default function RecruiterJobDetailsPage() {
     return jobType.replace("_", " ");
   };
 
+  // Format compensation type for display
+  const formatCompensationType = (compensationType: string) => {
+    switch (compensationType) {
+      case "HOURLY":
+        return "Per Hour";
+      case "MONTHLY":
+        return "Per Month";
+      case "ANNUALLY":
+        return "Per Year";
+      default:
+        return "Per Year"; // Default fallback
+    }
+  };
+
   // Calculate commission value based on new commission structure
   const getCommissionValue = (job: IJob) => {
     if (!job.commission) {
@@ -79,6 +93,13 @@ export default function RecruiterJobDetailsPage() {
     return `${
       job.salary.currency
     } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
+  };
+
+  // Format salary with compensation frequency
+  const formatSalaryWithFrequency = (job: IJob) => {
+    const salaryRange = formatSalary(job);
+    const frequency = formatCompensationType(job.compensationType || "ANNUALLY");
+    return `${salaryRange} ${frequency}`;
   };
 
   return (
@@ -193,7 +214,7 @@ export default function RecruiterJobDetailsPage() {
                           Salary Range
                         </dt>
                         <dd className="mt-1 text-sm font-medium text-gray-900">
-                          {formatSalary(job)}
+                          {formatSalaryWithFrequency(job)}
                         </dd>
                       </div>
 
@@ -276,8 +297,8 @@ export default function RecruiterJobDetailsPage() {
                   </div>
                 </div>
 
-                {/* Descriptions Section - Compact Layout */}
-                <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Descriptions Section - Full Width Layout */}
+                <div className="mt-6 space-y-6">
                   {/* Job Description */}
                   <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div className="px-4 py-3 border-b border-gray-200">

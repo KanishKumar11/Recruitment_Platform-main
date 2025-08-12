@@ -300,43 +300,55 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                 <h3>Career Information</h3>
                 <div className="space-y-1">
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs">Company:</span>
+                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                      Company:
+                    </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.currentCompany}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs">Designation:</span>
+                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                      Designation:
+                    </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.currentDesignation}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs">Total Exp:</span>
+                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                      Total Exp:
+                    </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.totalExperience}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs">Relevant Exp:</span>
+                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                      Relevant Exp:
+                    </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.relevantExperience}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs">Current CTC:</span>
+                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                      Current CTC:
+                    </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.currentCTC}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs">Expected CTC:</span>
+                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                      Expected CTC:
+                    </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.expectedCTC}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs">
+                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
                       Notice Period:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
@@ -377,8 +389,100 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
               )}
             </div>
 
-            {/* Middle section: Notes History (spans 1 column) */}
-            <div className="lg:col-span-1">
+            {/* Middle section: Add Note and Notes History (spans 1 column) */}
+            <div className="lg:col-span-1 space-y-3">
+              {/* Add Note Section */}
+              <div className="compact-section">
+                <h3>Add Note</h3>
+                <form onSubmit={handleSubmitNote}>
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    rows={3}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full text-sm border-gray-300 rounded-md"
+                    placeholder="Add note..."
+                  ></textarea>
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isAddingNote || !newNote.trim()}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300"
+                    >
+                      {isAddingNote ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
+                      Add Note
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Notes History */}
+
+              {/* Additional Documents Row */}
+              {resume.additionalDocuments &&
+                resume.additionalDocuments.length > 0 && (
+                  <div className="grid grid-cols-1 gap-3 mb-4">
+                    <div className="compact-section">
+                      <h3 className="flex items-center">
+                        <Paperclip className="mr-2 h-4 w-4 text-gray-500" />
+                        Additional Documents (
+                        {resume.additionalDocuments.length})
+                      </h3>
+                      <div className="grid grid-cols-1  gap-3 mt-3 bg-red-50">
+                        {resume.additionalDocuments.map((doc, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
+                          >
+                            <div className="flex items-center min-w-0 flex-1">
+                              <Paperclip className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <span className="text-sm font-medium text-gray-900 truncate block">
+                                  {doc.originalName}
+                                </span>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {doc.uploadedAt
+                                    ? new Date(
+                                        doc.uploadedAt
+                                      ).toLocaleDateString()
+                                    : "Unknown"}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2 ml-3">
+                              {canPreviewFile(doc.filename) && (
+                                <button
+                                  onClick={() =>
+                                    setPreviewDocument({
+                                      filename: doc.filename,
+                                      originalName: doc.originalName,
+                                    })
+                                  }
+                                  className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() =>
+                                  handleDocumentDownload(
+                                    doc.filename,
+                                    doc.originalName
+                                  )
+                                }
+                                className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              >
+                                <Download className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
               {resume.notes && resume.notes.length > 0 && (
                 <div className="compact-section">
                   <h3>Notes History</h3>
@@ -442,32 +546,6 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                   </select>
                 </div>
               )}
-
-              {/* Add Note Section - Compact */}
-              <div className="compact-section">
-                <h3>Add Note</h3>
-                <form onSubmit={handleSubmitNote}>
-                  <textarea
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    rows={2}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full text-xs border-gray-300 rounded-md"
-                    placeholder="Add note..."
-                  ></textarea>
-                  <div className="mt-2 flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isAddingNote || !newNote.trim()}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300"
-                    >
-                      {isAddingNote ? (
-                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                      ) : null}
-                      Add
-                    </button>
-                  </div>
-                </form>
-              </div>
             </div>
           </div>
 
@@ -532,67 +610,6 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
               }
             </div>
           </div>
-
-          {/* Third Row: Additional Documents */}
-          {resume.additionalDocuments &&
-            resume.additionalDocuments.length > 0 && (
-              <div className="grid grid-cols-1 gap-3 mb-4">
-                <div className="compact-section">
-                  <h3 className="flex items-center">
-                    <Paperclip className="mr-1 h-3 w-3 text-gray-500" />
-                    Additional Documents ({resume.additionalDocuments.length})
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
-                    {resume.additionalDocuments.map((doc, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-white p-2 rounded-md border border-gray-200"
-                      >
-                        <div className="flex items-center min-w-0 flex-1">
-                          <Paperclip className="h-3 w-3 text-gray-400 mr-2 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <span className="text-xs font-medium text-gray-900 truncate block">
-                              {doc.originalName}
-                            </span>
-                            <p className="text-xs text-gray-500">
-                              {doc.uploadedAt
-                                ? new Date(doc.uploadedAt).toLocaleDateString()
-                                : "Unknown"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-1 ml-2">
-                          {canPreviewFile(doc.filename) && (
-                            <button
-                              onClick={() =>
-                                setPreviewDocument({
-                                  filename: doc.filename,
-                                  originalName: doc.originalName,
-                                })
-                              }
-                              className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            >
-                              <Eye className="h-3 w-3" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() =>
-                              handleDocumentDownload(
-                                doc.filename,
-                                doc.originalName
-                              )
-                            }
-                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                          >
-                            <Download className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
 
           {/* Document Preview Modal */}
           {previewDocument && (

@@ -610,19 +610,51 @@ export default function CreateJobForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createJob({
+      const response = await createJob({
         ...formData,
         status: formData.status as JobStatus,
         jobType: formData.jobType as JobType,
       }).unwrap();
+      
       toast.success("Job created successfully!");
+
+      // Get the created job ID from the response
+      const jobId = response._id || response.id;
+      
+      console.log('Job creation response:', response);
+      console.log('Extracted job ID:', jobId);
+      console.log('User role:', userRole);
 
       // Call custom onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
+      } else if (jobId) {
+        // Redirect to questions page for the newly created job based on user role
+        const questionsPath = userRole === "INTERNAL" 
+          ? `/dashboard/internal/jobs/${jobId}/questions`
+          : `/dashboard/company/jobs/${jobId}/questions`;
+        
+        console.log('Redirecting to:', questionsPath);
+        
+        // Try immediate redirect first
+        router.refresh(); // Refresh the router state
+        router.push(questionsPath);
+        
+        // Add fallback with window.location if router.push doesn't work
+        setTimeout(() => {
+          if (window.location.pathname !== questionsPath) {
+            console.log('router.push may have failed, trying window.location...');
+            window.location.href = questionsPath;
+          }
+        }, 1000);
       } else {
-        // Use the dynamic redirect path
-        router.push(dynamicRedirectPath);
+        // Fallback if no job ID is found
+        console.warn('No job ID found in response, using default redirect');
+        toast("Job created but redirecting to jobs list", { icon: '⚠️' });
+        const fallbackPath = userRole === "INTERNAL" 
+          ? `/dashboard/internal/jobs`
+          : `/dashboard/company/jobs`;
+        router.push(fallbackPath);
       }
     } catch (err) {
       toast.error("Failed to create job");
@@ -630,12 +662,14 @@ export default function CreateJobForm({
     }
   };
 
-  // Effect for successful job creation (fallback)
-  useEffect(() => {
-    if (isSuccess && !onSuccess) {
-      router.push(dynamicRedirectPath);
-    }
-  }, [isSuccess, router, dynamicRedirectPath, onSuccess]);
+  // Effect for successful job creation (fallback) - disabled to prevent conflicts
+  // useEffect(() => {
+  //   if (isSuccess && !onSuccess) {
+  //     // This effect is mainly for edge cases where the response doesn't include the job ID
+  //     // In most cases, the redirect should happen in handleSubmit
+  //     router.push(dynamicRedirectPath);
+  //   }
+  // }, [isSuccess, router, dynamicRedirectPath, onSuccess]);
 
   // Comprehensive list of currencies with symbols
   const currencies = [

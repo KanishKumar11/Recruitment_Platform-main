@@ -1,7 +1,9 @@
 export enum QuestionType {
     TEXT = 'TEXT',
     NUMERIC = 'NUMERIC',
-    YES_NO = 'YES_NO', 
+    YES_NO = 'YES_NO',
+    MCQ = 'MCQ',
+    MULTI_SELECT = 'MULTI_SELECT',
   }
   
   export interface ScreeningQuestionInterface {

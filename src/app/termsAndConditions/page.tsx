@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 // Extend the Window interface to include scrollTimeout
 declare global {
@@ -8,14 +8,15 @@ declare global {
     scrollTimeout?: NodeJS.Timeout;
   }
 }
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  ChevronDown, 
-  ChevronUp, 
-  FileText, 
-  Mail, 
+import Link from "next/link";
+import { motion } from "framer-motion";
+import PublicFooter from "@/app/components/layout/PublicFooter";
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Mail,
   ExternalLink,
   Shield,
   Book,
@@ -27,8 +28,8 @@ import {
   AlertTriangle,
   Globe,
   RefreshCw,
-  Phone
-} from 'lucide-react';
+  Phone,
+} from "lucide-react";
 
 export default function TermsAndConditionsPage() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -52,9 +53,9 @@ export default function TermsAndConditionsPage() {
       }, 200);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
       clearTimeout(window.scrollTimeout);
     };
   }, []);
@@ -65,14 +66,18 @@ export default function TermsAndConditionsPage() {
 
   const sectionData = [
     {
-      id: 'use-of-platform',
-      title: '1. Use of the Platform',
+      id: "use-of-platform",
+      title: "1. Use of the Platform",
       icon: <Book />,
       content: (
         <div className="space-y-4">
           <div>
             <h4 className="font-medium text-gray-200 mb-2">1.1 License</h4>
-            <p>We grant you a limited, non-exclusive, non-transferable license to access and use the Platform solely for the purpose of recruitment, job posting, and talent acquisition services as intended.</p>
+            <p>
+              We grant you a limited, non-exclusive, non-transferable license to
+              access and use the Platform solely for the purpose of recruitment,
+              job posting, and talent acquisition services as intended.
+            </p>
           </div>
           <div>
             <h4 className="font-medium text-gray-200 mb-2">1.2 User Roles</h4>
@@ -82,153 +87,227 @@ export default function TermsAndConditionsPage() {
               <li>Recruiters/Vendors (submitting candidates)</li>
               <li>Platform Admins (SourcingScreen team)</li>
             </ul>
-            <p className="mt-2">Each user is responsible for complying with the Terms and for actions taken under their account.</p>
+            <p className="mt-2">
+              Each user is responsible for complying with the Terms and for
+              actions taken under their account.
+            </p>
           </div>
           <div>
             <h4 className="font-medium text-gray-200 mb-2">1.3 Restrictions</h4>
             <p>You agree not to:</p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
-              <li>Use the Platform for any illegal, unethical, or unauthorized purpose.</li>
-              <li>Reproduce, duplicate, sell, resell or exploit any portion of the Platform without express written permission.</li>
-              <li>Interfere with or disrupt the integrity or performance of the Platform, including introducing viruses or harmful code.</li>
-              <li>Use any automated systems (e.g., bots, spiders) to access the Platform without written consent.</li>
+              <li>
+                Use the Platform for any illegal, unethical, or unauthorized
+                purpose.
+              </li>
+              <li>
+                Reproduce, duplicate, sell, resell or exploit any portion of the
+                Platform without express written permission.
+              </li>
+              <li>
+                Interfere with or disrupt the integrity or performance of the
+                Platform, including introducing viruses or harmful code.
+              </li>
+              <li>
+                Use any automated systems (e.g., bots, spiders) to access the
+                Platform without written consent.
+              </li>
             </ul>
           </div>
         </div>
-      )
+      ),
     },
     {
-      id: 'account-security',
-      title: '2. Account Registration & Security',
+      id: "account-security",
+      title: "2. Account Registration & Security",
       icon: <Lock />,
       content: (
         <div>
           <ul className="list-disc pl-6 space-y-3">
-            <li>You agree to provide accurate, current, and complete information when registering.</li>
-            <li>You are solely responsible for maintaining the confidentiality of your account and password.</li>
-            <li>You must immediately notify us of any unauthorized access or suspected breach.</li>
-            <li>We reserve the right to suspend or terminate accounts that violate these Terms or misuse the Platform.</li>
+            <li>
+              You agree to provide accurate, current, and complete information
+              when registering.
+            </li>
+            <li>
+              You are solely responsible for maintaining the confidentiality of
+              your account and password.
+            </li>
+            <li>
+              You must immediately notify us of any unauthorized access or
+              suspected breach.
+            </li>
+            <li>
+              We reserve the right to suspend or terminate accounts that violate
+              these Terms or misuse the Platform.
+            </li>
           </ul>
         </div>
-      )
+      ),
     },
     {
-      id: 'job-postings',
-      title: '3. Job Postings & Candidate Submissions',
+      id: "job-postings",
+      title: "3. Job Postings & Candidate Submissions",
       icon: <Briefcase />,
       content: (
         <div className="space-y-4">
           <div>
             <h4 className="font-medium text-gray-200 mb-2">3.1 Employers</h4>
-            <p>Employers may post jobs and access recruiter-submitted candidates under the terms defined on the Platform.</p>
+            <p>
+              Employers may post jobs and access recruiter-submitted candidates
+              under the terms defined on the Platform.
+            </p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-200 mb-2">3.2 Recruiters/Vendors</h4>
-            <p>Recruiters must submit only authentic and consented candidate profiles. Misrepresentation or spamming will result in suspension and potential legal action.</p>
+            <h4 className="font-medium text-gray-200 mb-2">
+              3.2 Recruiters/Vendors
+            </h4>
+            <p>
+              Recruiters must submit only authentic and consented candidate
+              profiles. Misrepresentation or spamming will result in suspension
+              and potential legal action.
+            </p>
           </div>
         </div>
-      )
+      ),
     },
     {
-      id: 'intellectual-property',
-      title: '4. Intellectual Property',
+      id: "intellectual-property",
+      title: "4. Intellectual Property",
       icon: <Shield />,
       content: (
         <div>
           <ul className="list-disc pl-6 space-y-3">
-            <li>All content on the Platform (including software, text, images, logos) is owned by or licensed to SourcingScreen and is protected by intellectual property laws.</li>
-            <li>You may not copy, distribute, or create derivative works without permission.</li>
-            <li>By submitting content (e.g., candidate profiles or job posts), you grant us a non-exclusive, worldwide, royalty-free license to use, display, and distribute that content in connection with our services.</li>
+            <li>
+              All content on the Platform (including software, text, images,
+              logos) is owned by or licensed to SourcingScreen and is protected
+              by intellectual property laws.
+            </li>
+            <li>
+              You may not copy, distribute, or create derivative works without
+              permission.
+            </li>
+            <li>
+              By submitting content (e.g., candidate profiles or job posts), you
+              grant us a non-exclusive, worldwide, royalty-free license to use,
+              display, and distribute that content in connection with our
+              services.
+            </li>
           </ul>
         </div>
-      )
+      ),
     },
     {
-      id: 'privacy',
-      title: '5. Privacy',
+      id: "privacy",
+      title: "5. Privacy",
       icon: <UserCheck />,
       content: (
         <p>
-          Your use of the Platform is governed by our Privacy Policy, which outlines how we collect, use, and protect your personal data. You agree to the use of your data as described therein.
+          Your use of the Platform is governed by our Privacy Policy, which
+          outlines how we collect, use, and protect your personal data. You
+          agree to the use of your data as described therein.
         </p>
-      )
+      ),
     },
     {
-      id: 'fees',
-      title: '6. Fees & Payments',
+      id: "fees",
+      title: "6. Fees & Payments",
       icon: <FileText />,
       content: (
         <p>
-          Certain services or transactions may require payment. All fees, if applicable, will be clearly stated. Late or non-payment may lead to service suspension.
+          Certain services or transactions may require payment. All fees, if
+          applicable, will be clearly stated. Late or non-payment may lead to
+          service suspension.
         </p>
-      )
+      ),
     },
     {
-      id: 'termination',
-      title: '7. Termination',
+      id: "termination",
+      title: "7. Termination",
       icon: <AlertTriangle />,
       content: (
         <p>
-          We reserve the right to terminate or suspend your access, account, or use of the Platform at our sole discretion, without notice, for conduct that violates these Terms or harms other users or SourcingScreen.
+          We reserve the right to terminate or suspend your access, account, or
+          use of the Platform at our sole discretion, without notice, for
+          conduct that violates these Terms or harms other users or
+          SourcingScreen.
         </p>
-      )
+      ),
     },
     {
-      id: 'liability',
-      title: '8. Limitation of Liability',
+      id: "liability",
+      title: "8. Limitation of Liability",
       icon: <Shield />,
       content: (
         <p>
-          To the maximum extent permitted by law, SourcingScreen shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform or your inability to use it.
+          To the maximum extent permitted by law, SourcingScreen shall not be
+          liable for any indirect, incidental, special, or consequential damages
+          arising from your use of the Platform or your inability to use it.
         </p>
-      )
+      ),
     },
     {
-      id: 'force-majeure',
-      title: '9. Force Majeure',
+      id: "force-majeure",
+      title: "9. Force Majeure",
       icon: <AlertTriangle />,
       content: (
         <p>
-          We are not liable for delays or failures resulting from causes beyond our reasonable control, including but not limited to natural disasters, internet outages, pandemics, labor strikes, or government restrictions.
+          We are not liable for delays or failures resulting from causes beyond
+          our reasonable control, including but not limited to natural
+          disasters, internet outages, pandemics, labor strikes, or government
+          restrictions.
         </p>
-      )
+      ),
     },
     {
-      id: 'changes',
-      title: '10. Changes to Terms',
+      id: "changes",
+      title: "10. Changes to Terms",
       icon: <RefreshCw />,
       content: (
         <p>
-          We may revise these Terms from time to time. The updated version will be posted on this page with a new effective date. Your continued use of the Platform after changes constitutes your acceptance of the new Terms.
+          We may revise these Terms from time to time. The updated version will
+          be posted on this page with a new effective date. Your continued use
+          of the Platform after changes constitutes your acceptance of the new
+          Terms.
         </p>
-      )
+      ),
     },
     {
-      id: 'governing-law',
-      title: '11. Governing Law',
+      id: "governing-law",
+      title: "11. Governing Law",
       icon: <Globe />,
       content: (
         <p>
-          These Terms shall be governed by and construed in accordance with the laws of <span className="font-semibold">India</span>. Any disputes will be subject to the exclusive jurisdiction of the courts located in Indore, Madhya Pradesh, India.
+          These Terms shall be governed by and construed in accordance with the
+          laws of <span className="font-semibold">India</span>. Any disputes
+          will be subject to the exclusive jurisdiction of the courts located in
+          Indore, Madhya Pradesh, India.
         </p>
-      )
+      ),
     },
     {
-      id: 'contact',
-      title: '12. Contact Us',
+      id: "contact",
+      title: "12. Contact Us",
       icon: <Mail />,
       content: (
         <div>
-          <p>For any questions or concerns about these Terms, please contact:</p>
+          <p>
+            For any questions or concerns about these Terms, please contact:
+          </p>
           <div className="mt-4 p-4 bg-gray-700/40 rounded-lg border border-gray-600">
             <p className="flex items-center">
               <Mail className="h-4 w-4 mr-2 text-indigo-400" />
-              Email: <a href="mailto:support@sourcingscreen.com" className="ml-1 text-indigo-400 hover:text-indigo-300">support@sourcingscreen.com</a>
+              Email:{" "}
+              <a
+                href="mailto:support@sourcingscreen.com"
+                className="ml-1 text-indigo-400 hover:text-indigo-300"
+              >
+                support@sourcingscreen.com
+              </a>
             </p>
           </div>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   const containerVariants = {
@@ -237,9 +316,9 @@ export default function TermsAndConditionsPage() {
       opacity: 1,
       transition: {
         staggerChildren: 0.05,
-        delayChildren: 0.1
-      }
-    }
+        delayChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -247,8 +326,8 @@ export default function TermsAndConditionsPage() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.4 }
-    }
+      transition: { duration: 0.4 },
+    },
   };
 
   // Function to handle smooth scrolling to a section
@@ -256,7 +335,7 @@ export default function TermsAndConditionsPage() {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({
-        behavior: 'smooth'
+        behavior: "smooth",
       });
       setTimeout(() => {
         setActiveSection(id);
@@ -267,17 +346,17 @@ export default function TermsAndConditionsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-indigo-950">
       {/* Progress bar */}
-      <div 
+      <div
         className="fixed top-0 left-0 h-1 bg-indigo-500 z-50 transition-all duration-300"
         style={{ width: `${scrollProgress * 100}%` }}
       />
-      
+
       {/* Quick navigation - appears when scrolling */}
-      <motion.div 
+      <motion.div
         initial={{ y: -100, opacity: 0 }}
-        animate={{ 
+        animate={{
           y: isScrolling || scrollProgress > 0.1 ? 0 : -100,
-          opacity: isScrolling || scrollProgress > 0.1 ? 1 : 0 
+          opacity: isScrolling || scrollProgress > 0.1 ? 1 : 0,
         }}
         transition={{ duration: 0.3 }}
         className="fixed top-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm z-40 border-b border-gray-800 shadow-lg"
@@ -292,9 +371,13 @@ export default function TermsAndConditionsPage() {
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className={`text-sm px-3 py-1 rounded-md transition-colors ${activeSection === section.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`text-sm px-3 py-1 rounded-md transition-colors ${
+                  activeSection === section.id
+                    ? "bg-indigo-600 text-white"
+                    : "text-gray-400 hover:text-white"
+                }`}
               >
-                {section.title.split('.')[0]}
+                {section.title.split(".")[0]}
               </button>
             ))}
             <div className="relative group">
@@ -320,53 +403,58 @@ export default function TermsAndConditionsPage() {
       <div className="container mx-auto px-4 py-16 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <Link 
+            <Link
               href="/"
               className="inline-flex items-center text-indigo-400 hover:text-indigo-300 transition-colors mb-6"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Home
             </Link>
-            
+
             <div className="flex items-center mb-4">
               <div className="h-14 w-14 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 mr-4">
                 <FileText className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white mb-1">Terms & Conditions</h1>
+                <h1 className="text-3xl font-bold text-white mb-1">
+                  Terms & Conditions
+                </h1>
                 <p className="text-gray-400">Last updated: April 28, 2025</p>
               </div>
             </div>
-            
+
             <p className="text-gray-300 mb-6">
-              Please read these Terms carefully before using our Platform. By accessing or using SourcingScreen, you agree to be bound by these Terms.
+              Please read these Terms carefully before using our Platform. By
+              accessing or using SourcingScreen, you agree to be bound by these
+              Terms.
             </p>
-            
+
             <div className="flex flex-wrap gap-3">
-              <button 
+              <button
                 onClick={() => window.print()}
                 className="flex items-center px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm transition-colors"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Print Terms
               </button>
-              
-              <a 
-                href="/SourcingScreen_Terms_and_Conditions.docx" 
+
+              <a
+                href="/SourcingScreen_Terms_and_Conditions.docx"
                 download
                 className="flex items-center px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm transition-colors"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Download as DOCX
               </a>
-              
-              <Link href="/contactUs"
+
+              <Link
+                href="/contactUs"
                 className="flex items-center px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm transition-colors"
               >
                 <Mail className="h-4 w-4 mr-2" />
@@ -374,15 +462,17 @@ export default function TermsAndConditionsPage() {
               </Link>
             </div>
           </motion.div>
-          
+
           {/* Table of Contents - Desktop */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-12 p-6 bg-gray-800/50 rounded-lg border border-gray-700 hidden md:block"
           >
-            <h2 className="text-xl font-semibold text-white mb-4">Table of Contents</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">
+              Table of Contents
+            </h2>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
               {sectionData.map((section, index) => (
                 <button
@@ -398,7 +488,7 @@ export default function TermsAndConditionsPage() {
               ))}
             </div>
           </motion.div>
-          
+
           {/* Main content */}
           <motion.div
             variants={containerVariants}
@@ -419,9 +509,13 @@ export default function TermsAndConditionsPage() {
                 >
                   <div className="flex items-center">
                     <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
-                      {React.cloneElement(section.icon, { className: 'h-5 w-5 text-indigo-400' })}
+                      {React.cloneElement(section.icon, {
+                        className: "h-5 w-5 text-indigo-400",
+                      })}
                     </div>
-                    <h2 className="text-xl font-semibold text-white">{section.title}</h2>
+                    <h2 className="text-xl font-semibold text-white">
+                      {section.title}
+                    </h2>
                   </div>
                   <div className="h-8 w-8 rounded-full bg-gray-700/50 flex items-center justify-center">
                     {activeSection === section.id ? (
@@ -431,11 +525,11 @@ export default function TermsAndConditionsPage() {
                     )}
                   </div>
                 </button>
-                
+
                 {activeSection === section.id && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
+                    animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
                     className="mt-6 text-gray-300 border-t border-gray-700 pt-6"
@@ -446,33 +540,9 @@ export default function TermsAndConditionsPage() {
               </motion.div>
             ))}
           </motion.div>
-          
+
           {/* Footer */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="mt-12 border-t border-gray-800 pt-8 pb-16 text-center text-gray-500"
-          >
-            <p className="mb-4">
-              &copy; {new Date().getFullYear()} SourcingScreen. All rights reserved.
-            </p>
-            <div className="flex justify-center space-x-6">
-              <Link href="/privacyPolicy" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/contactUs" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                Contact Us
-              </Link>
-              <Link href="/whyChooseUs" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                About Us
-              </Link>
-            </div>
-            <div className="mt-6 flex items-center justify-center">
-              <Phone className="h-4 w-4 mr-2" />
-              <span>Support: +91 1234567890</span>
-            </div>
-          </motion.div>
+          <PublicFooter />
         </div>
       </div>
     </div>

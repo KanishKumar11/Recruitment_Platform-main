@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import PublicFooter from "@/app/components/layout/PublicFooter";
 import {
   Globe,
   Clock,
@@ -328,31 +329,8 @@ export default function WhyChooseUsPage() {
           </div>
         </motion.div>
 
-        {/* Footer Section */}
-        <div className="max-w-6xl mx-auto mt-24 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-gray-400 text-sm">
-                © {new Date().getFullYear()} SourcingScreen. All rights
-                reserved.
-              </p>
-            </div>
-            <div className="flex space-x-6">
-              <Link
-                href="/privacyPolicy"
-                className="text-gray-400 hover:text-white text-sm"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/terms"
-                className="text-gray-400 hover:text-white text-sm"
-              >
-                Terms & Conditions
-              </Link>
-            </div>
-          </div>
-        </div>
+        {/* Footer */}
+        <PublicFooter />
       </div>
     </div>
   );

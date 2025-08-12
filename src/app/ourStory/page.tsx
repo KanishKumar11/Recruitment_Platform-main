@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import PublicFooter from "@/app/components/layout/PublicFooter";
 import {
   ArrowLeft,
   Calendar,
@@ -348,30 +349,8 @@ export default function OurStoryPage() {
           </div>
         </div>
 
-        {/* Footer Section */}
-        <div className="max-w-6xl mx-auto mt-24 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-gray-400 text-sm">
-                © {new Date().getFullYear()} SourcingScreen. All rights reserved.
-              </p>
-            </div>
-            <div className="flex space-x-6">
-              <a
-                href="/privacyPolicy"
-                className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="/terms"
-                className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
-              >
-                Terms & Conditions
-              </a>
-            </div>
-          </div>
-        </div>
+        {/* Footer */}
+        <PublicFooter />
       </div>
     </div>
   );

@@ -21,17 +21,17 @@ export async function GET(request: NextRequest) {
     let query: any = {};
 
     if (isAdmin) {
-      // Admin endpoint - verify admin access
+      // Admin endpoint - verify admin or internal access
       console.log("DEBUG: Admin endpoint requested");
-      const hasAdminRole = authorizeRoles(request, [UserRole.ADMIN]);
-      console.log("DEBUG: Admin role authorized:", hasAdminRole);
+      const hasAdminRole = authorizeRoles(request, [UserRole.ADMIN, UserRole.INTERNAL]);
+      console.log("DEBUG: Admin/Internal role authorized:", hasAdminRole);
 
       if (!hasAdminRole) {
-        console.log("DEBUG: Admin authorization failed");
+        console.log("DEBUG: Admin/Internal authorization failed");
         return forbidden();
       }
-      console.log("DEBUG: Admin access granted");
-      // Admin can see all FAQs
+      console.log("DEBUG: Admin/Internal access granted");
+      // Admin and Internal can see all FAQs
     } else {
       // Public endpoint - only active FAQs
       query.isActive = true;
@@ -56,13 +56,13 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create new FAQ (Admin only)
+// POST - Create new FAQ (Admin and Internal only)
 export async function POST(request: NextRequest) {
   try {
     await connectDb();
 
     // Use the same authentication pattern as other working APIs
-    if (!authorizeRoles(request, [UserRole.ADMIN])) {
+    if (!authorizeRoles(request, [UserRole.ADMIN, UserRole.INTERNAL])) {
       return forbidden();
     }
 

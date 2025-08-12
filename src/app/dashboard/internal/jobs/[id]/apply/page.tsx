@@ -222,291 +222,301 @@ export default function InternalApplyForJobPage() {
                     </div>
                   ) : null}
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Candidate Information Section */}
-                    <div className="border-b border-gray-200 pb-4 mb-6">
+                    <div className="border-b border-gray-200 pb-6 mb-6">
                       <h4 className="text-md font-medium text-gray-900 mb-4">
                         Candidate Information
                       </h4>
 
-                      {/* Candidate Name */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="candidateName"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Candidate Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="candidateName"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={candidateName}
-                          onChange={(e) => setCandidateName(e.target.value)}
-                        />
-                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {/* Left Column */}
+                        <div className="space-y-4">
+                          {/* Candidate Name */}
+                          <div>
+                            <label
+                              htmlFor="candidateName"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Candidate Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="candidateName"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={candidateName}
+                              onChange={(e) => setCandidateName(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Email */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Email <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          id="email"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </div>
+                          {/* Phone */}
+                          <div>
+                            <label
+                              htmlFor="phone"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Phone <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              id="phone"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Phone */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="phone"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Phone <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          id="phone"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                        />
-                      </div>
+                          {/* Country */}
+                          <div>
+                            <label
+                              htmlFor="country"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Country <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="country"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={country}
+                              onChange={(e) => setCountry(e.target.value)}
+                            />
+                          </div>
+                        </div>
 
-                      {/* Alternative Phone */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="alternativePhone"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Alternative Phone
-                        </label>
-                        <input
-                          type="tel"
-                          id="alternativePhone"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          value={alternativePhone}
-                          onChange={(e) => setAlternativePhone(e.target.value)}
-                        />
-                      </div>
+                        {/* Right Column */}
+                        <div className="space-y-4">
+                          {/* Email */}
+                          <div>
+                            <label
+                              htmlFor="email"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Email <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              id="email"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Country */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="country"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Country <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="country"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={country}
-                          onChange={(e) => setCountry(e.target.value)}
-                        />
-                      </div>
+                          {/* Alternative Phone */}
+                          <div>
+                            <label
+                              htmlFor="alternativePhone"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Alternative Phone
+                            </label>
+                            <input
+                              type="tel"
+                              id="alternativePhone"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              value={alternativePhone}
+                              onChange={(e) => setAlternativePhone(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Location */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="location"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Location <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="location"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={location}
-                          onChange={(e) => setLocation(e.target.value)}
-                        />
+                          {/* Location */}
+                          <div>
+                            <label
+                              htmlFor="location"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Location <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="location"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={location}
+                              onChange={(e) => setLocation(e.target.value)}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Professional Information Section */}
-                    <div className="border-b border-gray-200 pb-4 mb-6">
+                    <div className="border-b border-gray-200 pb-6 mb-6">
                       <h4 className="text-md font-medium text-gray-900 mb-4">
                         Professional Information
                       </h4>
 
-                      {/* Current Company */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="currentCompany"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Current Company{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="currentCompany"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={currentCompany}
-                          onChange={(e) => setCurrentCompany(e.target.value)}
-                        />
-                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {/* Left Column */}
+                        <div className="space-y-4">
+                          {/* Current Company */}
+                          <div>
+                            <label
+                              htmlFor="currentCompany"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Current Company{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="currentCompany"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={currentCompany}
+                              onChange={(e) => setCurrentCompany(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Current Designation */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="currentDesignation"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Current Designation{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="currentDesignation"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={currentDesignation}
-                          onChange={(e) =>
-                            setCurrentDesignation(e.target.value)
-                          }
-                        />
-                      </div>
+                          {/* Total Experience */}
+                          <div>
+                            <label
+                              htmlFor="totalExperience"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Total Experience{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="totalExperience"
+                              placeholder="e.g., 5 years"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={totalExperience}
+                              onChange={(e) => setTotalExperience(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Experience Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        {/* Total Experience */}
-                        <div>
-                          <label
-                            htmlFor="totalExperience"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Total Experience{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="totalExperience"
-                            placeholder="e.g., 5 years"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={totalExperience}
-                            onChange={(e) => setTotalExperience(e.target.value)}
-                          />
+                          {/* Current CTC */}
+                          <div>
+                            <label
+                              htmlFor="currentCTC"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Current Annual CTC{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="currentCTC"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={currentCTC}
+                              onChange={(e) => setCurrentCTC(e.target.value)}
+                            />
+                          </div>
+
+                          {/* Qualification */}
+                          <div>
+                            <label
+                              htmlFor="qualification"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Qualification <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="qualification"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={qualification}
+                              onChange={(e) => setQualification(e.target.value)}
+                            />
+                          </div>
                         </div>
 
-                        {/* Relevant Experience */}
-                        <div>
-                          <label
-                            htmlFor="relevantExperience"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Relevant Experience{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="relevantExperience"
-                            placeholder="e.g., 3 years"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={relevantExperience}
-                            onChange={(e) =>
-                              setRelevantExperience(e.target.value)
-                            }
-                          />
+                        {/* Right Column */}
+                        <div className="space-y-4">
+                          {/* Current Designation */}
+                          <div>
+                            <label
+                              htmlFor="currentDesignation"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Current Designation{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="currentDesignation"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={currentDesignation}
+                              onChange={(e) =>
+                                setCurrentDesignation(e.target.value)
+                              }
+                            />
+                          </div>
+
+                          {/* Relevant Experience */}
+                          <div>
+                            <label
+                              htmlFor="relevantExperience"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Relevant Experience{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="relevantExperience"
+                              placeholder="e.g., 3 years"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={relevantExperience}
+                              onChange={(e) =>
+                                setRelevantExperience(e.target.value)
+                              }
+                            />
+                          </div>
+
+                          {/* Expected CTC */}
+                          <div>
+                            <label
+                              htmlFor="expectedCTC"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Expected Annual CTC{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="expectedCTC"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={expectedCTC}
+                              onChange={(e) => setExpectedCTC(e.target.value)}
+                            />
+                          </div>
+
+                          {/* Notice Period */}
+                          <div>
+                            <label
+                              htmlFor="noticePeriod"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Notice Period <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="noticePeriod"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={noticePeriod}
+                              onChange={(e) => setNoticePeriod(e.target.value)}
+                            />
+                          </div>
                         </div>
                       </div>
 
-                      {/* Current and Expected CTC */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        {/* Current CTC */}
-                        <div>
-                          <label
-                            htmlFor="currentCTC"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Current Annual CTC{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="currentCTC"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={currentCTC}
-                            onChange={(e) => setCurrentCTC(e.target.value)}
-                          />
-                        </div>
-
-                        {/* Expected CTC */}
-                        <div>
-                          <label
-                            htmlFor="expectedCTC"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Expected Annual CTC{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="expectedCTC"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={expectedCTC}
-                            onChange={(e) => setExpectedCTC(e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Notice Period */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="noticePeriod"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Notice Period <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="noticePeriod"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={noticePeriod}
-                          onChange={(e) => setNoticePeriod(e.target.value)}
-                        />
-                      </div>
-
-                      {/* Qualification */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="qualification"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Qualification <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="qualification"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                          value={qualification}
-                          onChange={(e) => setQualification(e.target.value)}
-                        />
-                      </div>
-
-                      {/* Remarks */}
-                      <div>
+                      {/* Remarks - Full Width */}
+                      <div className="mt-4">
                         <label
                           htmlFor="remarks"
                           className="block text-sm font-medium text-gray-700"
@@ -523,103 +533,92 @@ export default function InternalApplyForJobPage() {
                       </div>
                     </div>
 
-                    {/* Resume Upload Section */}
-                    <div className="border-b border-gray-200 pb-4 mb-6">
+                    {/* File Upload Section */}
+                    <div className="border-b border-gray-200 pb-6 mb-6">
                       <h4 className="text-md font-medium text-gray-900 mb-4">
-                        Resume Upload
+                        Document Upload
                       </h4>
 
-                      {/* Resume Upload */}
-                      <div>
-                        <label
-                          htmlFor="resume"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Upload Resume <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="file"
-                          id="resume"
-                          accept=".pdf,.doc,.docx"
-                          ref={fileInputRef}
-                          onChange={handleFileChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          required
-                        />
-                        {selectedFile && (
-                          <p className="mt-2 text-sm text-gray-500">
-                            Selected file: {selectedFile.name}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Resume Upload */}
+                        <div>
+                          <label
+                            htmlFor="resume"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                          >
+                            Resume <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="file"
+                            id="resume"
+                            accept=".pdf,.doc,.docx"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                          {selectedFile && (
+                            <p className="mt-2 text-sm text-gray-500">
+                              Selected: {selectedFile.name}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Additional Documents Upload */}
+                        <div>
+                          <label
+                            htmlFor="additionalDocuments"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                          >
+                            Additional Documents
+                          </label>
+                          <input
+                            type="file"
+                            id="additionalDocuments"
+                            multiple
+                            ref={additionalFilesRef}
+                            onChange={handleAdditionalFilesChange}
+                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">
+                            Certificates, portfolio, cover letter, etc. (Optional)
                           </p>
-                        )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Additional Documents Section */}
-                    <div className="border-b border-gray-200 pb-4 mb-6">
-                      <h4 className="text-md font-medium text-gray-900 mb-4">
-                        Additional Documents
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Upload any additional documents such as certificates,
-                        portfolio, cover letter, etc. (Optional)
-                      </p>
-
-                      {/* Additional Documents Upload */}
-                      <div>
-                        <label
-                          htmlFor="additionalDocuments"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Upload Additional Documents
-                        </label>
-                        <input
-                          type="file"
-                          id="additionalDocuments"
-                          multiple
-                          ref={additionalFilesRef}
-                          onChange={handleAdditionalFilesChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                          You can select multiple files. All file types are
-                          supported.
-                        </p>
-
-                        {/* Display selected additional files */}
-                        {additionalFiles.length > 0 && (
-                          <div className="mt-4">
-                            <h5 className="text-sm font-medium text-gray-700 mb-2">
-                              Selected Files ({additionalFiles.length}):
-                            </h5>
-                            <div className="space-y-2">
-                              {additionalFiles.map((file, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
-                                >
-                                  <div className="flex items-center">
-                                    <FileUp className="h-4 w-4 text-gray-400 mr-2" />
-                                    <span className="text-sm text-gray-700">
-                                      {file.name}
-                                    </span>
-                                    <span className="text-xs text-gray-500 ml-2">
-                                      ({(file.size / 1024 / 1024).toFixed(2)}{" "}
-                                      MB)
-                                    </span>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => removeAdditionalFile(index)}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </button>
+                      {/* Display selected additional files */}
+                      {additionalFiles.length > 0 && (
+                        <div className="mt-4">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">
+                            Selected Files ({additionalFiles.length}):
+                          </h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {additionalFiles.map((file, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
+                              >
+                                <div className="flex items-center">
+                                  <FileUp className="h-4 w-4 text-gray-400 mr-2" />
+                                  <span className="text-sm text-gray-700 truncate">
+                                    {file.name}
+                                  </span>
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                  </span>
                                 </div>
-                              ))}
-                            </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeAdditionalFile(index)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Screening Questions Section */}

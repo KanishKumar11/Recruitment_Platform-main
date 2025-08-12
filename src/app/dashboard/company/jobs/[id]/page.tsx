@@ -341,11 +341,11 @@ export default function ViewJobPage() {
                         {job.replacementTerms || "Not specified"}
                       </dd>
                     </div>
-                    <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">
+                    <div className="bg-gray-50 px-4 py-5 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500 mb-4">
                         Company Description
                       </dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-5">
+                      <dd className="text-sm text-gray-900">
                         <div
                           className="prose prose-sm max-w-none text-left"
                           dangerouslySetInnerHTML={{
@@ -354,11 +354,11 @@ export default function ViewJobPage() {
                         />
                       </dd>
                     </div>
-                    <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Description
+                    <div className="bg-white px-4 py-5 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500 mb-4">
+                        Job Description
                       </dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-5">
+                      <dd className="text-sm text-gray-900">
                         <div
                           className="prose prose-sm max-w-none text-left"
                           dangerouslySetInnerHTML={{ __html: job.description }}

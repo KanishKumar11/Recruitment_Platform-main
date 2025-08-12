@@ -449,8 +449,8 @@ export default function AdminJobDetailPage() {
               </div>
             </div>
 
-            {/* Descriptions Section - Compact Layout */}
-            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Descriptions Section - Full Width Layout */}
+            <div className="mt-6 space-y-6">
               {/* Job Description */}
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-3 border-b border-gray-200">

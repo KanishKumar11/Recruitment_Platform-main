@@ -170,59 +170,52 @@ export default function AdminDashboard() {
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            {/* Stats Cards Grid */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-              {statCards.map((card, index) => {
-                // Dynamically determine the icon component
-                let IconComponent;
-                switch (card.icon) {
-                  case "User":
-                    IconComponent = User;
-                    break;
-                  case "Briefcase":
-                    IconComponent = Briefcase;
-                    break;
-                  case "Layers":
-                    IconComponent = Layers;
-                    break;
-                  case "FileText":
-                    IconComponent = FileText;
-                    break;
-                  case "Calendar":
-                    IconComponent = Calendar;
-                    break;
-                  default:
-                    IconComponent = Briefcase;
-                }
+            {/* Compact Stats Cards */}
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-gray-900">Overview</h2>
+                <div className="text-xs text-gray-500">Quick Statistics</div>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                {statCards.map((card, index) => {
+                  // Dynamically determine the icon component
+                  let IconComponent;
+                  switch (card.icon) {
+                    case "User":
+                      IconComponent = User;
+                      break;
+                    case "Briefcase":
+                      IconComponent = Briefcase;
+                      break;
+                    case "Layers":
+                      IconComponent = Layers;
+                      break;
+                    case "FileText":
+                      IconComponent = FileText;
+                      break;
+                    case "Calendar":
+                      IconComponent = Calendar;
+                      break;
+                    default:
+                      IconComponent = Briefcase;
+                  }
 
-                return (
-                  <Link href={card.link} key={index}>
-                    <div className="bg-white overflow-hidden shadow rounded-lg cursor-pointer transition duration-150 ease-in-out hover:shadow-lg border border-gray-100">
-                      <div className="p-5">
-                        <div className="flex items-center">
-                          <div
-                            className={`flex-shrink-0 ${card.bgColor} rounded-md p-3`}
-                          >
-                            <IconComponent className="h-6 w-6 text-white" />
-                          </div>
-                          <div className="ml-5 w-0 flex-1">
-                            <dl>
-                              <dt className="text-sm font-medium text-gray-500 truncate">
-                                {card.title}
-                              </dt>
-                              <dd>
-                                <div className="text-lg font-medium text-gray-900">
-                                  {card.value}
-                                </div>
-                              </dd>
-                            </dl>
-                          </div>
+                  return (
+                    <Link href={card.link} key={index}>
+                      <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-md shadow-sm border border-gray-200 hover:bg-gray-100 transition-colors duration-150">
+                        <div className={`${card.bgColor} rounded p-1`}>
+                          <IconComponent className="h-3 w-3 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 truncate">{card.title}</p>
+                          <p className="text-sm font-semibold text-gray-900">{card.value}</p>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Charts Section */}
@@ -358,7 +351,7 @@ export default function AdminDashboard() {
                 </h3>
               </div>
               <div className="px-4 py-5 sm:p-6">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                <div className="flex flex-wrap gap-3 md:gap-4">
                   <Link
                     href="/dashboard/admin/users"
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

@@ -238,7 +238,7 @@ export default function AdminSubmissionsPage() {
           (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
 
         return matchesSearch && matchesStatus && matchesJob && matchesRecruiter;
-      })
+      }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [];
 
   // Stats calculation

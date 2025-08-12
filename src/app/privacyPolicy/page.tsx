@@ -3,6 +3,7 @@
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import PublicFooter from '@/app/components/layout/PublicFooter';
 import { ArrowLeft, Shield, Lock, Phone, Mail, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Define TypeScript interfaces
@@ -400,10 +401,8 @@ export default function PrivacyPolicyPage() {
             </div>
           </motion.div>
           
-          {/* Copyright */}
-          <div className="mt-16 pt-6 border-t border-gray-700/50 text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} SourcingScreen. All rights reserved.
-          </div>
+          {/* Footer */}
+          <PublicFooter />
         </div>
       </div>
     </div>

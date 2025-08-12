@@ -23,6 +23,7 @@ import ResumeDetailModal from "@/app/components/company/ResumeDetailModal";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
+import { UserRole } from "@/app/constants/userRoles";
 
 export default function InternalSubmissionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -127,7 +128,7 @@ export default function InternalSubmissionsPage() {
           (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
 
         return matchesSearch && matchesStatus && matchesJob && matchesRecruiter;
-      })
+      }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [];
 
   // Stats calculation
@@ -174,7 +175,7 @@ export default function InternalSubmissionsPage() {
   }
 
   return (
-    <ProtectedLayout allowedRoles={["INTERNAL"]}>
+    <ProtectedLayout allowedRoles={[UserRole.INTERNAL, UserRole.ADMIN]}>
       <DashboardLayout>
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-6">All Submissions</h1>

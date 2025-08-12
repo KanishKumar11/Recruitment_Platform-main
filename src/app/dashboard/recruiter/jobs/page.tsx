@@ -175,7 +175,7 @@ export default function RecruiterJobs() {
     }
     return job.commission.type === "fixed"
       ? "Fixed"
-      : `${job.commission.recruiterPercentage}%`;
+      : "Percentage";
   };
 
   // Get commission badge color based on type

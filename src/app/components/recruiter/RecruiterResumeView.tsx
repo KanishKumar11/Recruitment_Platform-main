@@ -198,103 +198,116 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
           </button>
         </div>
 
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center">
-            <span className="mr-2 text-sm font-medium text-gray-500">
-              Status:
-            </span>
-            <ResumeStatusBadge status={resume.status} />
-          </div>
-          <div className="text-sm text-gray-500">
-            <Clock className="inline-block h-4 w-4 mr-1" />
-            Submitted on: {new Date(resume.createdAt).toLocaleDateString()}
-          </div>
-        </div>
-
-        {/* Resume Status History - Recruiter View */}
-        <ResumeStatusHistory resume={resume} />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Basic Information
-            </h3>
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Email</dt>
-                <dd className="mt-1 text-sm text-gray-900">{resume.email}</dd>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Left side - Main content (2/3 width) */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Basic Information
+                </h3>
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">Email</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{resume.email}</dd>
+                  </div>
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">Phone</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{resume.phone}</dd>
+                  </div>
+                  {resume.alternativePhone && (
+                    <div className="sm:col-span-1">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Alternative Phone
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {resume.alternativePhone}
+                      </dd>
+                    </div>
+                  )}
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">Country</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{resume.country}</dd>
+                  </div>
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">Location</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.location}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">
+                      Qualification
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.qualification}
+                    </dd>
+                  </div>
+                </dl>
               </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                <dd className="mt-1 text-sm text-gray-900">{resume.phone}</dd>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Career Information
+                </h3>
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">
+                      Current Annual CTC
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.currentCTC}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">
+                      Expected Annual CTC
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.expectedCTC}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-1">
+                    <dt className="text-sm font-medium text-gray-500">
+                      Notice Period
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.noticePeriod}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-sm font-medium text-gray-500">Remarks</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.remarks || "No remarks provided"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
-              {resume.alternativePhone && (
-                <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Alternative Phone
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {resume.alternativePhone}
-                  </dd>
+            </div>
+          </div>
+
+          {/* Right side - Status and History (1/3 width) */}
+          <div className="lg:col-span-1">
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Status</h3>
+              <div className="mb-4">
+                <div className="flex items-center mb-2">
+                  <span className="mr-2 text-sm font-medium text-gray-500">
+                    Current:
+                  </span>
+                  <ResumeStatusBadge status={resume.status} />
                 </div>
-              )}
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Country</dt>
-                <dd className="mt-1 text-sm text-gray-900">{resume.country}</dd>
+                <div className="text-sm text-gray-500">
+                  <Clock className="inline-block h-4 w-4 mr-1" />
+                  Submitted: {new Date(resume.createdAt).toLocaleDateString()}
+                </div>
               </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Location</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {resume.location}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Qualification
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {resume.qualification}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Career Information
-            </h3>
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Current Annual CTC
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {resume.currentCTC}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Expected Annual CTC
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {resume.expectedCTC}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Notice Period
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {resume.noticePeriod}
-                </dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Remarks</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {resume.remarks || "No remarks provided"}
-                </dd>
-              </div>
-            </dl>
+            </div>
+            
+            {/* Resume Status History - Recruiter View */}
+            <div className="bg-white border rounded-lg p-4">
+              <ResumeStatusHistory resume={resume} />
+            </div>
           </div>
         </div>
 

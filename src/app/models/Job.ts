@@ -53,6 +53,7 @@ export interface IJob extends Document {
     max: number;
     currency: string;
   };
+  compensationType: "HOURLY" | "MONTHLY" | "ANNUALLY";
   paymentTerms: string;
   positions: number;
   jobType: JobType;
@@ -124,6 +125,12 @@ const JobSchema = new Schema<IJob>(
       min: { type: Number, required: true },
       max: { type: Number, required: true },
       currency: { type: String, default: "USD", required: true },
+    },
+    compensationType: {
+      type: String,
+      enum: ["HOURLY", "MONTHLY", "ANNUALLY"],
+      default: "ANNUALLY",
+      required: true,
     },
     paymentTerms: { type: String },
     positions: { type: Number, default: 1, required: true },

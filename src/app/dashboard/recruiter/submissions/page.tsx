@@ -128,7 +128,7 @@ function RecruiterSubmissionsPageContent() {
           resume.submittedBy?.toString() === recruiterFilter;
 
         return matchesSearch && matchesStatus && matchesJob && matchesRecruiter;
-      })
+      }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [];
 
   // Stats calculation
@@ -138,7 +138,7 @@ function RecruiterSubmissionsPageContent() {
       : 0;
   };
 
-  const StatCard = ({
+  const CompactStatCard = ({
     icon,
     bgColor,
     title,
@@ -149,13 +149,11 @@ function RecruiterSubmissionsPageContent() {
     title: string;
     count: number;
   }) => (
-    <div className="bg-white shadow rounded-lg p-4">
-      <div className="flex items-center">
-        <div className={`flex-shrink-0 ${bgColor} rounded-md p-2`}>{icon}</div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-lg font-semibold text-gray-900">{count}</p>
-        </div>
+    <div className="flex items-center space-x-2 px-3 py-2 bg-white rounded-md shadow-sm border border-gray-200">
+      <div className={`${bgColor} rounded p-1`}>{icon}</div>
+      <div>
+        <p className="text-xs text-gray-500">{title}</p>
+        <p className="text-sm font-semibold text-gray-900">{count}</p>
       </div>
     </div>
   );
@@ -202,111 +200,63 @@ function RecruiterSubmissionsPageContent() {
             </div>
           )}
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6">
-            {/* Total submissions */}
-            <StatCard
-              icon={<FileText className="h-6 w-6 text-indigo-600" />}
-              bgColor="bg-indigo-100"
-              title="Total Submissions"
-              count={resumes?.length || 0}
-            />
-
-            {/* Submitted */}
-            <StatCard
-              icon={<Send className="h-6 w-6 text-blue-600" />}
-              bgColor="bg-blue-100"
-              title="Submitted"
-              count={getStatusCount(ResumeStatus.SUBMITTED)}
-            />
-
-            {/* Reviewed */}
-            <StatCard
-              icon={<Clock className="h-6 w-6 text-purple-600" />}
-              bgColor="bg-purple-100"
-              title="Reviewed"
-              count={getStatusCount(ResumeStatus.REVIEWED)}
-            />
-
-            {/* Shortlisted */}
-            <StatCard
-              icon={<ThumbsUp className="h-6 w-6 text-green-600" />}
-              bgColor="bg-green-100"
-              title="Shortlisted"
-              count={getStatusCount(ResumeStatus.SHORTLISTED)}
-            />
-
-            {/* On Hold */}
-            <StatCard
-              icon={<PauseCircle className="h-6 w-6 text-orange-600" />}
-              bgColor="bg-orange-100"
-              title="On Hold"
-              count={getStatusCount(ResumeStatus.ONHOLD)}
-            />
-
-            {/* Interview in Process */}
-            <StatCard
-              icon={<MessageCircle className="h-6 w-6 text-yellow-600" />}
-              bgColor="bg-yellow-100"
-              title="Interview in Process"
-              count={getStatusCount(ResumeStatus.INTERVIEW_IN_PROCESS)}
-            />
-
-            {/* Interviewed */}
-            <StatCard
-              icon={<User className="h-6 w-6 text-purple-600" />}
-              bgColor="bg-purple-100"
-              title="Interviewed"
-              count={getStatusCount(ResumeStatus.INTERVIEWED)}
-            />
-
-            {/* Selected in Final Interview */}
-            <StatCard
-              icon={<UserCheck className="h-6 w-6 text-teal-600" />}
-              bgColor="bg-teal-100"
-              title="Selected in Final"
-              count={getStatusCount(ResumeStatus.SELECTED_IN_FINAL_INTERVIEW)}
-            />
-
-            {/* Offered */}
-            <StatCard
-              icon={<HandHeart className="h-6 w-6 text-cyan-600" />}
-              bgColor="bg-cyan-100"
-              title="Offered"
-              count={getStatusCount(ResumeStatus.OFFERED)}
-            />
-
-            {/* Offer Declined */}
-            <StatCard
-              icon={<XCircle className="h-6 w-6 text-rose-600" />}
-              bgColor="bg-rose-100"
-              title="Offer Declined"
-              count={getStatusCount(ResumeStatus.OFFER_DECLINED)}
-            />
-
-            {/* Hired */}
-            <StatCard
-              icon={<Award className="h-6 w-6 text-green-600" />}
-              bgColor="bg-green-100"
-              title="Hired"
-              count={getStatusCount(ResumeStatus.HIRED)}
-            />
-
-            {/* Duplicate - NEW */}
-            <StatCard
-              icon={<Copy className="h-6 w-6 text-amber-600" />}
-              bgColor="bg-amber-100"
-              title="Duplicate"
-              count={getStatusCount(ResumeStatus.DUPLICATE)}
-            />
-
-            {/* Rejected */}
-            <StatCard
-              icon={<XCircle className="h-6 w-6 text-red-600" />}
-              bgColor="bg-red-100"
-              title="Rejected"
-              count={getStatusCount(ResumeStatus.REJECTED)}
-            />
+          {/* Ultra Compact Stats */}
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-900">Quick Stats</h3>
+              <span className="text-xs text-gray-500">Total: {resumes?.length || 0}</span>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+              <CompactStatCard
+                icon={<Send className="h-3 w-3 text-blue-600" />}
+                bgColor="bg-blue-50"
+                title="Submitted"
+                count={getStatusCount(ResumeStatus.SUBMITTED)}
+              />
+              <CompactStatCard
+                icon={<Clock className="h-3 w-3 text-purple-600" />}
+                bgColor="bg-purple-50"
+                title="Reviewed"
+                count={getStatusCount(ResumeStatus.REVIEWED)}
+              />
+              <CompactStatCard
+                icon={<ThumbsUp className="h-3 w-3 text-green-600" />}
+                bgColor="bg-green-50"
+                title="Shortlisted"
+                count={getStatusCount(ResumeStatus.SHORTLISTED)}
+              />
+              <CompactStatCard
+                icon={<MessageCircle className="h-3 w-3 text-yellow-600" />}
+                bgColor="bg-yellow-50"
+                title="Interview"
+                count={getStatusCount(ResumeStatus.INTERVIEW_IN_PROCESS)}
+              />
+              <CompactStatCard
+                icon={<User className="h-3 w-3 text-indigo-600" />}
+                bgColor="bg-indigo-50"
+                title="Interviewed"
+                count={getStatusCount(ResumeStatus.INTERVIEWED)}
+              />
+              <CompactStatCard
+                icon={<HandHeart className="h-3 w-3 text-cyan-600" />}
+                bgColor="bg-cyan-50"
+                title="Offered"
+                count={getStatusCount(ResumeStatus.OFFERED)}
+              />
+              <CompactStatCard
+                icon={<Award className="h-3 w-3 text-emerald-600" />}
+                bgColor="bg-emerald-50"
+                title="Hired"
+                count={getStatusCount(ResumeStatus.HIRED)}
+              />
+              <CompactStatCard
+                icon={<XCircle className="h-3 w-3 text-red-600" />}
+                bgColor="bg-red-50"
+                title="Rejected"
+                count={getStatusCount(ResumeStatus.REJECTED)}
+              />
+            </div>
           </div>
 
           {/* Search and Filter Controls */}
@@ -459,9 +409,6 @@ function RecruiterSubmissionsPageContent() {
                         </th>
                       )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Details
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -469,6 +416,9 @@ function RecruiterSubmissionsPageContent() {
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
                       </th>
                     </tr>
                   </thead>
@@ -503,6 +453,41 @@ function RecruiterSubmissionsPageContent() {
                               : resume.submittedByName || "Team Member"}
                           </td>
                         )}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-xs text-gray-700">
+                            <span className="bg-gray-100 px-2 py-1 rounded-md mr-1">
+                              Notice: {resume.noticePeriod || "N/A"}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-700 mt-1">
+                            <span className="bg-blue-50 px-2 py-1 rounded-md mr-1">
+                              CTC: {resume.currentCTC || "N/A"}
+                            </span>
+                            <span className="bg-green-50 px-2 py-1 rounded-md">
+                              Exp: {resume.expectedCTC || "N/A"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div>
+                            Updated:{" "}
+                            {new Date(resume.updatedAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs">
+                            Created:{" "}
+                            {new Date(resume.createdAt).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() =>
+                              handleViewResume(resume._id as string)
+                            }
+                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md"
+                          >
+                            View Details
+                          </button>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <ResumeStatusBadge status={resume.status} />
 
@@ -573,41 +558,6 @@ function RecruiterSubmissionsPageContent() {
                                 ).toLocaleDateString()}
                               </div>
                             )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-xs text-gray-700">
-                            <span className="bg-gray-100 px-2 py-1 rounded-md mr-1">
-                              Notice: {resume.noticePeriod || "N/A"}
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-700 mt-1">
-                            <span className="bg-blue-50 px-2 py-1 rounded-md mr-1">
-                              CTC: {resume.currentCTC || "N/A"}
-                            </span>
-                            <span className="bg-green-50 px-2 py-1 rounded-md">
-                              Exp: {resume.expectedCTC || "N/A"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div>
-                            Updated:{" "}
-                            {new Date(resume.updatedAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs">
-                            Created:{" "}
-                            {new Date(resume.createdAt).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() =>
-                              handleViewResume(resume._id as string)
-                            }
-                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md"
-                          >
-                            View Details
-                          </button>
                         </td>
                       </tr>
                     ))}

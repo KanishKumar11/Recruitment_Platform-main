@@ -143,7 +143,7 @@ export async function POST(
     }
     
     // Validate input data
-    const { question, questionType, required = true } = await req.json();
+    const { question, questionType, required = true, options } = await req.json();
     
     if (!question || !questionType) {
       return NextResponse.json(
@@ -153,11 +153,21 @@ export async function POST(
     }
     
     // Validate question type is one of the supported types
-    if (!['NUMERIC', 'TEXT', 'YES_NO'].includes(questionType)) {
+    if (!['NUMERIC', 'TEXT', 'YES_NO', 'MCQ', 'MULTI_SELECT'].includes(questionType)) {
       return NextResponse.json(
-        { error: 'Invalid question type. Must be "Numeric", "Text Line", or "Yes/No"' },
+        { error: 'Invalid question type. Must be "TEXT", "NUMERIC", "YES_NO", "MCQ", or "MULTI_SELECT"' },
         { status: 400 }
       );
+    }
+
+    // Validate options for MCQ and MULTI_SELECT
+    if (['MCQ', 'MULTI_SELECT'].includes(questionType)) {
+      if (!options || !Array.isArray(options) || options.length < 2) {
+        return NextResponse.json(
+          { error: 'MCQ and Multi-select questions must have at least 2 options' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if job exists
@@ -178,6 +188,7 @@ export async function POST(
       question,
       questionType,
       required,
+      ...(options && { options }),
     });
 
     await screeningQuestion.save();

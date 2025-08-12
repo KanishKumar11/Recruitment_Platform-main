@@ -106,13 +106,13 @@ export default function AdminJobDetailPage() {
                   </p>
                 </div>
 
-                {/* Actions Panel - Vertical on mobile, horizontal on desktop */}
+                {/* Actions Panel - Single Row Layout */}
                 <div className="flex-shrink-0">
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <h3 className="text-sm font-medium text-gray-900 mb-3">
                       Quick Actions
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                    <div className="flex flex-wrap gap-3">
                       <Link
                         href={`/dashboard/admin/jobs/${id}/edit`}
                         className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
@@ -326,8 +326,8 @@ export default function AdminJobDetailPage() {
               </div>
             </div>
 
-            {/* Descriptions Section - Compact Layout */}
-            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Descriptions Section - Full Width Layout */}
+            <div className="mt-6 space-y-6">
               {/* Job Description */}
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-3 border-b border-gray-200">

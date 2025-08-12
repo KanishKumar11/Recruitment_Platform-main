@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
+import { Plus, X, CheckCircle2, Type, Hash, ToggleLeft, CheckSquare, Edit3, Trash2, AlertCircle } from 'lucide-react';
 
 import ProtectedLayout from '@/app/components/layout/ProtectedLayout';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -12,13 +14,9 @@ import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import { RootState } from '../../../../../store/index';
 import { useGetJobByIdQuery, useAddScreeningQuestionMutation, useUpdateScreeningQuestionMutation, useDeleteScreeningQuestionMutation } from '../../../../../store/services/jobsApi';
 import { UserRole } from '@/app/constants/userRoles';
+import { QuestionType, ScreeningQuestionInterface } from '@/app/types/ScreeningQuestionTypes';
 
-interface ScreeningQuestion {
-  _id: string;
-  question: string;
-  questionType: string;
-  required: boolean;
-}
+interface ScreeningQuestion extends ScreeningQuestionInterface {}
 
 export default function AdminJobQuestionsPage() {
   const router = useRouter();
@@ -34,8 +32,9 @@ export default function AdminJobQuestionsPage() {
 
   const [newQuestion, setNewQuestion] = useState({
     question: '',
-    questionType: 'TEXT',
+    questionType: 'TEXT' as QuestionType,
     required: false,
+    options: [''] as string[],
   });
 
   // State for managing the currently editing question
@@ -44,10 +43,77 @@ export default function AdminJobQuestionsPage() {
     question: '',
     questionType: '',
     required: false,
+    options: [''] as string[],
   });
 
   // State for delete confirmation
   const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
+
+  // Helper functions for question type display
+  const getQuestionTypeIcon = (type: string) => {
+    switch(type) {
+      case 'TEXT': return <Type className="h-4 w-4" />;
+      case 'NUMERIC': return <Hash className="h-4 w-4" />;
+      case 'YES_NO': return <ToggleLeft className="h-4 w-4" />;
+      case 'MCQ': return <CheckCircle2 className="h-4 w-4" />;
+      case 'MULTI_SELECT': return <CheckSquare className="h-4 w-4" />;
+      default: return <Type className="h-4 w-4" />;
+    }
+  };
+
+  const getQuestionTypeColor = (type: string) => {
+    switch(type) {
+      case 'TEXT': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'NUMERIC': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'YES_NO': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'MCQ': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'MULTI_SELECT': return 'bg-pink-50 text-pink-700 border-pink-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const formatQuestionType = (type: string) => {
+    switch(type) {
+      case 'TEXT': return 'Text Response';
+      case 'NUMERIC': return 'Number';
+      case 'YES_NO': return 'Yes/No';
+      case 'MCQ': return 'Multiple Choice';
+      case 'MULTI_SELECT': return 'Multi-Select';
+      default: return type;
+    }
+  };
+
+  // Helper function to check if question type requires options
+  const requiresOptions = (questionType: QuestionType) => {
+    return ['MCQ', 'MULTI_SELECT'].includes(questionType);
+  };
+
+  // Functions for managing options
+  const addOption = () => {
+    setNewQuestion({ ...newQuestion, options: [...newQuestion.options, ''] });
+  };
+
+  const removeOption = (index: number) => {
+    if (newQuestion.options.length > 1) {
+      const newOptions = newQuestion.options.filter((_, i) => i !== index);
+      setNewQuestion({ ...newQuestion, options: newOptions });
+    }
+  };
+
+  const updateOption = (index: number, value: string) => {
+    const newOptions = [...newQuestion.options];
+    newOptions[index] = value;
+    setNewQuestion({ ...newQuestion, options: newOptions });
+  };
+
+  // Handle question type change
+  const handleQuestionTypeChange = (questionType: QuestionType) => {
+    setNewQuestion({ 
+      ...newQuestion, 
+      questionType,
+      options: requiresOptions(questionType) ? ['', ''] : ['']
+    });
+  };
 
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -57,23 +123,42 @@ export default function AdminJobQuestionsPage() {
   }, [user, router]);
 
   // Handle new question form submission
-  const handleAddQuestion = () => {
+  const handleAddQuestion = async () => {
     if (!newQuestion.question.trim()) {
-      alert('Please enter a question');
+      toast.error('Please enter a question');
       return;
+    }
+
+    // Validate options for MCQ and MULTI_SELECT
+    if (requiresOptions(newQuestion.questionType)) {
+      const validOptions = newQuestion.options.filter(opt => opt.trim() !== '');
+      if (validOptions.length < 2) {
+        toast.error('MCQ and Multi-select questions must have at least 2 options');
+        return;
+      }
     }
     
     try {
-      addScreeningQuestion({
+      await addScreeningQuestion({
           jobId: id,
           question: newQuestion.question,
           questionType: newQuestion.questionType,
-          required: newQuestion.required
+          required: newQuestion.required,
+          ...(requiresOptions(newQuestion.questionType) && { 
+            options: newQuestion.options.filter(opt => opt.trim() !== '') 
+          })
       }).unwrap();
-      setNewQuestion({ question: '', questionType: 'TEXT', required: false });
+      
+      setNewQuestion({ 
+        question: '', 
+        questionType: QuestionType.TEXT, 
+        required: false, 
+        options: [''] 
+      });
+      toast.success('Question added successfully!');
     } catch (error) {
       console.error('Failed to add screening question:', error);
-      alert('Failed to add question. Please try again.');
+      toast.error('Failed to add question. Please try again.');
     }
   };
 
@@ -83,7 +168,8 @@ export default function AdminJobQuestionsPage() {
     setEditingQuestion({
       question: question.question,
       questionType: question.questionType,
-      required: question.required
+      required: question.required,
+      options: question.options || ['']
     });
   };
 
@@ -93,24 +179,37 @@ export default function AdminJobQuestionsPage() {
   };
 
   // Save edited question
-  const saveQuestion = (questionId: string) => {
+  const saveQuestion = async (questionId: string) => {
     if (!editingQuestion.question.trim()) {
-      alert('Question text cannot be empty');
+      toast.error('Question text cannot be empty');
       return;
+    }
+
+    // Validate options for MCQ and MULTI_SELECT
+    if (requiresOptions(editingQuestion.questionType as QuestionType)) {
+      const validOptions = editingQuestion.options.filter(opt => opt.trim() !== '');
+      if (validOptions.length < 2) {
+        toast.error('MCQ and Multi-select questions must have at least 2 options');
+        return;
+      }
     }
     
     try {
-      updateScreeningQuestion({
+      await updateScreeningQuestion({
         jobId: id,
         questionId,
         question: editingQuestion.question,
         questionType: editingQuestion.questionType,
-        required: editingQuestion.required
+        required: editingQuestion.required,
+        ...(requiresOptions(editingQuestion.questionType as QuestionType) && { 
+          options: editingQuestion.options.filter(opt => opt.trim() !== '') 
+        })
       }).unwrap();
       setEditingQuestionId(null);
+      toast.success('Question updated successfully!');
     } catch (error) {
       console.error('Failed to update screening question:', error);
-      alert('Failed to update question. Please try again.');
+      toast.error('Failed to update question. Please try again.');
     }
   };
 
@@ -125,16 +224,17 @@ export default function AdminJobQuestionsPage() {
   };
 
   // Confirm and perform delete
-  const confirmDelete = (questionId: string) => {
+  const confirmDelete = async (questionId: string) => {
     try {
-      deleteScreeningQuestion({
+      await deleteScreeningQuestion({
         jobId: id,
         questionId
       }).unwrap();
       setDeleteConfirmationId(null);
+      toast.success('Question deleted successfully!');
     } catch (error) {
       console.error('Failed to delete screening question:', error);
-      alert('Failed to delete question. Please try again.');
+      toast.error('Failed to delete question. Please try again.');
     }
   };
 
@@ -208,14 +308,58 @@ export default function AdminJobQuestionsPage() {
                     id="questionType"
                     name="questionType"
                     value={newQuestion.questionType}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, questionType: e.target.value })}
+                    onChange={(e) => handleQuestionTypeChange(e.target.value as QuestionType)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
-                    <option value="TEXT">Text</option>
-                    <option value="NUMERIC">Numeric</option>
-                    <option value="YES_NO">Yes/No</option>
+                    <option value="TEXT">📝 Text Response</option>
+                    <option value="NUMERIC">🔢 Number</option>
+                    <option value="YES_NO">✅ Yes/No</option>
+                    <option value="MCQ">🔘 Multiple Choice (Single Select)</option>
+                    <option value="MULTI_SELECT">☑️ Multi-Select (Multiple Options)</option>
                   </select>
                 </div>
+
+                {/* Options Management for MCQ and Multi-select */}
+                {requiresOptions(newQuestion.questionType) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Answer Options
+                    </label>
+                    <div className="space-y-3">
+                      {newQuestion.options.map((option, index) => (
+                        <div key={index} className="flex items-center space-x-3">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={option}
+                              onChange={(e) => updateOption(index, e.target.value)}
+                              placeholder={`Option ${index + 1}`}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                          </div>
+                          {newQuestion.options.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeOption(index)}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => addOption()}
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Option
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex items-center">
                   <input
                     id="required"
@@ -274,9 +418,11 @@ export default function AdminJobQuestionsPage() {
                               onChange={(e) => setEditingQuestion({ ...editingQuestion, questionType: e.target.value })}
                               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             >
-                              <option value="TEXT">Text</option>
-                              <option value="NUMERIC">Numeric</option>
-                              <option value="YES_NO">Yes/No</option>
+                              <option value="TEXT">📝 Text Response</option>
+                              <option value="NUMERIC">🔢 Number</option>
+                              <option value="YES_NO">✅ Yes/No</option>
+                              <option value="MCQ">🔘 Multiple Choice (Single Select)</option>
+                              <option value="MULTI_SELECT">☑️ Multi-Select (Multiple Options)</option>
                             </select>
                           </div>
                           <div className="flex items-center">
@@ -328,31 +474,53 @@ export default function AdminJobQuestionsPage() {
                         </div>
                       ) : (
                         // View mode
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{question.question}</p>
-                            <div className="flex mt-1">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                                {question.questionType}
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 mb-2">{question.question}</p>
+                            
+                            {/* Display options for MCQ and MULTI_SELECT questions */}
+                            {requiresOptions(question.questionType as QuestionType) && question.options && (
+                              <div className="mb-3 pl-4 border-l-2 border-gray-200">
+                                <p className="text-xs font-medium text-gray-500 mb-2">Answer Options:</p>
+                                <ul className="space-y-1">
+                                  {question.options.map((option: string, optionIndex: number) => (
+                                    <li key={optionIndex} className="text-sm text-gray-600 flex items-center">
+                                      <span className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 mr-2 flex-shrink-0">
+                                        {optionIndex + 1}
+                                      </span>
+                                      {option}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center space-x-3">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getQuestionTypeColor(question.questionType)}`}>
+                                {getQuestionTypeIcon(question.questionType)}
+                                <span className="ml-1">{formatQuestionType(question.questionType)}</span>
                               </span>
                               {question.required && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
                                   Required
                                 </span>
                               )}
                             </div>
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-2 ml-4">
                             <button
                               onClick={() => startEditing(question)}
-                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                             >
+                              <Edit3 className="w-4 h-4 mr-1" />
                               Edit
                             </button>
                             <button
                               onClick={() => showDeleteConfirmation(question._id)}
-                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                             >
+                              <Trash2 className="w-4 h-4 mr-1" />
                               Delete
                             </button>
                           </div>

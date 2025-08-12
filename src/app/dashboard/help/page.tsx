@@ -248,6 +248,7 @@ export default function HelpPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <a
                     href="/faq"
+                    target="_blank"
                     className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center">
@@ -267,7 +268,10 @@ export default function HelpPage() {
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-gray-600">
-                      For urgent issues, contact our support team directly
+                      mail:{" "}
+                      <a href="mailto:partner@sourcingscreen.com">
+                        partner@sourcingscreen.com
+                      </a>
                     </p>
                   </div>
 

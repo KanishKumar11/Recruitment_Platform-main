@@ -9,6 +9,7 @@ import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { RootState } from "../../../store/index";
 import { useGetAdminFAQsQuery, FAQ } from "../../../store/services/faqApi";
 import { useGetSettingsQuery } from "../../../store/services/settingsApi";
+import { UserRole } from "@/app/constants/userRoles";
 import {
   PencilIcon,
   EyeIcon,
@@ -55,7 +56,7 @@ export default function InternalFAQsPage() {
 
   if (isLoading) {
     return (
-      <ProtectedLayout allowedRoles={["INTERNAL"]}>
+      <ProtectedLayout allowedRoles={[UserRole.INTERNAL, UserRole.ADMIN]}>
         <DashboardLayout>
           <div className="flex items-center justify-center h-80">
             <LoadingSpinner />
@@ -66,7 +67,7 @@ export default function InternalFAQsPage() {
   }
 
   return (
-    <ProtectedLayout allowedRoles={["INTERNAL"]}>
+    <ProtectedLayout allowedRoles={[UserRole.INTERNAL, UserRole.ADMIN]}>
       <DashboardLayout>
         <div className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

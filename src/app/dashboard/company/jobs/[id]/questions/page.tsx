@@ -21,7 +21,9 @@ import {
   Type, 
   Hash, 
   ToggleLeft,
-  CheckCircle2 
+  CheckCircle2,
+  CheckSquare,
+  ListOrdered
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { QuestionType } from "./../../../../../types/ScreeningQuestionTypes";
@@ -32,6 +34,7 @@ interface ScreeningQuestion {
   question: string;
   questionType: string;
   required: boolean;
+  options?: string[];
 }
 
 export default function JobQuestionsPage() {
@@ -49,6 +52,7 @@ export default function JobQuestionsPage() {
     question: "",
     questionType: "TEXT" as QuestionType,
     required: true,
+    options: [""] as string[],
   });
 
   // State for managing the currently editing question
@@ -57,6 +61,7 @@ export default function JobQuestionsPage() {
     question: "",
     questionType: "",
     required: false,
+    options: [""] as string[],
   });
 
   // State for delete confirmation
@@ -68,6 +73,8 @@ export default function JobQuestionsPage() {
       case 'TEXT': return <Type className="h-4 w-4" />;
       case 'NUMERIC': return <Hash className="h-4 w-4" />;
       case 'YES_NO': return <ToggleLeft className="h-4 w-4" />;
+      case 'MCQ': return <CheckCircle2 className="h-4 w-4" />;
+      case 'MULTI_SELECT': return <CheckSquare className="h-4 w-4" />;
       default: return <Type className="h-4 w-4" />;
     }
   };
@@ -77,6 +84,8 @@ export default function JobQuestionsPage() {
       case 'TEXT': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'NUMERIC': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'YES_NO': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'MCQ': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'MULTI_SELECT': return 'bg-pink-50 text-pink-700 border-pink-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -86,7 +95,73 @@ export default function JobQuestionsPage() {
       case 'TEXT': return 'Text Response';
       case 'NUMERIC': return 'Number';
       case 'YES_NO': return 'Yes/No';
+      case 'MCQ': return 'Multiple Choice';
+      case 'MULTI_SELECT': return 'Multi-Select';
       default: return type;
+    }
+  };
+
+  // Helper functions for managing options
+  const requiresOptions = (questionType: string) => {
+    return questionType === 'MCQ' || questionType === 'MULTI_SELECT';
+  };
+
+  const addOption = (isEditing: boolean = false) => {
+    if (isEditing) {
+      setEditingQuestion(prev => ({
+        ...prev,
+        options: [...prev.options, ""]
+      }));
+    } else {
+      setNewQuestion(prev => ({
+        ...prev,
+        options: [...prev.options, ""]
+      }));
+    }
+  };
+
+  const removeOption = (index: number, isEditing: boolean = false) => {
+    if (isEditing) {
+      setEditingQuestion(prev => ({
+        ...prev,
+        options: prev.options.filter((_, i) => i !== index)
+      }));
+    } else {
+      setNewQuestion(prev => ({
+        ...prev,
+        options: prev.options.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const updateOption = (index: number, value: string, isEditing: boolean = false) => {
+    if (isEditing) {
+      setEditingQuestion(prev => ({
+        ...prev,
+        options: prev.options.map((option, i) => i === index ? value : option)
+      }));
+    } else {
+      setNewQuestion(prev => ({
+        ...prev,
+        options: prev.options.map((option, i) => i === index ? value : option)
+      }));
+    }
+  };
+
+  const handleQuestionTypeChange = (newType: QuestionType, isEditing: boolean = false) => {
+    const needsOptions = requiresOptions(newType);
+    if (isEditing) {
+      setEditingQuestion(prev => ({
+        ...prev,
+        questionType: newType,
+        options: needsOptions ? (prev.options.length > 0 ? prev.options : [""]) : [""]
+      }));
+    } else {
+      setNewQuestion(prev => ({
+        ...prev,
+        questionType: newType,
+        options: needsOptions ? (prev.options.length > 0 ? prev.options : [""]) : [""]
+      }));
     }
   };
 
@@ -96,17 +171,31 @@ export default function JobQuestionsPage() {
       toast.error('Please enter a question');
       return;
     }
+
+    // Validate options for MCQ and Multi-select
+    if (requiresOptions(newQuestion.questionType)) {
+      const validOptions = newQuestion.options.filter(option => option.trim() !== "");
+      if (validOptions.length < 2) {
+        toast.error('Please provide at least 2 options for this question type');
+        return;
+      }
+    }
     
     try {
-      await addQuestion({
+      const questionData = {
         jobId: id,
         question: newQuestion.question,
         questionType: newQuestion.questionType,
-        required: newQuestion.required
-      }).unwrap();
+        required: newQuestion.required,
+        ...(requiresOptions(newQuestion.questionType) && {
+          options: newQuestion.options.filter(option => option.trim() !== "")
+        })
+      };
+
+      await addQuestion(questionData).unwrap();
       
       toast.success("Question added successfully");
-      setNewQuestion({ question: '', questionType: 'TEXT' as QuestionType, required: true });
+      setNewQuestion({ question: '', questionType: 'TEXT' as QuestionType, required: true, options: [""] });
       refetch();
     } catch (error) {
       console.error('Failed to add screening question:', error);
@@ -121,6 +210,7 @@ export default function JobQuestionsPage() {
       question: question.question,
       questionType: question.questionType,
       required: question.required,
+      options: question.options || [""],
     });
   };
 
@@ -288,12 +378,14 @@ export default function JobQuestionsPage() {
                         id="questionType"
                         name="questionType"
                         value={newQuestion.questionType}
-                        onChange={(e) => setNewQuestion({ ...newQuestion, questionType: e.target.value as QuestionType })}
+                        onChange={(e) => handleQuestionTypeChange(e.target.value as QuestionType)}
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200 bg-white text-gray-700 appearance-none"
                       >
                         <option value="TEXT">📝 Text Response</option>
                         <option value="NUMERIC">🔢 Number</option>
                         <option value="YES_NO">✅ Yes/No</option>
+                        <option value="MCQ">🔘 Multiple Choice (Single Select)</option>
+                        <option value="MULTI_SELECT">☑️ Multi-Select (Multiple Options)</option>
                       </select>
                     </div>
                   </div>
@@ -324,6 +416,47 @@ export default function JobQuestionsPage() {
                     </label>
                   </div>
                 </div>
+
+                {/* Options Management for MCQ and Multi-select */}
+                {requiresOptions(newQuestion.questionType) && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Answer Options
+                    </label>
+                    <div className="space-y-3">
+                      {newQuestion.options.map((option, index) => (
+                        <div key={index} className="flex items-center space-x-3">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={option}
+                              onChange={(e) => updateOption(index, e.target.value)}
+                              placeholder={`Option ${index + 1}`}
+                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all duration-200"
+                            />
+                          </div>
+                          {newQuestion.options.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeOption(index)}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => addOption()}
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Option
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex justify-end pt-4 border-t border-gray-100">
                   <button
@@ -392,6 +525,8 @@ export default function JobQuestionsPage() {
                                 <option value="TEXT">📝 Text Response</option>
                                 <option value="NUMERIC">🔢 Number</option>
                                 <option value="YES_NO">✅ Yes/No</option>
+                                <option value="MCQ">🔘 Multiple Choice (Single Select)</option>
+                                <option value="MULTI_SELECT">☑️ Multi-Select (Multiple Options)</option>
                               </select>
                             </div>
                             
@@ -467,6 +602,24 @@ export default function JobQuestionsPage() {
                               <p className="text-sm font-medium text-gray-900 leading-relaxed mb-3">
                                 {question.question}
                               </p>
+                              
+                              {/* Display options for MCQ and MULTI_SELECT questions */}
+                              {requiresOptions(question.questionType) && question.options && (
+                                <div className="mb-3 pl-4 border-l-2 border-gray-200">
+                                  <p className="text-xs font-medium text-gray-500 mb-2">Answer Options:</p>
+                                  <ul className="space-y-1">
+                                    {question.options.map((option: string, optionIndex: number) => (
+                                      <li key={optionIndex} className="text-sm text-gray-600 flex items-center">
+                                        <span className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 mr-2 flex-shrink-0">
+                                          {optionIndex + 1}
+                                        </span>
+                                        {option}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
                               <div className="flex items-center space-x-3">
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getQuestionTypeColor(question.questionType)}`}>
                                   {getQuestionTypeIcon(question.questionType)}

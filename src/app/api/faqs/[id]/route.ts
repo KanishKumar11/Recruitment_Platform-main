@@ -124,7 +124,7 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete FAQ (Admin only)
+// DELETE - Delete FAQ (Admin and Internal only)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -145,9 +145,9 @@ export async function DELETE(
     const token = authHeader.split(" ")[1];
     const decoded = verifyToken(token);
 
-    if (!decoded || decoded.role !== UserRole.ADMIN) {
+    if (!decoded || (decoded.role !== UserRole.ADMIN && decoded.role !== UserRole.INTERNAL)) {
       return NextResponse.json(
-        { error: "Admin access required" },
+        { error: "Admin or Internal access required" },
         { status: 403 }
       );
     }

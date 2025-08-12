@@ -6,7 +6,6 @@ import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import {
   useGetJobsQuery,
-  useDeleteJobMutation,
 } from "../../../store/services/jobsApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
@@ -14,12 +13,11 @@ import {
   Loader2,
   PlusCircle,
   Edit,
-  Trash2,
   Eye,
   FileQuestion,
+  FileText,
 } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
 import {
   Table,
   TableBody,
@@ -50,9 +48,6 @@ import { Input } from "@/app/components/ui/input";
 export default function JobsListPage() {
   const router = useRouter();
   const { data: jobs, isLoading, refetch } = useGetJobsQuery();
-  const [deleteJob, { isLoading: isDeleting }] = useDeleteJobMutation();
-  const [jobToDelete, setJobToDelete] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Get user data from auth state to check isPrimary status
   const user = useSelector((state: RootState) => state.auth.user);
@@ -109,25 +104,6 @@ export default function JobsListPage() {
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
     setCurrentPage(1);
-  };
-
-  // Handle job deletion
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteJob(id).unwrap();
-      toast.success("Job deleted successfully");
-      setIsModalOpen(false);
-      refetch();
-    } catch (error) {
-      toast.error("Failed to delete job");
-      console.error("Error deleting job:", error);
-    }
-  };
-
-  // Open delete confirmation modal
-  const openDeleteModal = (id: string) => {
-    setJobToDelete(id);
-    setIsModalOpen(true);
   };
 
   return (
@@ -274,7 +250,7 @@ export default function JobsListPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto bg-white">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -290,52 +266,40 @@ export default function JobsListPage() {
                           currentJobs.map((job) => (
                             <TableRow key={job._id as string}>
                               <TableCell className="align-top">
-                                <div className="flex flex-col gap-2 py-2">
-                                  <div className="flex flex-wrap gap-1">
-                                    <button
-                                      onClick={() =>
-                                        router.push(
-                                          `/dashboard/company/jobs/${job._id}`
-                                        )
-                                      }
-                                      className="flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors"
-                                      title="View Job Details"
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        router.push(
-                                          `/dashboard/company/jobs/${job._id}/edit`
-                                        )
-                                      }
-                                      className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
-                                      title="Edit Job"
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        openDeleteModal(job._id as string)
-                                      }
-                                      className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
-                                      title="Delete Job"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
+                                <div className="flex flex-wrap gap-1 py-2">
+                                  <button
+                                    onClick={() =>
+                                      router.push(
+                                        `/dashboard/company/jobs/${job._id}`
+                                      )
+                                    }
+                                    className="flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors"
+                                    title="View Job Details"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      router.push(
+                                        `/dashboard/company/jobs/${job._id}/edit`
+                                      )
+                                    }
+                                    className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                    title="Edit Job"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </button>
+                                  <button
                                     onClick={() =>
                                       router.push(
                                         `/dashboard/company/jobs/${job._id}/resumes`
                                       )
                                     }
-                                    className="w-full text-xs"
+                                    className="flex items-center justify-center w-8 h-8 text-green-600 hover:text-green-900 hover:bg-green-50 rounded transition-colors"
+                                    title="View Resumes"
                                   >
-                                    View Resumes
-                                  </Button>
+                                    <FileText className="h-4 w-4" />
+                                  </button>
                                 </div>
                               </TableCell>
                               <TableCell className="align-top">
@@ -473,34 +437,6 @@ export default function JobsListPage() {
               </>
             )}
           </div>
-          {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
-              <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm mx-auto">
-                <h2 className="text-lg font-semibold mb-4">Delete Job</h2>
-                <p>
-                  Are you sure you want to delete this job? This action cannot
-                  be undone.
-                </p>
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="mr-2 px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleDelete(jobToDelete!)}
-                    disabled={isDeleting}
-                    className={`px-4 py-2 ${
-                      isDeleting ? "bg-gray-400" : "bg-red-600"
-                    } text-white rounded-md`}
-                  >
-                    {isDeleting ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </DashboardLayout>
     </ProtectedLayout>
