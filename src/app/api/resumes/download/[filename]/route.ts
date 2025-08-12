@@ -2,16 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
-import { authenticateRequest, unauthorized } from "../../../../lib/auth";
+
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-    // Check authentication - allow any authenticated user to download files
-    const userData = authenticateRequest(req);
-    if (!userData) return unauthorized();
+    
 
     const { filename } = await params;
 

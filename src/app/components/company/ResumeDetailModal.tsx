@@ -87,16 +87,10 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       document.body.removeChild(link);
     } catch (error) {
       console.error("Download failed:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       alert(`Failed to download file: ${errorMessage}`);
     }
-  };
-
-  // Function to check if user has permission to view resume files
-  const canViewResumeFiles = () => {
-    return ["COMPANY", "ADMIN", "INTERNAL", "RECRUITER"].includes(
-      userRole || ""
-    );
   };
 
   // Helper function to check if file can be previewed
@@ -129,7 +123,8 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       document.body.removeChild(link);
     } catch (error) {
       console.error("Document download failed:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       alert(`Failed to download document: ${errorMessage}`);
     }
   };
@@ -393,8 +388,12 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                         <li key={index} className="px-2 py-1.5">
                           <div className="flex justify-between items-start">
                             <span className="text-xs font-medium text-gray-900">
-                              {typeof note.userId === 'object' && note.userId && 'name' in note.userId
-                                ? (note.userId.name || note.userId.email || "Unknown User")
+                              {typeof note.userId === "object" &&
+                              note.userId &&
+                              "name" in note.userId
+                                ? note.userId.name ||
+                                  note.userId.email ||
+                                  "Unknown User"
                                 : "Unknown User"}
                             </span>
                             <span className="text-xs text-gray-500">
@@ -476,7 +475,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
           <div className="grid grid-cols-1 gap-3 mb-4">
             {/* Resume Preview (full width) */}
             <div>
-              {canViewResumeFiles() && (
+              {
                 <div className="compact-section">
                   <div className="flex items-center justify-between mb-2">
                     <h3>Resume Preview</h3>
@@ -530,7 +529,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                     </div>
                   )}
                 </div>
-              )}
+              }
             </div>
           </div>
 
