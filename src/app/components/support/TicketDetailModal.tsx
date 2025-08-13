@@ -54,6 +54,12 @@ export default function TicketDetailModal({
     (user?.role === "INTERNAL" &&
       initialTicket.assignedTo?.toString() === user?.id);
 
+  // Check if user should use admin endpoint (admin or assigned internal user)
+  const shouldUseAdminEndpoint =
+    isAdmin ||
+    (user?.role === "INTERNAL" &&
+      initialTicket.assignedTo?.toString() === user?.id);
+
   // Fetch real-time ticket data using appropriate endpoint
   const {
     data: userTicketData,
@@ -61,7 +67,7 @@ export default function TicketDetailModal({
     error: userError,
     refetch: userRefetch,
   } = useGetUserTicketQuery(initialTicket._id, {
-    skip: !isOpen || isAdmin,
+    skip: !isOpen || shouldUseAdminEndpoint,
     pollingInterval: 30000,
     refetchOnFocus: true,
   });
@@ -72,22 +78,22 @@ export default function TicketDetailModal({
     error: adminError,
     refetch: adminRefetch,
   } = useGetAdminTicketQuery(initialTicket._id, {
-    skip: !isOpen || !isAdmin,
+    skip: !isOpen || !shouldUseAdminEndpoint,
     pollingInterval: 30000,
     refetchOnFocus: true,
   });
 
   const { data: assignableUsers } = useGetAssignableUsersQuery(undefined, {
-    skip: !isAdmin,
+    skip: !shouldUseAdminEndpoint,
   });
 
   const [updateTicket] = useUpdateTicketMutation();
   const { handleTicketError } = useErrorHandler();
 
-  const ticketData = isAdmin ? adminTicketData : userTicketData;
-  const isLoading = isAdmin ? adminLoading : userLoading;
-  const error = isAdmin ? adminError : userError;
-  const refetch = isAdmin ? adminRefetch : userRefetch;
+  const ticketData = shouldUseAdminEndpoint ? adminTicketData : userTicketData;
+  const isLoading = shouldUseAdminEndpoint ? adminLoading : userLoading;
+  const error = shouldUseAdminEndpoint ? adminError : userError;
+  const refetch = shouldUseAdminEndpoint ? adminRefetch : userRefetch;
   const ticket = ticketData?.ticket || initialTicket;
 
   // Refetch when modal opens

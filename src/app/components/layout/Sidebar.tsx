@@ -73,7 +73,7 @@ export default function Sidebar() {
         icon: "question-mark",
       },
       {
-        path: "/dashboard/admin/support",
+        path: "/dashboard/internal/support",
         label: "Support Tickets",
         icon: "support",
       },
