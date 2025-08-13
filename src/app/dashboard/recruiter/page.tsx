@@ -1,30 +1,36 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import ProtectedLayout from '@/app/components/layout/ProtectedLayout';
-import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { RootState } from './../../store/index';
-import { useGetTeamMembersQuery } from '../../store/services/usersApi';
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
+import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import { RootState } from "./../../store/index";
+import { useGetTeamMembersQuery } from "../../store/services/usersApi";
 import { useGetRecruiterSubmissionsQuery } from "../../store/services/resumesApi";
-import TeamManagement from './TeamManagement';
-import { ResumeStatus } from '@/app/constants/resumeStatus';
+import { useGetJobsQuery } from "../../store/services/jobsApi";
+import TeamManagement from "./TeamManagement";
+import { ResumeStatus } from "@/app/constants/resumeStatus";
 
 export default function RecruiterDashboard() {
   const { user } = useSelector((state: RootState) => state.auth);
-  const [activePage, setActivePage] = useState<"dashboard" | "team">("dashboard");
+  const [activePage, setActivePage] = useState<"dashboard" | "team">(
+    "dashboard"
+  );
   const { data: teamMembers } = useGetTeamMembersQuery();
   const [teamMemberCount, setTeamMemberCount] = useState(0);
+  const { data: jobs } = useGetJobsQuery();
   const {
-      data: resumes,
-      isLoading,
-      isError,
-      error,
-    } = useGetRecruiterSubmissionsQuery();
+    data: resumes,
+    isLoading,
+    isError,
+    error,
+  } = useGetRecruiterSubmissionsQuery();
 
-    const getStatusCount = (status: ResumeStatus) => {
-        return resumes ? resumes.filter(resume => resume.status === status).length : 0;
-      };
+  const getStatusCount = (status: ResumeStatus) => {
+    return resumes
+      ? resumes.filter((resume) => resume.status === status).length
+      : 0;
+  };
 
   useEffect(() => {
     if (teamMembers) {
@@ -33,13 +39,15 @@ export default function RecruiterDashboard() {
   }, [teamMembers]);
 
   return (
-    <ProtectedLayout allowedRoles={['RECRUITER']}>
+    <ProtectedLayout allowedRoles={["RECRUITER"]}>
       <DashboardLayout>
         <div className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-semibold text-gray-900">
-                {activePage === "dashboard" ? "Recruiter Dashboard" : "Team Management"}
+                {activePage === "dashboard"
+                  ? "Recruiter Dashboard"
+                  : "Team Management"}
               </h1>
               <div className="flex space-x-4">
                 <button
@@ -85,7 +93,10 @@ export default function RecruiterDashboard() {
                           </dt>
                           <dd>
                             <div className="text-lg font-medium text-gray-900">
-                              15
+                              {jobs
+                                ? jobs.filter((job) => job.status === "ACTIVE")
+                                    .length
+                                : 0}
                             </div>
                           </dd>
                         </dl>
@@ -188,14 +199,19 @@ export default function RecruiterDashboard() {
                     <button
                       type="button"
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-3 sm:mb-0"
-                      onClick={() => window.location.href = '/dashboard/recruiter/jobs'}
+                      onClick={() =>
+                        (window.location.href = "/dashboard/recruiter/jobs")
+                      }
                     >
                       Browse All Jobs
                     </button>
                     <button
                       type="button"
                       className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-3 sm:mb-0"
-                      onClick={() => window.location.href = '/dashboard/recruiter/submissions'}
+                      onClick={() =>
+                        (window.location.href =
+                          "/dashboard/recruiter/submissions")
+                      }
                     >
                       View My Submissions
                     </button>
@@ -259,105 +275,66 @@ export default function RecruiterDashboard() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            David Miller
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            Senior Frontend Developer
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            Tech Solutions Inc.
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Interviewing
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          May 02, 2025
-                        </td>
-                        {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <a
-                            href="#"
-                            className="text-indigo-600 hover:text-indigo-900"
+                      {resumes && resumes.length > 0 ? (
+                        resumes.slice(0, 5).map((resume) => (
+                          <tr key={resume._id as string}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {resume.candidateName}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                {(resume as any).jobTitle || "Unknown Job"}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                {(resume as any).companyName ||
+                                  "Unknown Company"}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  resume.status === ResumeStatus.SUBMITTED
+                                    ? "bg-blue-100 text-blue-800"
+                                    : resume.status === ResumeStatus.REVIEWED
+                                    ? "bg-indigo-100 text-indigo-800"
+                                    : resume.status === ResumeStatus.SHORTLISTED
+                                    ? "bg-green-100 text-green-800"
+                                    : resume.status ===
+                                      ResumeStatus.INTERVIEW_IN_PROCESS
+                                    ? "bg-purple-100 text-purple-800"
+                                    : resume.status === ResumeStatus.INTERVIEWED
+                                    ? "bg-indigo-100 text-indigo-800"
+                                    : resume.status === ResumeStatus.OFFERED
+                                    ? "bg-cyan-100 text-cyan-800"
+                                    : resume.status === ResumeStatus.HIRED
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : resume.status === ResumeStatus.REJECTED
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {resume.status.replace(/_/g, " ")}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(resume.createdAt).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="px-6 py-4 text-center text-sm text-gray-500"
                           >
-                            View Details
-                          </a>
-                        </td> */}
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            Sarah Johnson
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            Product Manager
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            Digital Innovations
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Under Review
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          Apr 28, 2025
-                        </td>
-                        {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <a
-                            href="#"
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            View Details
-                          </a>
-                        </td> */}
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            Michael Chen
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            DevOps Engineer
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            Cloud Systems
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                            Rejected
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          Apr 24, 2025
-                        </td>
-                        {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <a
-                            href="#"
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            View Details
-                          </a>
-                        </td> */}
-                      </tr>
+                            No recent submissions found
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

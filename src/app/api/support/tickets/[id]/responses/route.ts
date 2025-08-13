@@ -122,20 +122,22 @@ export async function GET(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // Authorization check: users can only view responses for their own tickets
+    // Authorization check: users can only view responses for their own tickets,
+    // admins can view all, and assigned internal users can view assigned tickets
     const isOwner =
       (ticket as any).submittedBy._id.toString() === userData.userId;
-    const isAdminOrInternal = [UserRole.ADMIN, UserRole.INTERNAL].includes(
-      userData.role
-    );
+    const isAdmin = userData.role === UserRole.ADMIN;
+    const isAssignedInternal =
+      userData.role === UserRole.INTERNAL &&
+      (ticket as any).assignedTo?.toString() === userData.userId;
 
-    if (!isOwner && !isAdminOrInternal) {
+    if (!isOwner && !isAdmin && !isAssignedInternal) {
       return forbidden();
     }
 
-    // Filter internal responses for non-admin users
+    // Filter internal responses for non-admin/non-assigned users
     let responses = (ticket as any).responses;
-    if (!isAdminOrInternal) {
+    if (!isAdmin && !isAssignedInternal) {
       responses = responses.filter((response: any) => !response.isInternal);
     }
 
@@ -180,11 +182,6 @@ export async function POST(
       return unauthorized();
     }
 
-    // Only admins and internal users can add responses
-    if (![UserRole.ADMIN, UserRole.INTERNAL].includes(userData.role)) {
-      return forbidden();
-    }
-
     // Check rate limit
     if (!checkResponseRateLimit(userData.userId)) {
       return NextResponse.json(
@@ -205,6 +202,29 @@ export async function POST(
       return NextResponse.json(
         { error: "Invalid ticket ID format" },
         { status: 400 }
+      );
+    }
+
+    // Get ticket details to check assignment for authorization
+    const ticketToCheck = await SupportTicket.findById(ticketId).lean();
+    if (!ticketToCheck) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    // Authorization check: Only admins and assigned internal users can add responses
+    const isAdmin = userData.role === UserRole.ADMIN;
+    const isAssignedInternal =
+      userData.role === UserRole.INTERNAL &&
+      (ticketToCheck as any).assignedTo?.toString() === userData.userId;
+
+    if (!isAdmin && !isAssignedInternal) {
+      return NextResponse.json(
+        {
+          error: "Forbidden",
+          message:
+            "Only admins and assigned internal team members can respond to tickets",
+        },
+        { status: 403 }
       );
     }
 

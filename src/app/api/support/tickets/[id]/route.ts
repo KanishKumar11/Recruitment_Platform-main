@@ -73,19 +73,21 @@ export async function GET(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // Authorization check: users can only view their own tickets, admins/internal can view all
+    // Authorization check: users can only view their own tickets,
+    // admins can view all, and assigned internal users can view assigned tickets
     const isOwner =
       (ticket as any).submittedBy._id.toString() === userData.userId;
-    const isAdminOrInternal = [UserRole.ADMIN, UserRole.INTERNAL].includes(
-      userData.role
-    );
+    const isAdmin = userData.role === UserRole.ADMIN;
+    const isAssignedInternal =
+      userData.role === UserRole.INTERNAL &&
+      (ticket as any).assignedTo?.toString() === userData.userId;
 
-    if (!isOwner && !isAdminOrInternal) {
+    if (!isOwner && !isAdmin && !isAssignedInternal) {
       return forbidden();
     }
 
-    // Filter internal responses for non-admin users
-    if (!isAdminOrInternal) {
+    // Filter internal responses for non-admin/non-assigned users
+    if (!isAdmin && !isAssignedInternal) {
       (ticket as any).responses = (ticket as any).responses.filter(
         (response: any) => !response.isInternal
       );

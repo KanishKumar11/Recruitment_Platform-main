@@ -98,37 +98,46 @@ export default function InternalSubmissionsPage() {
 
   // Filter resumes based on search term, status filter, job filter, and recruiter filter
   const filteredResumes = resumes
-    ? resumes.filter((resume) => {
-        const matchesSearch =
-          searchTerm === "" ||
-          resume.candidateName
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          (typeof resume.jobId === "object" &&
-          "title" in (resume.jobId ?? {}) &&
-          (resume.jobId as { title?: string }).title
-            ? ((resume.jobId as { title?: string }).title as string)
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
-            : false) ||
-          resume.qualification
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          (resume.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+    ? resumes
+        .filter((resume) => {
+          const matchesSearch =
+            searchTerm === "" ||
+            resume.candidateName
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            (typeof resume.jobId === "object" &&
+            "title" in (resume.jobId ?? {}) &&
+            (resume.jobId as { title?: string }).title
+              ? ((resume.jobId as { title?: string }).title as string)
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase())
+              : false) ||
+            resume.qualification
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            (resume.email || "")
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase());
 
-        const matchesStatus =
-          statusFilter === "" || resume.status === statusFilter;
+          const matchesStatus =
+            statusFilter === "" || resume.status === statusFilter;
 
-        const matchesJob =
-          jobFilter === "" ||
-          (resume.jobId?._id?.toString() || "") === jobFilter;
+          const matchesJob =
+            jobFilter === "" ||
+            (resume.jobId?._id?.toString() || "") === jobFilter;
 
-        const matchesRecruiter =
-          recruiterFilter === "" ||
-          (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
+          const matchesRecruiter =
+            recruiterFilter === "" ||
+            (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
 
-        return matchesSearch && matchesStatus && matchesJob && matchesRecruiter;
-      }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          return (
+            matchesSearch && matchesStatus && matchesJob && matchesRecruiter
+          );
+        })
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
     : [];
 
   // Stats calculation

@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import {
-  useGetJobsQuery,
-} from "../../../store/services/jobsApi";
+import { useGetJobsQuery } from "../../../store/services/jobsApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import {

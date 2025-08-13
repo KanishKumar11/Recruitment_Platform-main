@@ -449,7 +449,8 @@ export default function ApplyForJobPage() {
                               htmlFor="candidateName"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Candidate Name <span className="text-red-500">*</span>
+                              Candidate Name{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -482,7 +483,9 @@ export default function ApplyForJobPage() {
                               }`}
                               required
                               value={phone}
-                              onChange={(e) => handlePhoneChange(e.target.value)}
+                              onChange={(e) =>
+                                handlePhoneChange(e.target.value)
+                              }
                             />
                           </div>
 
@@ -528,7 +531,9 @@ export default function ApplyForJobPage() {
                               }`}
                               required
                               value={email}
-                              onChange={(e) => handleEmailChange(e.target.value)}
+                              onChange={(e) =>
+                                handleEmailChange(e.target.value)
+                              }
                             />
                             {renderValidationStatus()}
                           </div>
@@ -546,7 +551,9 @@ export default function ApplyForJobPage() {
                               id="alternativePhone"
                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               value={alternativePhone}
-                              onChange={(e) => setAlternativePhone(e.target.value)}
+                              onChange={(e) =>
+                                setAlternativePhone(e.target.value)
+                              }
                             />
                           </div>
 
@@ -595,7 +602,9 @@ export default function ApplyForJobPage() {
                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               required
                               value={currentCompany}
-                              onChange={(e) => setCurrentCompany(e.target.value)}
+                              onChange={(e) =>
+                                setCurrentCompany(e.target.value)
+                              }
                             />
                           </div>
 
@@ -615,7 +624,9 @@ export default function ApplyForJobPage() {
                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               required
                               value={totalExperience}
-                              onChange={(e) => setTotalExperience(e.target.value)}
+                              onChange={(e) =>
+                                setTotalExperience(e.target.value)
+                              }
                             />
                           </div>
 
@@ -644,7 +655,8 @@ export default function ApplyForJobPage() {
                               htmlFor="qualification"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Qualification <span className="text-red-500">*</span>
+                              Qualification{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -727,7 +739,8 @@ export default function ApplyForJobPage() {
                               htmlFor="noticePeriod"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Notice Period <span className="text-red-500">*</span>
+                              Notice Period{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -807,7 +820,8 @@ export default function ApplyForJobPage() {
                             className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                           />
                           <p className="mt-1 text-xs text-gray-500">
-                            Certificates, portfolio, cover letter, etc. (Optional)
+                            Certificates, portfolio, cover letter, etc.
+                            (Optional)
                           </p>
                         </div>
                       </div>

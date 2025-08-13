@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
     if (isAdmin) {
       // Admin endpoint - verify admin or internal access
       console.log("DEBUG: Admin endpoint requested");
-      const hasAdminRole = authorizeRoles(request, [UserRole.ADMIN, UserRole.INTERNAL]);
+      const hasAdminRole = authorizeRoles(request, [
+        UserRole.ADMIN,
+        UserRole.INTERNAL,
+      ]);
       console.log("DEBUG: Admin/Internal role authorized:", hasAdminRole);
 
       if (!hasAdminRole) {

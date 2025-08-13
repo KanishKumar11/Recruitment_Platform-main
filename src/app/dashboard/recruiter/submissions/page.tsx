@@ -104,31 +104,38 @@ function RecruiterSubmissionsPageContent() {
 
   // Filter resumes based on search term, status filter, job filter, and recruiter filter
   const filteredResumes = resumes
-    ? resumes.filter((resume) => {
-        const matchesSearch =
-          searchTerm === "" ||
-          resume.candidateName
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          resume.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          resume.qualification
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          resume.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    ? resumes
+        .filter((resume) => {
+          const matchesSearch =
+            searchTerm === "" ||
+            resume.candidateName
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            resume.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            resume.qualification
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            resume.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesStatus =
-          statusFilter === "" || resume.status === statusFilter;
+          const matchesStatus =
+            statusFilter === "" || resume.status === statusFilter;
 
-        const matchesJob =
-          jobFilter === "" || resume.jobId.toString() === jobFilter;
+          const matchesJob =
+            jobFilter === "" || resume.jobId.toString() === jobFilter;
 
-        const matchesRecruiter =
-          !isPrimary ||
-          recruiterFilter === "" ||
-          resume.submittedBy?.toString() === recruiterFilter;
+          const matchesRecruiter =
+            !isPrimary ||
+            recruiterFilter === "" ||
+            resume.submittedBy?.toString() === recruiterFilter;
 
-        return matchesSearch && matchesStatus && matchesJob && matchesRecruiter;
-      }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          return (
+            matchesSearch && matchesStatus && matchesJob && matchesRecruiter
+          );
+        })
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
     : [];
 
   // Stats calculation
@@ -204,9 +211,11 @@ function RecruiterSubmissionsPageContent() {
           <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-900">Quick Stats</h3>
-              <span className="text-xs text-gray-500">Total: {resumes?.length || 0}</span>
+              <span className="text-xs text-gray-500">
+                Total: {resumes?.length || 0}
+              </span>
             </div>
-            
+
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
               <CompactStatCard
                 icon={<Send className="h-3 w-3 text-blue-600" />}

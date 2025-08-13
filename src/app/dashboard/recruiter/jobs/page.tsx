@@ -173,9 +173,7 @@ export default function RecruiterJobs() {
     if (!job.commission) {
       return "Legacy";
     }
-    return job.commission.type === "fixed"
-      ? "Fixed"
-      : "Percentage";
+    return job.commission.type === "fixed" ? "Fixed" : "Percentage";
   };
 
   // Get commission badge color based on type

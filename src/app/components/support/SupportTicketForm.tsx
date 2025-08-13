@@ -12,9 +12,9 @@ import { AlertCircle, CheckCircle, Send, RefreshCw } from "lucide-react";
 import { supportToasts } from "@/app/lib/toast";
 import { useErrorHandler } from "@/app/hooks/useErrorHandler";
 import ErrorBoundary from "@/app/components/ui/ErrorBoundary";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
 import {
   Select,
@@ -22,7 +22,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/app/components/ui/select";
+} from "@/components/ui/select";
 
 interface SupportTicketFormProps {
   onSuccess?: () => void;
@@ -278,12 +278,14 @@ export default function SupportTicketForm({
             >
               <SelectTrigger
                 className={
-                  errors.category ? "border-red-500 focus:ring-red-500" : ""
+                  errors.category
+                    ? "border-red-500 focus:ring-red-500 w-80"
+                    : "w-80"
                 }
               >
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background">
                 {categoryOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -305,7 +307,7 @@ export default function SupportTicketForm({
                 handleInputChange("priority", value as TicketPriority)
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-80">
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent>

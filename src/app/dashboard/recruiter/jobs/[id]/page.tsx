@@ -98,7 +98,9 @@ export default function RecruiterJobDetailsPage() {
   // Format salary with compensation frequency
   const formatSalaryWithFrequency = (job: IJob) => {
     const salaryRange = formatSalary(job);
-    const frequency = formatCompensationType(job.compensationType || "ANNUALLY");
+    const frequency = formatCompensationType(
+      job.compensationType || "ANNUALLY"
+    );
     return `${salaryRange} ${frequency}`;
   };
 

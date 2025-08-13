@@ -39,28 +39,32 @@ export default function OurStoryPage() {
     {
       year: "2023",
       title: "The Beginning",
-      description: "Founded by a team of HR experts and software engineers who recognized the need for a revolutionary approach to talent sourcing.",
+      description:
+        "Founded by a team of HR experts and software engineers who recognized the need for a revolutionary approach to talent sourcing.",
       icon: <Lightbulb className="h-6 w-6" />,
       color: "from-blue-500 to-indigo-600",
     },
     {
       year: "2024",
       title: "AI Integration",
-      description: "Launched our AI-powered matching system, connecting recruiters to the most relevant jobs based on their expertise and track record.",
+      description:
+        "Launched our AI-powered matching system, connecting recruiters to the most relevant jobs based on their expertise and track record.",
       icon: <Code className="h-6 w-6" />,
       color: "from-purple-500 to-indigo-600",
     },
     {
       year: "2025",
       title: "Global Expansion",
-      description: "Established a worldwide network of pre-vetted recruitment partners across multiple industries and geographies.",
+      description:
+        "Established a worldwide network of pre-vetted recruitment partners across multiple industries and geographies.",
       icon: <Globe className="h-6 w-6" />,
       color: "from-green-500 to-teal-600",
     },
     {
       year: "Future",
       title: "Innovation Continues",
-      description: "Constantly evolving our platform with new features, enhanced AI capabilities, and expanded global reach.",
+      description:
+        "Constantly evolving our platform with new features, enhanced AI capabilities, and expanded global reach.",
       icon: <Rocket className="h-6 w-6" />,
       color: "from-pink-500 to-rose-600",
     },
@@ -71,32 +75,38 @@ export default function OurStoryPage() {
     {
       icon: <Heart className="h-8 w-8" />,
       title: "People First",
-      description: "We believe great companies are built by great people. Every feature we develop puts human connection at the center.",
+      description:
+        "We believe great companies are built by great people. Every feature we develop puts human connection at the center.",
     },
     {
       icon: <Shield className="h-8 w-8" />,
       title: "Transparency",
-      description: "No hidden fees, no surprises. We believe in honest, transparent relationships with both employers and recruiters.",
+      description:
+        "No hidden fees, no surprises. We believe in honest, transparent relationships with both employers and recruiters.",
     },
     {
       icon: <Zap className="h-8 w-8" />,
       title: "Innovation",
-      description: "We constantly push the boundaries of what's possible in recruitment technology while keeping the human element intact.",
+      description:
+        "We constantly push the boundaries of what's possible in recruitment technology while keeping the human element intact.",
     },
     {
       icon: <TrendingUp className="h-8 w-8" />,
       title: "Results-Driven",
-      description: "Success is measured by the quality of matches we make and the long-term relationships we help build.",
+      description:
+        "Success is measured by the quality of matches we make and the long-term relationships we help build.",
     },
     {
       icon: <Users className="h-8 w-8" />,
       title: "Collaboration",
-      description: "We foster a collaborative ecosystem where recruiters, employers, and candidates all benefit from our platform.",
+      description:
+        "We foster a collaborative ecosystem where recruiters, employers, and candidates all benefit from our platform.",
     },
     {
       icon: <Award className="h-8 w-8" />,
       title: "Excellence",
-      description: "We maintain the highest standards in everything we do, from our technology to our customer service.",
+      description:
+        "We maintain the highest standards in everything we do, from our technology to our customer service.",
     },
   ];
 
@@ -130,7 +140,7 @@ export default function OurStoryPage() {
     "AI-Powered Matching – Smart algorithms for precise connections",
     "No Subscription Needed – Join for free, start immediately",
     "Transparent, Scalable, and Results-Driven Hiring",
-    "Streamlined Workflow – Real-time communication and tracking"
+    "Streamlined Workflow – Real-time communication and tracking",
   ];
 
   return (
@@ -154,7 +164,9 @@ export default function OurStoryPage() {
             </h1>
 
             <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              The journey of revolutionizing talent sourcing and creating the future of recruitment through innovation, transparency, and human connection.
+              The journey of revolutionizing talent sourcing and creating the
+              future of recruitment through innovation, transparency, and human
+              connection.
             </p>
           </div>
         </div>
@@ -177,21 +189,39 @@ export default function OurStoryPage() {
 
               <div className="space-y-6 text-gray-300 leading-relaxed">
                 <p className="text-lg">
-                  Founded in <span className="font-semibold text-indigo-300">2023</span>, SourcingScreen is a next-generation Recruitment & Hiring Marketplace powered by AI, designed to revolutionize the way companies and recruitment agencies connect. We eliminate the inefficiencies of traditional hiring by offering a transparent, data-driven platform where employers find the best talent and recruiters maximize their success.
+                  Founded in{" "}
+                  <span className="font-semibold text-indigo-300">2023</span>,
+                  SourcingScreen is a next-generation Recruitment & Hiring
+                  Marketplace powered by AI, designed to revolutionize the way
+                  companies and recruitment agencies connect. We eliminate the
+                  inefficiencies of traditional hiring by offering a
+                  transparent, data-driven platform where employers find the
+                  best talent and recruiters maximize their success.
                 </p>
 
                 <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-6 rounded-xl border border-blue-800/30">
                   <p className="text-indigo-200 font-medium">
-                    Our team of HR experts and software engineers collaborated to build a platform that bridges the gap between companies and recruitment agencies, creating a seamless ecosystem where both parties can thrive.
+                    Our team of HR experts and software engineers collaborated
+                    to build a platform that bridges the gap between companies
+                    and recruitment agencies, creating a seamless ecosystem
+                    where both parties can thrive.
                   </p>
                 </div>
 
                 <p>
-                  At SourcingScreen, we bring together the power of AI, smart automation, and a global vendor network to create a seamless talent acquisition ecosystem. Whether you're hiring for technology, healthcare, manufacturing, finance, or any other sector, we have pre-vetted vendor partners across industries ready to deliver results.
+                  At SourcingScreen, we bring together the power of AI, smart
+                  automation, and a global vendor network to create a seamless
+                  talent acquisition ecosystem. Whether you're hiring for
+                  technology, healthcare, manufacturing, finance, or any other
+                  sector, we have pre-vetted vendor partners across industries
+                  ready to deliver results.
                 </p>
 
                 <p>
-                  Companies get access to a broader, qualified talent pool while agencies gain access to high-value job opportunities from around the globe. We've created a marketplace where every placement counts, and every connection matters.
+                  Companies get access to a broader, qualified talent pool while
+                  agencies gain access to high-value job opportunities from
+                  around the globe. We've created a marketplace where every
+                  placement counts, and every connection matters.
                 </p>
               </div>
             </div>
@@ -234,24 +264,27 @@ export default function OurStoryPage() {
             </div>
             <div className="h-1 w-20 bg-indigo-500 mx-auto mb-6"></div>
             <p className="text-gray-300">
-              From inception to global platform - the milestones that shaped SourcingScreen
+              From inception to global platform - the milestones that shaped
+              SourcingScreen
             </p>
           </div>
 
           <div className="relative">
             {/* Timeline line */}
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-500 to-purple-600 hidden md:block"></div>
-            
+
             {timeline.map((item, index) => (
               <div
                 key={index}
                 onMouseEnter={() => setActiveTimeline(index)}
                 className="relative flex items-center mb-12 group"
               >
-                <div className={`flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center mr-8 text-white shadow-lg group-hover:scale-110 transition-transform duration-300 z-10`}>
+                <div
+                  className={`flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center mr-8 text-white shadow-lg group-hover:scale-110 transition-transform duration-300 z-10`}
+                >
                   {item.icon}
                 </div>
-                
+
                 <div className="flex-grow bg-gray-800/70 rounded-xl border border-gray-700 p-6 group-hover:border-indigo-500/50 transition-all duration-300 shadow-lg">
                   <div className="flex items-center mb-3">
                     <span className="text-2xl font-bold text-indigo-400 mr-4">
@@ -295,7 +328,9 @@ export default function OurStoryPage() {
                 <h4 className="text-lg font-semibold text-white mb-2">
                   {achievement.label}
                 </h4>
-                <p className="text-sm text-gray-300">{achievement.description}</p>
+                <p className="text-sm text-gray-300">
+                  {achievement.description}
+                </p>
               </div>
             ))}
           </div>
@@ -341,7 +376,9 @@ export default function OurStoryPage() {
               A Marketplace Built for Recruiters & Employers
             </h3>
             <p className="text-indigo-100 mb-6 text-lg leading-relaxed">
-              Join the future of recruitment—where every placement counts. Showcase your best talent, and grow your recruitment business with every successful hire.
+              Join the future of recruitment—where every placement counts.
+              Showcase your best talent, and grow your recruitment business with
+              every successful hire.
             </p>
             <button className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
               🌐 Explore SourcingScreen.com Today!

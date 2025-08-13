@@ -10,6 +10,7 @@ interface SidebarLink {
   path: string;
   label: string;
   icon: string;
+  target?: string;
 }
 
 export default function Sidebar() {
@@ -38,6 +39,7 @@ export default function Sidebar() {
         label: "My Submissions",
         icon: "user-circle",
       },
+      { path: "/faq", label: "FAQ", icon: "question-mark", target: "_blank" },
       { path: "/dashboard/help", label: "Help & Support", icon: "help" },
     ],
     ADMIN: [
@@ -140,7 +142,14 @@ export default function Sidebar() {
           <ul className="space-y-2">
             {links.map((link) => (
               <li key={link.path}>
-                <Link href={link.path} onClick={() => setIsMobileOpen(false)}>
+                <Link
+                  href={link.path}
+                  onClick={() => setIsMobileOpen(false)}
+                  target={link.target}
+                  rel={
+                    link.target === "_blank" ? "noopener noreferrer" : undefined
+                  }
+                >
                   <div
                     className={`flex items-center px-4 py-3 hover:bg-gray-700 transition-colors relative group
                       ${pathname === link.path ? "bg-gray-700" : ""}`}

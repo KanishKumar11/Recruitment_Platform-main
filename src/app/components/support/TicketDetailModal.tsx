@@ -2,6 +2,8 @@
 
 import { Fragment, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store";
 import {
   SupportTicket,
   useGetUserTicketQuery,
@@ -43,6 +45,15 @@ export default function TicketDetailModal({
   onClose,
   isAdmin = false,
 }: TicketDetailModalProps) {
+  // Get current user from auth state
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  // Check if user can respond to tickets (admin or assigned internal user)
+  const canRespond =
+    isAdmin ||
+    (user?.role === "INTERNAL" &&
+      initialTicket.assignedTo?.toString() === user?.id);
+
   // Fetch real-time ticket data using appropriate endpoint
   const {
     data: userTicketData,
@@ -126,10 +137,11 @@ export default function TicketDetailModal({
     }
   };
 
-  // Filter responses based on admin status
-  const visibleResponses = isAdmin
-    ? ticket.responses || []
-    : ticket.responses?.filter((response) => !response.isInternal) || [];
+  // Filter responses based on access level
+  const visibleResponses =
+    isAdmin || canRespond
+      ? ticket.responses || []
+      : ticket.responses?.filter((response) => !response.isInternal) || [];
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -415,11 +427,12 @@ export default function TicketDetailModal({
                                         {response.respondedBy.name ||
                                           response.respondedBy.email}
                                       </p>
-                                      {response.isInternal && isAdmin && (
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                                          Internal
-                                        </span>
-                                      )}
+                                      {response.isInternal &&
+                                        (isAdmin || canRespond) && (
+                                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            Internal
+                                          </span>
+                                        )}
                                     </div>
                                     <p className="text-xs text-gray-500">
                                       Support Team
@@ -442,7 +455,7 @@ export default function TicketDetailModal({
                     </div>
 
                     {/* Admin Response Form */}
-                    {isAdmin && ticket.status !== "Closed" && (
+                    {canRespond && ticket.status !== "Closed" && (
                       <div className="mt-6">
                         <TicketResponseForm
                           ticketId={ticket._id}

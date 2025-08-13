@@ -145,7 +145,10 @@ export async function DELETE(
     const token = authHeader.split(" ")[1];
     const decoded = verifyToken(token);
 
-    if (!decoded || (decoded.role !== UserRole.ADMIN && decoded.role !== UserRole.INTERNAL)) {
+    if (
+      !decoded ||
+      (decoded.role !== UserRole.ADMIN && decoded.role !== UserRole.INTERNAL)
+    ) {
       return NextResponse.json(
         { error: "Admin or Internal access required" },
         { status: 403 }

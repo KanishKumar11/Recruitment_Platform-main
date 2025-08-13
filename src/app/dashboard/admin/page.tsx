@@ -173,10 +173,12 @@ export default function AdminDashboard() {
             {/* Compact Stats Cards */}
             <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-900">Overview</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Overview
+                </h2>
                 <div className="text-xs text-gray-500">Quick Statistics</div>
               </div>
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                 {statCards.map((card, index) => {
                   // Dynamically determine the icon component
@@ -208,8 +210,12 @@ export default function AdminDashboard() {
                           <IconComponent className="h-3 w-3 text-white" />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500 truncate">{card.title}</p>
-                          <p className="text-sm font-semibold text-gray-900">{card.value}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {card.title}
+                          </p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {card.value}
+                          </p>
                         </div>
                       </div>
                     </Link>

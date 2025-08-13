@@ -86,7 +86,7 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
       ? filePath.replace("/uploads/", "")
       : filePath.split("/").pop() || filePath;
 
-    return `/api/resumes/download/${filename}`
+    return `/api/resumes/download/${filename}`;
   };
 
   // Function to check if file is PDF
@@ -109,7 +109,7 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
 
   // Helper function to get preview URL for additional documents
   const getDocumentPreviewUrl = (filename: string) => {
-    return `/api/resumes/download/${filename}`
+    return `/api/resumes/download/${filename}`;
   };
 
   // Helper function to handle additional document download
@@ -209,11 +209,15 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
                 <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
                   <div className="sm:col-span-1">
                     <dt className="text-sm font-medium text-gray-500">Email</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{resume.email}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.email}
+                    </dd>
                   </div>
                   <div className="sm:col-span-1">
                     <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{resume.phone}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.phone}
+                    </dd>
                   </div>
                   {resume.alternativePhone && (
                     <div className="sm:col-span-1">
@@ -226,11 +230,17 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
                     </div>
                   )}
                   <div className="sm:col-span-1">
-                    <dt className="text-sm font-medium text-gray-500">Country</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{resume.country}</dd>
+                    <dt className="text-sm font-medium text-gray-500">
+                      Country
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {resume.country}
+                    </dd>
                   </div>
                   <div className="sm:col-span-1">
-                    <dt className="text-sm font-medium text-gray-500">Location</dt>
+                    <dt className="text-sm font-medium text-gray-500">
+                      Location
+                    </dt>
                     <dd className="mt-1 text-sm text-gray-900">
                       {resume.location}
                     </dd>
@@ -276,7 +286,9 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
                     </dd>
                   </div>
                   <div className="sm:col-span-2">
-                    <dt className="text-sm font-medium text-gray-500">Remarks</dt>
+                    <dt className="text-sm font-medium text-gray-500">
+                      Remarks
+                    </dt>
                     <dd className="mt-1 text-sm text-gray-900">
                       {resume.remarks || "No remarks provided"}
                     </dd>
@@ -303,7 +315,7 @@ const RecruiterResumeView: React.FC<RecruiterResumeViewProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Resume Status History - Recruiter View */}
             <div className="bg-white border rounded-lg p-4">
               <ResumeStatusHistory resume={resume} />

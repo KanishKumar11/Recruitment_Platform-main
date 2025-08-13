@@ -263,6 +263,8 @@ const getRedirectPath = (userRole: string | undefined): string => {
   switch (userRole?.toLowerCase()) {
     case "internal":
       return "/dashboard/internal/jobs";
+    case "admin":
+      return "/dashboard/admin/jobs";
     case "company":
       return "/dashboard/company/jobs";
     default:
@@ -615,45 +617,49 @@ export default function CreateJobForm({
         status: formData.status as JobStatus,
         jobType: formData.jobType as JobType,
       }).unwrap();
-      
+
       toast.success("Job created successfully!");
 
       // Get the created job ID from the response
       const jobId = response._id || response.id;
-      
-      console.log('Job creation response:', response);
-      console.log('Extracted job ID:', jobId);
-      console.log('User role:', userRole);
+
+      console.log("Job creation response:", response);
+      console.log("Extracted job ID:", jobId);
+      console.log("User role:", userRole);
 
       // Call custom onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
       } else if (jobId) {
         // Redirect to questions page for the newly created job based on user role
-        const questionsPath = userRole === "INTERNAL" 
-          ? `/dashboard/internal/jobs/${jobId}/questions`
-          : `/dashboard/company/jobs/${jobId}/questions`;
-        
-        console.log('Redirecting to:', questionsPath);
-        
+        const questionsPath =
+          userRole === "INTERNAL"
+            ? `/dashboard/internal/jobs/${jobId}/questions`
+            : `/dashboard/company/jobs/${jobId}/questions`;
+
+        console.log("Redirecting to:", questionsPath);
+
         // Try immediate redirect first
         router.refresh(); // Refresh the router state
         router.push(questionsPath);
-        
+
         // Add fallback with window.location if router.push doesn't work
         setTimeout(() => {
           if (window.location.pathname !== questionsPath) {
-            console.log('router.push may have failed, trying window.location...');
+            console.log(
+              "router.push may have failed, trying window.location..."
+            );
             window.location.href = questionsPath;
           }
         }, 1000);
       } else {
         // Fallback if no job ID is found
-        console.warn('No job ID found in response, using default redirect');
-        toast("Job created but redirecting to jobs list", { icon: '⚠️' });
-        const fallbackPath = userRole === "INTERNAL" 
-          ? `/dashboard/internal/jobs`
-          : `/dashboard/company/jobs`;
+        console.warn("No job ID found in response, using default redirect");
+        toast("Job created but redirecting to jobs list", { icon: "⚠️" });
+        const fallbackPath =
+          userRole === "INTERNAL"
+            ? `/dashboard/internal/jobs`
+            : `/dashboard/company/jobs`;
         router.push(fallbackPath);
       }
     } catch (err) {

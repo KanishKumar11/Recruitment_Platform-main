@@ -10,20 +10,20 @@ import {
 } from "../../../../../store/services/jobsApi";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { 
-  ArrowLeft, 
-  Plus, 
-  AlertCircle, 
-  Edit3, 
-  Trash2, 
-  Save, 
-  X, 
-  Type, 
-  Hash, 
+import {
+  ArrowLeft,
+  Plus,
+  AlertCircle,
+  Edit3,
+  Trash2,
+  Save,
+  X,
+  Type,
+  Hash,
   ToggleLeft,
   CheckCircle2,
   CheckSquare,
-  ListOrdered
+  ListOrdered,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { QuestionType } from "./../../../../../types/ScreeningQuestionTypes";
@@ -44,8 +44,10 @@ export default function JobQuestionsPage() {
   const { data: job, isLoading, refetch } = useGetJobByIdQuery(id);
   const [addQuestion, { isLoading: isAdding }] =
     useAddScreeningQuestionMutation();
-  const [updateScreeningQuestion, { isLoading: isUpdating }] = useUpdateScreeningQuestionMutation();
-  const [deleteScreeningQuestion, { isLoading: isDeleting }] = useDeleteScreeningQuestionMutation();
+  const [updateScreeningQuestion, { isLoading: isUpdating }] =
+    useUpdateScreeningQuestionMutation();
+  const [deleteScreeningQuestion, { isLoading: isDeleting }] =
+    useDeleteScreeningQuestionMutation();
 
   // Form state
   const [newQuestion, setNewQuestion] = useState({
@@ -56,7 +58,9 @@ export default function JobQuestionsPage() {
   });
 
   // State for managing the currently editing question
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
+    null
+  );
   const [editingQuestion, setEditingQuestion] = useState({
     question: "",
     questionType: "",
@@ -65,102 +69,141 @@ export default function JobQuestionsPage() {
   });
 
   // State for delete confirmation
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<
+    string | null
+  >(null);
 
   // Helper functions for question type display
   const getQuestionTypeIcon = (type: string) => {
-    switch(type) {
-      case 'TEXT': return <Type className="h-4 w-4" />;
-      case 'NUMERIC': return <Hash className="h-4 w-4" />;
-      case 'YES_NO': return <ToggleLeft className="h-4 w-4" />;
-      case 'MCQ': return <CheckCircle2 className="h-4 w-4" />;
-      case 'MULTI_SELECT': return <CheckSquare className="h-4 w-4" />;
-      default: return <Type className="h-4 w-4" />;
+    switch (type) {
+      case "TEXT":
+        return <Type className="h-4 w-4" />;
+      case "NUMERIC":
+        return <Hash className="h-4 w-4" />;
+      case "YES_NO":
+        return <ToggleLeft className="h-4 w-4" />;
+      case "MCQ":
+        return <CheckCircle2 className="h-4 w-4" />;
+      case "MULTI_SELECT":
+        return <CheckSquare className="h-4 w-4" />;
+      default:
+        return <Type className="h-4 w-4" />;
     }
   };
 
   const getQuestionTypeColor = (type: string) => {
-    switch(type) {
-      case 'TEXT': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'NUMERIC': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'YES_NO': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'MCQ': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'MULTI_SELECT': return 'bg-pink-50 text-pink-700 border-pink-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    switch (type) {
+      case "TEXT":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "NUMERIC":
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "YES_NO":
+        return "bg-purple-50 text-purple-700 border-purple-200";
+      case "MCQ":
+        return "bg-orange-50 text-orange-700 border-orange-200";
+      case "MULTI_SELECT":
+        return "bg-pink-50 text-pink-700 border-pink-200";
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
 
   const formatQuestionType = (type: string) => {
-    switch(type) {
-      case 'TEXT': return 'Text Response';
-      case 'NUMERIC': return 'Number';
-      case 'YES_NO': return 'Yes/No';
-      case 'MCQ': return 'Multiple Choice';
-      case 'MULTI_SELECT': return 'Multi-Select';
-      default: return type;
+    switch (type) {
+      case "TEXT":
+        return "Text Response";
+      case "NUMERIC":
+        return "Number";
+      case "YES_NO":
+        return "Yes/No";
+      case "MCQ":
+        return "Multiple Choice";
+      case "MULTI_SELECT":
+        return "Multi-Select";
+      default:
+        return type;
     }
   };
 
   // Helper functions for managing options
   const requiresOptions = (questionType: string) => {
-    return questionType === 'MCQ' || questionType === 'MULTI_SELECT';
+    return questionType === "MCQ" || questionType === "MULTI_SELECT";
   };
 
   const addOption = (isEditing: boolean = false) => {
     if (isEditing) {
-      setEditingQuestion(prev => ({
+      setEditingQuestion((prev) => ({
         ...prev,
-        options: [...prev.options, ""]
+        options: [...prev.options, ""],
       }));
     } else {
-      setNewQuestion(prev => ({
+      setNewQuestion((prev) => ({
         ...prev,
-        options: [...prev.options, ""]
+        options: [...prev.options, ""],
       }));
     }
   };
 
   const removeOption = (index: number, isEditing: boolean = false) => {
     if (isEditing) {
-      setEditingQuestion(prev => ({
+      setEditingQuestion((prev) => ({
         ...prev,
-        options: prev.options.filter((_, i) => i !== index)
+        options: prev.options.filter((_, i) => i !== index),
       }));
     } else {
-      setNewQuestion(prev => ({
+      setNewQuestion((prev) => ({
         ...prev,
-        options: prev.options.filter((_, i) => i !== index)
+        options: prev.options.filter((_, i) => i !== index),
       }));
     }
   };
 
-  const updateOption = (index: number, value: string, isEditing: boolean = false) => {
+  const updateOption = (
+    index: number,
+    value: string,
+    isEditing: boolean = false
+  ) => {
     if (isEditing) {
-      setEditingQuestion(prev => ({
+      setEditingQuestion((prev) => ({
         ...prev,
-        options: prev.options.map((option, i) => i === index ? value : option)
+        options: prev.options.map((option, i) =>
+          i === index ? value : option
+        ),
       }));
     } else {
-      setNewQuestion(prev => ({
+      setNewQuestion((prev) => ({
         ...prev,
-        options: prev.options.map((option, i) => i === index ? value : option)
+        options: prev.options.map((option, i) =>
+          i === index ? value : option
+        ),
       }));
     }
   };
 
-  const handleQuestionTypeChange = (newType: QuestionType, isEditing: boolean = false) => {
+  const handleQuestionTypeChange = (
+    newType: QuestionType,
+    isEditing: boolean = false
+  ) => {
     const needsOptions = requiresOptions(newType);
     if (isEditing) {
-      setEditingQuestion(prev => ({
+      setEditingQuestion((prev) => ({
         ...prev,
         questionType: newType,
-        options: needsOptions ? (prev.options.length > 0 ? prev.options : [""]) : [""]
+        options: needsOptions
+          ? prev.options.length > 0
+            ? prev.options
+            : [""]
+          : [""],
       }));
     } else {
-      setNewQuestion(prev => ({
+      setNewQuestion((prev) => ({
         ...prev,
         questionType: newType,
-        options: needsOptions ? (prev.options.length > 0 ? prev.options : [""]) : [""]
+        options: needsOptions
+          ? prev.options.length > 0
+            ? prev.options
+            : [""]
+          : [""],
       }));
     }
   };
@@ -168,19 +211,21 @@ export default function JobQuestionsPage() {
   // Handle new question form submission
   const handleAddQuestion = async () => {
     if (!newQuestion.question.trim()) {
-      toast.error('Please enter a question');
+      toast.error("Please enter a question");
       return;
     }
 
     // Validate options for MCQ and Multi-select
     if (requiresOptions(newQuestion.questionType)) {
-      const validOptions = newQuestion.options.filter(option => option.trim() !== "");
+      const validOptions = newQuestion.options.filter(
+        (option) => option.trim() !== ""
+      );
       if (validOptions.length < 2) {
-        toast.error('Please provide at least 2 options for this question type');
+        toast.error("Please provide at least 2 options for this question type");
         return;
       }
     }
-    
+
     try {
       const questionData = {
         jobId: id,
@@ -188,18 +233,23 @@ export default function JobQuestionsPage() {
         questionType: newQuestion.questionType,
         required: newQuestion.required,
         ...(requiresOptions(newQuestion.questionType) && {
-          options: newQuestion.options.filter(option => option.trim() !== "")
-        })
+          options: newQuestion.options.filter((option) => option.trim() !== ""),
+        }),
       };
 
       await addQuestion(questionData).unwrap();
-      
+
       toast.success("Question added successfully");
-      setNewQuestion({ question: '', questionType: 'TEXT' as QuestionType, required: true, options: [""] });
+      setNewQuestion({
+        question: "",
+        questionType: "TEXT" as QuestionType,
+        required: true,
+        options: [""],
+      });
       refetch();
     } catch (error) {
-      console.error('Failed to add screening question:', error);
-      toast.error('Failed to add question. Please try again.');
+      console.error("Failed to add screening question:", error);
+      toast.error("Failed to add question. Please try again.");
     }
   };
 
@@ -287,9 +337,12 @@ export default function JobQuestionsPage() {
         <DashboardLayout>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
-              <h3 className="text-lg font-medium text-red-600">Error loading job details</h3>
+              <h3 className="text-lg font-medium text-red-600">
+                Error loading job details
+              </h3>
               <p className="mt-2 text-sm text-gray-500">
-                The job you're looking for could not be found or you don't have permission to view it.
+                The job you're looking for could not be found or you don't have
+                permission to view it.
               </p>
               <div className="mt-4">
                 <button
@@ -331,7 +384,9 @@ export default function JobQuestionsPage() {
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Screening Questions</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    Screening Questions
+                  </h1>
                   <p className="text-gray-600">{job?.title}</p>
                 </div>
               </div>
@@ -342,13 +397,18 @@ export default function JobQuestionsPage() {
               <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
                 <div className="flex items-center space-x-3">
                   <Plus className="w-5 h-5 text-white" />
-                  <h3 className="text-lg font-semibold text-white">Add New Question</h3>
+                  <h3 className="text-lg font-semibold text-white">
+                    Add New Question
+                  </h3>
                 </div>
               </div>
-              
+
               <div className="p-6 space-y-6">
                 <div>
-                  <label htmlFor="question" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label
+                    htmlFor="question"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
                     Question Text
                   </label>
                   <div className="relative">
@@ -358,7 +418,12 @@ export default function JobQuestionsPage() {
                       rows={4}
                       required
                       value={newQuestion.question}
-                      onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+                      onChange={(e) =>
+                        setNewQuestion({
+                          ...newQuestion,
+                          question: e.target.value,
+                        })
+                      }
                       placeholder="Enter your screening question here... (e.g., What is your experience with React and modern JavaScript frameworks?)"
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
                     />
@@ -370,7 +435,10 @@ export default function JobQuestionsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="questionType" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label
+                      htmlFor="questionType"
+                      className="block text-sm font-semibold text-gray-700 mb-2"
+                    >
                       Response Type
                     </label>
                     <div className="relative">
@@ -378,14 +446,22 @@ export default function JobQuestionsPage() {
                         id="questionType"
                         name="questionType"
                         value={newQuestion.questionType}
-                        onChange={(e) => handleQuestionTypeChange(e.target.value as QuestionType)}
+                        onChange={(e) =>
+                          handleQuestionTypeChange(
+                            e.target.value as QuestionType
+                          )
+                        }
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200 bg-white text-gray-700 appearance-none"
                       >
                         <option value="TEXT">📝 Text Response</option>
                         <option value="NUMERIC">🔢 Number</option>
                         <option value="YES_NO">✅ Yes/No</option>
-                        <option value="MCQ">🔘 Multiple Choice (Single Select)</option>
-                        <option value="MULTI_SELECT">☑️ Multi-Select (Multiple Options)</option>
+                        <option value="MCQ">
+                          🔘 Multiple Choice (Single Select)
+                        </option>
+                        <option value="MULTI_SELECT">
+                          ☑️ Multi-Select (Multiple Options)
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -397,14 +473,21 @@ export default function JobQuestionsPage() {
                           id="required"
                           type="checkbox"
                           checked={newQuestion.required}
-                          onChange={(e) => setNewQuestion({ ...newQuestion, required: e.target.checked })}
+                          onChange={(e) =>
+                            setNewQuestion({
+                              ...newQuestion,
+                              required: e.target.checked,
+                            })
+                          }
                           className="sr-only"
                         />
-                        <div className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
-                          newQuestion.required 
-                            ? 'bg-indigo-500 border-indigo-500' 
-                            : 'border-gray-300 group-hover:border-indigo-300'
-                        }`}>
+                        <div
+                          className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
+                            newQuestion.required
+                              ? "bg-indigo-500 border-indigo-500"
+                              : "border-gray-300 group-hover:border-indigo-300"
+                          }`}
+                        >
                           {newQuestion.required && (
                             <CheckCircle2 className="w-3 h-3 text-white absolute top-0.5 left-0.5" />
                           )}
@@ -425,12 +508,17 @@ export default function JobQuestionsPage() {
                     </label>
                     <div className="space-y-3">
                       {newQuestion.options.map((option, index) => (
-                        <div key={index} className="flex items-center space-x-3">
+                        <div
+                          key={index}
+                          className="flex items-center space-x-3"
+                        >
                           <div className="flex-1">
                             <input
                               type="text"
                               value={option}
-                              onChange={(e) => updateOption(index, e.target.value)}
+                              onChange={(e) =>
+                                updateOption(index, e.target.value)
+                              }
                               placeholder={`Option ${index + 1}`}
                               className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all duration-200"
                             />
@@ -484,66 +572,102 @@ export default function JobQuestionsPage() {
             {/* List of Questions */}
             <div className="bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden">
               <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Current Questions</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Current Questions
+                </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  {job?.screeningQuestions?.length || 0} question{(job?.screeningQuestions?.length || 0) !== 1 ? 's' : ''} configured
+                  {job?.screeningQuestions?.length || 0} question
+                  {(job?.screeningQuestions?.length || 0) !== 1 ? "s" : ""}{" "}
+                  configured
                 </p>
               </div>
-              
+
               <div className="divide-y divide-gray-100">
-                {(job?.screeningQuestions as unknown as ScreeningQuestion[])?.map((question: ScreeningQuestion, index: number) => {
+                {(
+                  job?.screeningQuestions as unknown as ScreeningQuestion[]
+                )?.map((question: ScreeningQuestion, index: number) => {
                   const questionId = question._id?.toString() || "";
                   return (
-                    <div key={questionId || index} className="p-6 hover:bg-gray-50 transition-colors duration-150">
+                    <div
+                      key={questionId || index}
+                      className="p-6 hover:bg-gray-50 transition-colors duration-150"
+                    >
                       {editingQuestionId === questionId ? (
                         // Edit mode
                         <div className="space-y-4">
                           <div>
-                            <label htmlFor={`edit-question-${questionId}`} className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label
+                              htmlFor={`edit-question-${questionId}`}
+                              className="block text-sm font-semibold text-gray-700 mb-2"
+                            >
                               Question Text
                             </label>
                             <textarea
                               id={`edit-question-${questionId}`}
                               rows={3}
                               value={editingQuestion.question}
-                              onChange={(e) => setEditingQuestion({ ...editingQuestion, question: e.target.value })}
+                              onChange={(e) =>
+                                setEditingQuestion({
+                                  ...editingQuestion,
+                                  question: e.target.value,
+                                })
+                              }
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200 resize-none"
                             />
                           </div>
-                          
+
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label htmlFor={`edit-type-${questionId}`} className="block text-sm font-semibold text-gray-700 mb-2">
+                              <label
+                                htmlFor={`edit-type-${questionId}`}
+                                className="block text-sm font-semibold text-gray-700 mb-2"
+                              >
                                 Response Type
                               </label>
                               <select
                                 id={`edit-type-${questionId}`}
                                 value={editingQuestion.questionType}
-                                onChange={(e) => setEditingQuestion({ ...editingQuestion, questionType: e.target.value })}
+                                onChange={(e) =>
+                                  setEditingQuestion({
+                                    ...editingQuestion,
+                                    questionType: e.target.value,
+                                  })
+                                }
                                 className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200"
                               >
                                 <option value="TEXT">📝 Text Response</option>
                                 <option value="NUMERIC">🔢 Number</option>
                                 <option value="YES_NO">✅ Yes/No</option>
-                                <option value="MCQ">🔘 Multiple Choice (Single Select)</option>
-                                <option value="MULTI_SELECT">☑️ Multi-Select (Multiple Options)</option>
+                                <option value="MCQ">
+                                  🔘 Multiple Choice (Single Select)
+                                </option>
+                                <option value="MULTI_SELECT">
+                                  ☑️ Multi-Select (Multiple Options)
+                                </option>
                               </select>
                             </div>
-                            
+
                             <div className="flex items-center">
                               <label className="flex items-center space-x-3 cursor-pointer">
                                 <input
                                   id={`edit-required-${questionId}`}
                                   type="checkbox"
                                   checked={editingQuestion.required}
-                                  onChange={(e) => setEditingQuestion({ ...editingQuestion, required: e.target.checked })}
+                                  onChange={(e) =>
+                                    setEditingQuestion({
+                                      ...editingQuestion,
+                                      required: e.target.checked,
+                                    })
+                                  }
                                   className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                                 />
-                                <span className="text-sm font-medium text-gray-700">Required</span>
+                                <span className="text-sm font-medium text-gray-700">
+                                  Required
+                                </span>
                               </label>
                             </div>
                           </div>
-                          
+
                           <div className="flex space-x-3 pt-4">
                             <button
                               onClick={() => saveQuestion(questionId)}
@@ -551,7 +675,7 @@ export default function JobQuestionsPage() {
                               className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
                             >
                               <Save className="w-4 h-4 mr-2" />
-                              {isUpdating ? 'Saving...' : 'Save'}
+                              {isUpdating ? "Saving..." : "Save"}
                             </button>
                             <button
                               onClick={cancelEditing}
@@ -568,8 +692,12 @@ export default function JobQuestionsPage() {
                           <div className="flex items-start space-x-3">
                             <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
                             <div className="flex-1">
-                              <p className="text-sm font-semibold text-red-800">Confirm Deletion</p>
-                              <p className="mt-1 text-sm text-red-700">"{question.question}"</p>
+                              <p className="text-sm font-semibold text-red-800">
+                                Confirm Deletion
+                              </p>
+                              <p className="mt-1 text-sm text-red-700">
+                                "{question.question}"
+                              </p>
                               <div className="mt-4 flex space-x-3">
                                 <button
                                   onClick={() => confirmDelete(questionId)}
@@ -577,7 +705,7 @@ export default function JobQuestionsPage() {
                                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
-                                  {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                                  {isDeleting ? "Deleting..." : "Yes, Delete"}
                                 </button>
                                 <button
                                   onClick={cancelDelete}
@@ -602,28 +730,45 @@ export default function JobQuestionsPage() {
                               <p className="text-sm font-medium text-gray-900 leading-relaxed mb-3">
                                 {question.question}
                               </p>
-                              
+
                               {/* Display options for MCQ and MULTI_SELECT questions */}
-                              {requiresOptions(question.questionType) && question.options && (
-                                <div className="mb-3 pl-4 border-l-2 border-gray-200">
-                                  <p className="text-xs font-medium text-gray-500 mb-2">Answer Options:</p>
-                                  <ul className="space-y-1">
-                                    {question.options.map((option: string, optionIndex: number) => (
-                                      <li key={optionIndex} className="text-sm text-gray-600 flex items-center">
-                                        <span className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 mr-2 flex-shrink-0">
-                                          {optionIndex + 1}
-                                        </span>
-                                        {option}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                              
+                              {requiresOptions(question.questionType) &&
+                                question.options && (
+                                  <div className="mb-3 pl-4 border-l-2 border-gray-200">
+                                    <p className="text-xs font-medium text-gray-500 mb-2">
+                                      Answer Options:
+                                    </p>
+                                    <ul className="space-y-1">
+                                      {question.options.map(
+                                        (
+                                          option: string,
+                                          optionIndex: number
+                                        ) => (
+                                          <li
+                                            key={optionIndex}
+                                            className="text-sm text-gray-600 flex items-center"
+                                          >
+                                            <span className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 mr-2 flex-shrink-0">
+                                              {optionIndex + 1}
+                                            </span>
+                                            {option}
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                )}
+
                               <div className="flex items-center space-x-3">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getQuestionTypeColor(question.questionType)}`}>
+                                <span
+                                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getQuestionTypeColor(
+                                    question.questionType
+                                  )}`}
+                                >
                                   {getQuestionTypeIcon(question.questionType)}
-                                  <span className="ml-1">{formatQuestionType(question.questionType)}</span>
+                                  <span className="ml-1">
+                                    {formatQuestionType(question.questionType)}
+                                  </span>
                                 </span>
                                 {question.required && (
                                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
@@ -653,17 +798,21 @@ export default function JobQuestionsPage() {
                         </div>
                       )}
                     </div>
-                  )
+                  );
                 })}
-                
-                {(!job?.screeningQuestions || job.screeningQuestions.length === 0) && (
+
+                {(!job?.screeningQuestions ||
+                  job.screeningQuestions.length === 0) && (
                   <div className="p-12 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <AlertCircle className="w-8 h-8 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Questions Yet</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No Questions Yet
+                    </h3>
                     <p className="text-gray-500 max-w-sm mx-auto">
-                      Add screening questions to help filter and evaluate candidates during the application process.
+                      Add screening questions to help filter and evaluate
+                      candidates during the application process.
                     </p>
                   </div>
                 )}
