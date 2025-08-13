@@ -179,7 +179,7 @@ export default function AdminDashboard() {
                 <div className="text-xs text-gray-500">Quick Statistics</div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {statCards.map((card, index) => {
                   // Dynamically determine the icon component
                   let IconComponent;
@@ -205,15 +205,15 @@ export default function AdminDashboard() {
 
                   return (
                     <Link href={card.link} key={index}>
-                      <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-md shadow-sm border border-gray-200 hover:bg-gray-100 transition-colors duration-150">
-                        <div className={`${card.bgColor} rounded p-1`}>
-                          <IconComponent className="h-3 w-3 text-white" />
+                      <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                        <div className={`${card.bgColor} rounded-lg p-2`}>
+                          <IconComponent className="h-5 w-5 text-white" />
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-500 truncate">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-600 truncate">
                             {card.title}
                           </p>
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-lg font-bold text-gray-900">
                             {card.value}
                           </p>
                         </div>

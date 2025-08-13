@@ -21,6 +21,18 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  PHONE_COUNTRY_CODES,
+  UNIQUE_COUNTRIES,
+  type CompensationType,
+} from "../../../../../utils/formUtils";
 
 // Validation types
 interface ValidationError {
@@ -72,6 +84,15 @@ export default function ApplyForJobPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalFilesRef = useRef<HTMLInputElement>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // New state variables for requested features
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+91"); // Default to India
+  const [alternativePhoneCountryCode, setAlternativePhoneCountryCode] =
+    useState("+91");
+  const [candidateConsent, setCandidateConsent] = useState(false);
+
+  // Get compensation type from job details
+  const compensationType = job?.compensationType || "ANNUALLY";
 
   // Validation states
   const [validationResult, setValidationResult] =
@@ -235,8 +256,13 @@ export default function ApplyForJobPage() {
       formData.append("jobId", (params.id ?? "").toString());
       formData.append("candidateName", candidateName);
       formData.append("email", email);
-      formData.append("phone", phone);
-      formData.append("alternativePhone", alternativePhone);
+      formData.append("phone", `${phoneCountryCode}${phone}`); // Include country code
+      formData.append(
+        "alternativePhone",
+        alternativePhone
+          ? `${alternativePhoneCountryCode}${alternativePhone}`
+          : ""
+      );
       formData.append("country", country);
       formData.append("location", location);
       formData.append("currentCompany", currentCompany);
@@ -245,9 +271,11 @@ export default function ApplyForJobPage() {
       formData.append("relevantExperience", relevantExperience);
       formData.append("currentCTC", currentCTC);
       formData.append("expectedCTC", expectedCTC);
+      formData.append("compensationType", compensationType); // Add compensation type
       formData.append("noticePeriod", noticePeriod);
       formData.append("qualification", qualification);
       formData.append("remarks", remarks);
+      formData.append("candidateConsent", candidateConsent.toString()); // Add consent flag
       formData.append("resumeFile", selectedFile);
 
       // Add additional documents to form data
@@ -293,6 +321,10 @@ export default function ApplyForJobPage() {
       setScreeningAnswers({});
       setValidationResult(null);
       setHasValidated(false);
+      // Reset new fields
+      setPhoneCountryCode("+91");
+      setAlternativePhoneCountryCode("+91");
+      setCandidateConsent(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -462,7 +494,7 @@ export default function ApplyForJobPage() {
                             />
                           </div>
 
-                          {/* Phone with validation */}
+                          {/* Phone with validation and country code */}
                           <div>
                             <label
                               htmlFor="phone"
@@ -470,23 +502,75 @@ export default function ApplyForJobPage() {
                             >
                               Phone <span className="text-red-500">*</span>
                             </label>
-                            <input
-                              type="tel"
-                              id="phone"
-                              className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                                hasValidated &&
-                                validationResult?.errors.some(
-                                  (e) => e.field === "phone"
-                                )
-                                  ? "border-red-300 focus:border-red-500"
-                                  : "border-gray-300 focus:border-indigo-500"
-                              }`}
-                              required
-                              value={phone}
-                              onChange={(e) =>
-                                handlePhoneChange(e.target.value)
-                              }
-                            />
+                            <div className="mt-1 flex">
+                              <Select
+                                value={phoneCountryCode}
+                                onValueChange={(value: string) =>
+                                  setPhoneCountryCode(value)
+                                }
+                              >
+                                <SelectTrigger className="w-32 rounded-r-none border-r-0">
+                                  <SelectValue>
+                                    {phoneCountryCode ? (
+                                      <div className="flex items-center gap-2">
+                                        {PHONE_COUNTRY_CODES.find(
+                                          (c) => c.code === phoneCountryCode
+                                        )?.flag && (
+                                          <span className="text-lg">
+                                            {
+                                              PHONE_COUNTRY_CODES.find(
+                                                (c) =>
+                                                  c.code === phoneCountryCode
+                                              )?.flag
+                                            }
+                                          </span>
+                                        )}
+                                        <span className="font-mono text-sm">
+                                          {phoneCountryCode}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      "Code"
+                                    )}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px] overflow-y-auto">
+                                  {PHONE_COUNTRY_CODES.map((country) => (
+                                    <SelectItem
+                                      key={`${country.code}-${country.name}`}
+                                      value={country.code}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-lg">
+                                          {country.flag}
+                                        </span>
+                                        <span className="font-mono text-sm">
+                                          {country.code}
+                                        </span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <input
+                                type="tel"
+                                id="phone"
+                                className={`flex-1 block w-full border rounded-r-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                                  hasValidated &&
+                                  validationResult?.errors.some(
+                                    (e) => e.field === "phone"
+                                  )
+                                    ? "border-red-300 focus:border-red-500"
+                                    : "border-gray-300 focus:border-indigo-500"
+                                }`}
+                                required
+                                value={phone}
+                                onChange={(e) =>
+                                  handlePhoneChange(e.target.value)
+                                }
+                                placeholder="Phone number"
+                              />
+                            </div>
                           </div>
 
                           {/* Country */}
@@ -497,14 +581,62 @@ export default function ApplyForJobPage() {
                             >
                               Country <span className="text-red-500">*</span>
                             </label>
-                            <input
-                              type="text"
-                              id="country"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
+                            <Select
                               value={country}
-                              onChange={(e) => setCountry(e.target.value)}
-                            />
+                              onValueChange={(value: string) =>
+                                setCountry(value)
+                              }
+                            >
+                              <SelectTrigger className="mt-1 w-full">
+                                <SelectValue placeholder="Select a country">
+                                  {country ? (
+                                    <div className="flex items-center gap-2">
+                                      {UNIQUE_COUNTRIES.find(
+                                        (c) => c.name === country
+                                      )?.flag ? (
+                                        <img
+                                          src={
+                                            UNIQUE_COUNTRIES.find(
+                                              (c) => c.name === country
+                                            )?.flag
+                                          }
+                                          alt=""
+                                          className="w-6 h-4 object-contain"
+                                        />
+                                      ) : (
+                                        <span className="text-lg">🌐</span>
+                                      )}
+                                      <span>{country}</span>
+                                    </div>
+                                  ) : (
+                                    "Select a country"
+                                  )}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[400px] overflow-y-auto">
+                                {UNIQUE_COUNTRIES.map((countryData) => (
+                                  <SelectItem
+                                    key={countryData.code}
+                                    value={countryData.name}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {countryData.flag ? (
+                                        <img
+                                          src={countryData.flag}
+                                          alt=""
+                                          className="w-6 h-4 object-contain"
+                                        />
+                                      ) : (
+                                        <span className="text-lg">🌐</span>
+                                      )}
+                                      <span className="flex-1">
+                                        {countryData.name}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
 
@@ -546,15 +678,70 @@ export default function ApplyForJobPage() {
                             >
                               Alternative Phone
                             </label>
-                            <input
-                              type="tel"
-                              id="alternativePhone"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              value={alternativePhone}
-                              onChange={(e) =>
-                                setAlternativePhone(e.target.value)
-                              }
-                            />
+                            <div className="mt-1 flex">
+                              <Select
+                                value={alternativePhoneCountryCode}
+                                onValueChange={(value: string) =>
+                                  setAlternativePhoneCountryCode(value)
+                                }
+                              >
+                                <SelectTrigger className="w-32 rounded-r-none border-r-0">
+                                  <SelectValue>
+                                    {alternativePhoneCountryCode ? (
+                                      <div className="flex items-center gap-2">
+                                        {PHONE_COUNTRY_CODES.find(
+                                          (c) =>
+                                            c.code ===
+                                            alternativePhoneCountryCode
+                                        )?.flag && (
+                                          <span className="text-lg">
+                                            {
+                                              PHONE_COUNTRY_CODES.find(
+                                                (c) =>
+                                                  c.code ===
+                                                  alternativePhoneCountryCode
+                                              )?.flag
+                                            }
+                                          </span>
+                                        )}
+                                        <span className="font-mono text-sm">
+                                          {alternativePhoneCountryCode}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      "Code"
+                                    )}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px] overflow-y-auto">
+                                  {PHONE_COUNTRY_CODES.map((country) => (
+                                    <SelectItem
+                                      key={`alt-${country.code}-${country.name}`}
+                                      value={country.code}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-lg">
+                                          {country.flag}
+                                        </span>
+                                        <span className="font-mono text-sm">
+                                          {country.code}
+                                        </span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <input
+                                type="tel"
+                                id="alternativePhone"
+                                className="flex-1 block w-full border border-gray-300 rounded-r-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                value={alternativePhone}
+                                onChange={(e) =>
+                                  setAlternativePhone(e.target.value)
+                                }
+                                placeholder="Alternative phone number"
+                              />
+                            </div>
                           </div>
 
                           {/* Location */}
@@ -614,13 +801,16 @@ export default function ApplyForJobPage() {
                               htmlFor="totalExperience"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Total Experience{" "}
+                              Total Experience (Years){" "}
                               <span className="text-red-500">*</span>
                             </label>
                             <input
-                              type="text"
+                              type="number"
                               id="totalExperience"
-                              placeholder="e.g., 5 years"
+                              step="0.1"
+                              min="0"
+                              max="50"
+                              placeholder="e.g., 5.5"
                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               required
                               value={totalExperience}
@@ -630,18 +820,32 @@ export default function ApplyForJobPage() {
                             />
                           </div>
 
-                          {/* Current CTC */}
+                          {/* Current CTC with dynamic label */}
                           <div>
                             <label
                               htmlFor="currentCTC"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Current Annual CTC{" "}
-                              <span className="text-red-500">*</span>
+                              Current Salary (
+                              {compensationType === "HOURLY"
+                                ? "Per Hour"
+                                : compensationType === "MONTHLY"
+                                ? "Per Month"
+                                : "Per Year"}
+                              ) <span className="text-red-500">*</span>
                             </label>
                             <input
-                              type="text"
+                              type="number"
                               id="currentCTC"
+                              min="0"
+                              step="1000"
+                              placeholder={
+                                compensationType === "HOURLY"
+                                  ? "e.g., 25 (per hour)"
+                                  : compensationType === "MONTHLY"
+                                  ? "e.g., 50000 (per month)"
+                                  : "e.g., 600000 (per year)"
+                              }
                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               required
                               value={currentCTC}
@@ -698,13 +902,16 @@ export default function ApplyForJobPage() {
                               htmlFor="relevantExperience"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Relevant Experience{" "}
+                              Relevant Experience (Years){" "}
                               <span className="text-red-500">*</span>
                             </label>
                             <input
-                              type="text"
+                              type="number"
                               id="relevantExperience"
-                              placeholder="e.g., 3 years"
+                              step="0.1"
+                              min="0"
+                              max="50"
+                              placeholder="e.g., 3.5"
                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               required
                               value={relevantExperience}
@@ -720,12 +927,26 @@ export default function ApplyForJobPage() {
                               htmlFor="expectedCTC"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Expected Annual CTC{" "}
-                              <span className="text-red-500">*</span>
+                              Expected Salary (
+                              {compensationType === "HOURLY"
+                                ? "Per Hour"
+                                : compensationType === "MONTHLY"
+                                ? "Per Month"
+                                : "Per Year"}
+                              ) <span className="text-red-500">*</span>
                             </label>
                             <input
-                              type="text"
+                              type="number"
                               id="expectedCTC"
+                              min="0"
+                              step="1000"
+                              placeholder={
+                                compensationType === "HOURLY"
+                                  ? "e.g., 30 (per hour)"
+                                  : compensationType === "MONTHLY"
+                                  ? "e.g., 60000 (per month)"
+                                  : "e.g., 720000 (per year)"
+                              }
                               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               required
                               value={expectedCTC}
@@ -875,6 +1096,7 @@ export default function ApplyForJobPage() {
                                 question: string;
                                 questionType: string;
                                 required: boolean;
+                                options?: string[];
                               }[]
                             ).map((question, index) => (
                               <div
@@ -952,6 +1174,91 @@ export default function ApplyForJobPage() {
                                     required={question.required}
                                     placeholder="Enter a number"
                                   />
+                                ) : question.questionType === "MCQ" ? (
+                                  <div className="mt-2 space-y-2">
+                                    {question.options?.map(
+                                      (option: string, optionIndex: number) => (
+                                        <label
+                                          key={optionIndex}
+                                          className="flex items-center"
+                                        >
+                                          <input
+                                            type="radio"
+                                            name={`question_${question._id}`}
+                                            value={option}
+                                            checked={
+                                              screeningAnswers[question._id] ===
+                                              option
+                                            }
+                                            onChange={(e) =>
+                                              handleAnswerChange(
+                                                question._id,
+                                                e.target.value
+                                              )
+                                            }
+                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                                            required={question.required}
+                                          />
+                                          <span className="ml-2 text-sm text-gray-700">
+                                            {option}
+                                          </span>
+                                        </label>
+                                      )
+                                    )}
+                                  </div>
+                                ) : question.questionType === "MULTI_SELECT" ? (
+                                  <div className="mt-2 space-y-2">
+                                    {question.options?.map(
+                                      (option: string, optionIndex: number) => {
+                                        const currentAnswers = screeningAnswers[
+                                          question._id
+                                        ]
+                                          ? screeningAnswers[question._id]
+                                              .split(",")
+                                              .map((a: string) => a.trim())
+                                          : [];
+                                        return (
+                                          <label
+                                            key={optionIndex}
+                                            className="flex items-center"
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              value={option}
+                                              checked={currentAnswers.includes(
+                                                option
+                                              )}
+                                              onChange={(e) => {
+                                                const isChecked =
+                                                  e.target.checked;
+                                                let newAnswers;
+                                                if (isChecked) {
+                                                  newAnswers = [
+                                                    ...currentAnswers,
+                                                    option,
+                                                  ];
+                                                } else {
+                                                  newAnswers =
+                                                    currentAnswers.filter(
+                                                      (a: string) =>
+                                                        a !== option
+                                                    );
+                                                }
+                                                handleAnswerChange(
+                                                  question._id,
+                                                  newAnswers.join(", ")
+                                                );
+                                              }}
+                                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700">
+                                              {option}
+                                            </span>
+                                          </label>
+                                        );
+                                      }
+                                    )}
+                                  </div>
                                 ) : (
                                   // Default to TEXT type
                                   <textarea
@@ -974,14 +1281,44 @@ export default function ApplyForJobPage() {
                         </div>
                       )}
 
+                    {/* Candidate Consent Checkbox */}
+                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                      <div className="flex items-start">
+                        <input
+                          type="checkbox"
+                          id="candidateConsent"
+                          checked={candidateConsent}
+                          onChange={(e) =>
+                            setCandidateConsent(e.target.checked)
+                          }
+                          className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          required
+                        />
+                        <label
+                          htmlFor="candidateConsent"
+                          className="ml-3 text-sm text-gray-700"
+                        >
+                          <span className="font-medium">
+                            Candidate Consent Declaration:
+                          </span>
+                          <br />I confirm that I have spoken to the candidate,
+                          who is ready for this opportunity and has consented to
+                          share his/her resume.
+                          <span className="text-red-500"> *</span>
+                        </label>
+                      </div>
+                    </div>
+
                     {/* Submit Button */}
                     <div className="mt-6">
                       <button
                         type="submit"
                         className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                          isUploading ? "opacity-50 cursor-not-allowed" : ""
+                          isUploading || !candidateConsent
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
                         }`}
-                        disabled={isUploading}
+                        disabled={isUploading || !candidateConsent}
                       >
                         {isUploading ? (
                           <>
@@ -995,6 +1332,12 @@ export default function ApplyForJobPage() {
                           </>
                         )}
                       </button>
+                      {!candidateConsent && (
+                        <p className="mt-2 text-sm text-red-600">
+                          Please confirm candidate consent before submitting the
+                          resume.
+                        </p>
+                      )}
                     </div>
                   </form>
                 </div>

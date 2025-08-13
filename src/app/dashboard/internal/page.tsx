@@ -11,6 +11,8 @@ import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { UserRole } from "@/app/constants/userRoles";
 import { useGetAdminStatsQuery } from "../../store/services/adminApi";
 import { useGetJobsQuery } from "../../store/services/jobsApi";
+import { useGetAllSubmissionsQuery } from "../../store/services/resumesApi";
+import { ResumeStatus } from "@/app/constants/resumeStatus";
 
 export default function InternalDashboardPage() {
   const { user, isAuthenticated, loading } = useSelector(
@@ -20,6 +22,8 @@ export default function InternalDashboardPage() {
   const { data: statsData, isLoading: isLoadingStats } =
     useGetAdminStatsQuery();
   const { data: jobsData, isLoading: isLoadingJobs } = useGetJobsQuery();
+  const { data: submissionsData, isLoading: isLoadingSubmissions } =
+    useGetAllSubmissionsQuery();
 
   // Redirect if not internal or admin
   useEffect(() => {
@@ -34,7 +38,7 @@ export default function InternalDashboardPage() {
     }
   }, [user, isAuthenticated, loading, router]);
 
-  if (loading || isLoadingStats) {
+  if (loading || isLoadingStats || isLoadingSubmissions) {
     return (
       <ProtectedLayout allowedRoles={[UserRole.INTERNAL, UserRole.ADMIN]}>
         <DashboardLayout>
@@ -47,6 +51,35 @@ export default function InternalDashboardPage() {
   }
 
   const stats = statsData?.stats;
+
+  // Calculate job statistics
+  const totalJobs = jobsData?.length || 0;
+  const activeJobs =
+    jobsData?.filter((job) => job.status === "ACTIVE").length || 0;
+  const pausedJobs =
+    jobsData?.filter((job) => job.status === "PAUSED").length || 0;
+  const closedJobs =
+    jobsData?.filter((job) => job.status === "CLOSED").length || 0;
+
+  // Calculate submission statistics
+  const totalSubmissions = submissionsData?.length || 0;
+  const interviewInProcess =
+    submissionsData?.filter(
+      (submission) => submission.status === ResumeStatus.INTERVIEW_IN_PROCESS
+    ).length || 0;
+  const selected =
+    submissionsData?.filter(
+      (submission) =>
+        submission.status === ResumeStatus.SELECTED_IN_FINAL_INTERVIEW
+    ).length || 0;
+  const joined =
+    submissionsData?.filter(
+      (submission) => submission.status === ResumeStatus.JOINED
+    ).length || 0;
+  const rejected =
+    submissionsData?.filter(
+      (submission) => submission.status === ResumeStatus.REJECTED
+    ).length || 0;
 
   // Get the 5 most recent jobs
   const recentJobs = jobsData
@@ -99,17 +132,21 @@ export default function InternalDashboardPage() {
 
             {/* Stats Overview */}
             <div className="mt-8">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Overview
-              </h3>
-              <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {/* Total Users */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Overview
+                  </h2>
+                  <div className="text-xs text-gray-500">Quick Statistics</div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {/* Total Jobs */}
+                  <Link href="/dashboard/internal/jobs">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-blue-500 rounded-lg p-2">
                         <svg
-                          className="h-6 w-6 text-white"
+                          className="h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -119,31 +156,27 @@ export default function InternalDashboardPage() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 01-1.414 0l-6.414-6.414A1 1 0 014 14.586V8a2 2 0 012-2z"
                           />
                         </svg>
                       </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Total Users
-                        </dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">
-                            {stats?.users.total || 0}
-                          </div>
-                        </dd>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          Total Jobs
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {totalJobs}
+                        </p>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </Link>
 
-                {/* Companies */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                  {/* Active Jobs */}
+                  <Link href="/dashboard/internal/jobs">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-green-500 rounded-lg p-2">
                         <svg
-                          className="h-6 w-6 text-white"
+                          className="h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -153,31 +186,177 @@ export default function InternalDashboardPage() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
                       </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Companies
-                        </dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">
-                            {stats?.users.byRole.companyPrimary || 0}
-                          </div>
-                        </dd>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          Active Jobs
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {activeJobs}
+                        </p>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </Link>
 
-                {/* Recruiters */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
+                  {/* Paused Jobs */}
+                  <Link href="/dashboard/internal/jobs">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-yellow-500 rounded-lg p-2">
                         <svg
-                          className="h-6 w-6 text-white"
+                          className="h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          Paused Jobs
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {pausedJobs}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Closed Jobs */}
+                  <Link href="/dashboard/internal/jobs">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-red-500 rounded-lg p-2">
+                        <svg
+                          className="h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          Closed Jobs
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {closedJobs}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Total Submissions */}
+                  <Link href="/dashboard/internal/submissions">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-indigo-500 rounded-lg p-2">
+                        <svg
+                          className="h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          Total Submissions
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {totalSubmissions}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Interview In Process */}
+                  <Link href="/dashboard/internal/submissions">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-orange-500 rounded-lg p-2">
+                        <svg
+                          className="h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          In Process
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {interviewInProcess}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Selected */}
+                  <Link href="/dashboard/internal/submissions">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-teal-500 rounded-lg p-2">
+                        <svg
+                          className="h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          Selected
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {selected}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Joined */}
+                  <Link href="/dashboard/internal/submissions">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-emerald-500 rounded-lg p-2">
+                        <svg
+                          className="h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -191,27 +370,21 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Recruiters
-                        </dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">
-                            {stats?.users.byRole.recruiter || 0}
-                          </div>
-                        </dd>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">Joined</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {joined}
+                        </p>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </Link>
 
-                {/* Internal Team */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                  {/* Rejected */}
+                  <Link href="/dashboard/internal/submissions">
+                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-gray-500 rounded-lg p-2">
                         <svg
-                          className="h-6 w-6 text-white"
+                          className="h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -221,22 +394,20 @@ export default function InternalDashboardPage() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                            d="M6 18L18 6M6 6l12 12"
                           />
                         </svg>
                       </div>
-                      <div className="ml-5 w-0 flex-1">
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Internal Team
-                        </dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">
-                            {stats?.users.byRole.internal || 0}
-                          </div>
-                        </dd>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">
+                          Rejected
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {rejected}
+                        </p>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
             </div>
