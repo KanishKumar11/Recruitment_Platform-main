@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import ErrorAlert from "@/app/components/ui/ErrorAlert";
 import ResumeDetailModal from "@/app/components/company/ResumeDetailModal";
+import SubmitterInfo from "@/app/components/SubmitterInfo";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
@@ -450,11 +451,24 @@ export default function InternalSubmissionsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {typeof resume.submittedBy === "object" &&
-                          "name" in (resume.submittedBy ?? {})
-                            ? (resume.submittedBy as { name?: string }).name ||
-                              "Unknown Recruiter"
-                            : "Unknown Recruiter"}
+                          <SubmitterInfo
+                            submitterId={
+                              typeof resume.submittedBy === "object" &&
+                              resume.submittedBy &&
+                              "_id" in resume.submittedBy
+                                ? (resume.submittedBy as any)._id?.toString() ||
+                                  (resume.submittedBy as any)._id
+                                : (resume.submittedBy as string)?.toString() ||
+                                  resume.submittedBy
+                            }
+                            fallbackName={
+                              typeof resume.submittedBy === "object" &&
+                              resume.submittedBy &&
+                              "name" in resume.submittedBy
+                                ? (resume.submittedBy as { name?: string }).name
+                                : undefined
+                            }
+                          />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col space-y-2">

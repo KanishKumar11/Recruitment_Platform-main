@@ -14,6 +14,7 @@ import {
   Building,
   Filter,
   Loader2,
+  FileText,
 } from "lucide-react";
 import { format } from "date-fns";
 import { IJob } from "@/app/models/Job";
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 
 export default function RecruiterJobs() {
   const router = useRouter();
@@ -334,7 +336,7 @@ export default function RecruiterJobs() {
                                 </div>
                               </div>
                             </div>
-                            <div>
+                            <div className="grid lg:grid-cols-2 gap-x-2">
                               <button
                                 onClick={() =>
                                   router.push(
@@ -348,12 +350,34 @@ export default function RecruiterJobs() {
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/recruiter/submissions?jobId=${job._id}`
+                                    `/dashboard/recruiter/jobs/${job._id}/resumes`
                                   )
                                 }
                                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                               >
                                 View Submissions
+                              </button>
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/recruiter/jobs/${job._id}/apply`
+                                  )
+                                }
+                                className="inline-flex mt-4  text-center justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Upload Resume
+                              </button>
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions`
+                                  )
+                                }
+                                className="inline-flex  mt-4  text-center justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <QuestionMarkCircleIcon className="mr-2 h-4 w-4" />
+                                View Screening Ques
                               </button>
                             </div>
                           </div>

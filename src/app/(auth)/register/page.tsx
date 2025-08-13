@@ -51,7 +51,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<UserRole>(UserRole.COMPANY);
+  const [role, setRole] = useState<UserRole | "">("");
 
   // Company-specific fields
   const [companyName, setCompanyName] = useState("");
@@ -141,6 +141,11 @@ export default function RegisterPage() {
   const handleInitialRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!role) {
+      setError("Please select an account type");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -387,6 +392,11 @@ export default function RegisterPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Briefcase className="h-5 w-5 text-gray-400" />
                   </div>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                   <select
                     id="role"
                     name="role"
@@ -408,8 +418,9 @@ export default function RegisterPage() {
                         setRecruitmentFirmName("");
                       }
                     }}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 sm:text-sm"
+                    className="appearance-none block w-full pl-10 pr-10 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 sm:text-sm cursor-pointer"
                   >
+                    <option value="" disabled className="text-gray-400">Select Account Type</option>
                     <option value={UserRole.COMPANY}>Company</option>
                     <option value={UserRole.RECRUITER}>Recruiter</option>
                   </select>

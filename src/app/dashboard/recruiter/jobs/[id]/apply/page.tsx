@@ -838,7 +838,7 @@ export default function ApplyForJobPage() {
                               type="number"
                               id="currentCTC"
                               min="0"
-                              step="1000"
+                              step="1"
                               placeholder={
                                 compensationType === "HOURLY"
                                   ? "e.g., 25 (per hour)"
@@ -939,7 +939,7 @@ export default function ApplyForJobPage() {
                               type="number"
                               id="expectedCTC"
                               min="0"
-                              step="1000"
+                              step="1"
                               placeholder={
                                 compensationType === "HOURLY"
                                   ? "e.g., 30 (per hour)"

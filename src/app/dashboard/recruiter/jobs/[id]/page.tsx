@@ -144,13 +144,24 @@ export default function RecruiterJobDetailsPage() {
                         <button
                           onClick={() =>
                             router.push(
+                              `/dashboard/recruiter/jobs/${params.id}/resumes`
+                            )
+                          }
+                          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                          <Users className="mr-2 h-4 w-4" />
+                          View Submissions
+                        </button>
+                        <button
+                          onClick={() =>
+                            router.push(
                               `/dashboard/recruiter/jobs/${params.id}/apply`
                             )
                           }
                           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                           <FileText className="mr-2 h-4 w-4" />
-                          Apply Now
+                          Upload Resume
                         </button>
                       </div>
                     </div>
@@ -233,7 +244,7 @@ export default function RecruiterJobDetailsPage() {
                       {/* Commission */}
                       <div className="bg-gray-50 rounded-lg p-4">
                         <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                          Commission
+                          Recruitment Fee
                         </dt>
                         <dd className="mt-1 text-sm font-bold text-green-600">
                           {getCommissionValue(job)}
@@ -243,7 +254,7 @@ export default function RecruiterJobDetailsPage() {
                       {/* Commission Type */}
                       <div className="bg-gray-50 rounded-lg p-4">
                         <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                          Commission Type
+                          Recruitment Fee Type
                         </dt>
                         <dd className="mt-1">
                           {job.commission ? (

@@ -96,7 +96,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
   // Helper function to check if file can be previewed
   const canPreviewFile = (filename: string) => {
     const extension = filename.toLowerCase().split(".").pop();
-    return ["pdf", "jpg", "jpeg", "png", "gif", "bmp", "webp", "txt"].includes(
+    return ["pdf", "jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(
       extension || ""
     );
   };
@@ -263,34 +263,52 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
               {/* Basic Information - Compact */}
               <div className="compact-section">
                 <h3>Basic Information</h3>
-                <div className="compact-info-grid grid-cols-2 gap-x-4">
-                  <div className="compact-info-item">
-                    <span className="compact-info-label">Email:</span>
-                    <span className="compact-info-value">{resume.email}</span>
-                  </div>
-                  <div className="compact-info-item">
-                    <span className="compact-info-label">Phone:</span>
-                    <span className="compact-info-value">{resume.phone}</span>
-                  </div>
-                  {resume.alternativePhone && (
-                    <div className="compact-info-item">
-                      <span className="compact-info-label">Alt Phone:</span>
-                      <span className="compact-info-value">
-                        {resume.alternativePhone}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <div className="flex gap-2">
+                      <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                        Email:
+                      </span>
+                      <span className="text-gray-900 font-medium text-xs">
+                        {resume.email}
                       </span>
                     </div>
-                  )}
-                  <div className="compact-info-item">
-                    <span className="compact-info-label">Location:</span>
-                    <span className="compact-info-value">
-                      {resume.location}, {resume.country}
-                    </span>
+                    <div className="flex gap-2">
+                      <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                        Phone:
+                      </span>
+                      <span className="text-gray-900 font-medium text-xs">
+                        {resume.phone}
+                      </span>
+                    </div>
                   </div>
-                  <div className="compact-info-item">
-                    <span className="compact-info-label">Qualification:</span>
-                    <span className="compact-info-value">
-                      {resume.qualification}
-                    </span>
+                  <div className="space-y-1">
+                    <div className="flex gap-2">
+                      <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                        Location:
+                      </span>
+                      <span className="text-gray-900 font-medium text-xs">
+                        {resume.location}, {resume.country}
+                      </span>
+                    </div>
+                    {resume.alternativePhone && (
+                      <div className="flex gap-2">
+                        <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                          Alt Phone:
+                        </span>
+                        <span className="text-gray-900 font-medium text-xs">
+                          {resume.alternativePhone}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                        Education:
+                      </span>
+                      <span className="text-gray-900 font-medium text-xs">
+                        {resume.qualification}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -300,7 +318,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                 <h3>Career Information</h3>
                 <div className="space-y-1">
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
                       Company:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
@@ -308,7 +326,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
                       Designation:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
@@ -316,39 +334,39 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
-                      Total Exp:
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Total Experience:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
-                      {resume.totalExperience}
+                      {resume.totalExperience} years
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
-                      Relevant Exp:
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Relevant Experience:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
-                      {resume.relevantExperience}
+                      {resume.relevantExperience} years
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
-                      Current CTC:
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Current Salary:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.currentCTC}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
-                      Expected CTC:
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Expected Salary:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.expectedCTC}
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-gray-500 text-xs w-28 flex-shrink-0">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
                       Notice Period:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
@@ -572,7 +590,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                       {!fileLoadError ? (
                         <iframe
                           src={getFileUrl(resume.resumeFile)}
-                          className="w-full h-64 border border-gray-300 rounded-md"
+                          className="w-full h-[80vh] border border-gray-300 rounded-md"
                           title={`Resume for ${resume.candidateName}`}
                           onLoad={() => setFileLoadError(null)}
                           onError={() => {
@@ -583,7 +601,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                           }}
                         ></iframe>
                       ) : (
-                        <div className="w-full h-64 border border-gray-300 rounded-md flex items-center justify-center bg-red-50">
+                        <div className="w-full h-[80vh] border border-gray-300 rounded-md flex items-center justify-center bg-red-50">
                           <div className="text-center">
                             <FileText className="mx-auto h-8 w-8 text-red-400" />
                             <p className="mt-1 text-xs text-red-600">
@@ -597,7 +615,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                       )}
                     </div>
                   ) : (
-                    <div className="w-full h-64 border border-gray-300 rounded-md flex items-center justify-center bg-gray-100">
+                    <div className="w-full h-[80vh] border border-gray-300 rounded-md flex items-center justify-center bg-gray-100">
                       <div className="text-center">
                         <FileText className="mx-auto h-8 w-8 text-gray-400" />
                         <p className="mt-1 text-xs text-gray-500">

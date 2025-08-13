@@ -32,6 +32,7 @@ import RecruiterResumeView from "@/app/components/recruiter/RecruiterResumeView"
 import { ResumeStatus } from "@/app/models/Resume";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
+import SubmitterInfo from "@/app/components/SubmitterInfo";
 
 function RecruiterSubmissionsPageContent() {
   // Get URL parameters
@@ -456,10 +457,13 @@ function RecruiterSubmissionsPageContent() {
                         {/* Submitted By column only for primary users */}
                         {isPrimary && (
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {resume.submittedBy?.toString() ===
-                            user?.id?.toString()
-                              ? "You"
-                              : resume.submittedByName || "Team Member"}
+                            <SubmitterInfo
+                              submitterId={resume.submittedBy?.toString() || ""}
+                              currentUserId={user?.id?.toString()}
+                              fallbackName={
+                                resume.submittedByName || "Team Member"
+                              }
+                            />
                           </td>
                         )}
                         <td className="px-6 py-4 whitespace-nowrap">
