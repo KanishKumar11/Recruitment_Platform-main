@@ -72,6 +72,11 @@ export default function Sidebar() {
         label: "FAQs",
         icon: "question-mark",
       },
+      {
+        path: "/dashboard/admin/support",
+        label: "Support Tickets",
+        icon: "support",
+      },
       { path: "/dashboard/help", label: "Help & Support", icon: "help" },
       // { path: '/dashboard/internal/reports', label: 'Reports', icon: 'chart-bar' }
     ],

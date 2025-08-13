@@ -33,7 +33,7 @@ export default function AdminSupportDashboard() {
   };
 
   return (
-    <ProtectedLayout allowedRoles={["ADMIN"]}>
+    <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
       <DashboardLayout>
         <ErrorBoundary>
           <div className="py-6">

@@ -266,8 +266,9 @@ export default function TicketDetailModal({
                           <div>
                             <div className="font-medium">Submitted by</div>
                             <div>
-                              {ticket.submittedBy.name ||
-                                ticket.submittedBy.email}
+                              {ticket.submittedBy?.name ||
+                                ticket.submittedBy?.email ||
+                                "Unknown User"}
                             </div>
                           </div>
                         </div>
@@ -354,8 +355,9 @@ export default function TicketDetailModal({
                             <User className="h-4 w-4 mr-2" />
                             <span className="font-medium">Assigned to:</span>
                             <span className="ml-1">
-                              {ticket.assignedTo.name ||
-                                ticket.assignedTo.email}
+                              {ticket.assignedTo?.name ||
+                                ticket.assignedTo?.email ||
+                                "Unassigned"}
                             </span>
                           </div>
                         </div>

@@ -96,8 +96,8 @@ export default function TicketsTable() {
       let bValue: any;
 
       if (sortConfig.key === "submittedBy.name") {
-        aValue = a.submittedBy.name;
-        bValue = b.submittedBy.name;
+        aValue = a.submittedBy?.name || "";
+        bValue = b.submittedBy?.name || "";
       } else if (sortConfig.key === "assignedTo.name") {
         aValue = a.assignedTo?.name || "";
         bValue = b.assignedTo?.name || "";
@@ -460,10 +460,10 @@ export default function TicketsTable() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
                         <div className="font-medium">
-                          {ticket.submittedBy.name}
+                          {ticket.submittedBy?.name || "Unknown User"}
                         </div>
                         <div className="text-gray-500">
-                          {ticket.submittedBy.email}
+                          {ticket.submittedBy?.email || "No email"}
                         </div>
                       </div>
                     </td>
