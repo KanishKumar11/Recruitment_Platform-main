@@ -140,7 +140,8 @@ export default function InternalDashboardPage() {
                   <div className="text-xs text-gray-500">Quick Statistics</div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-5 gap-4 mb-4">
+                  {/* First row - 5 cards */}
                   {/* Total Jobs */}
                   <Link href="/dashboard/internal/jobs">
                     <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
@@ -290,8 +291,10 @@ export default function InternalDashboardPage() {
                       </div>
                     </div>
                   </Link>
+                </div>
 
-                  {/* Interview In Process */}
+                {/* Second row - 4 cards */}
+                <div className="grid grid-cols-4 gap-4">{/* Interview In Process */}
                   <Link href="/dashboard/internal/submissions">
                     <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
                       <div className="bg-orange-500 rounded-lg p-2">

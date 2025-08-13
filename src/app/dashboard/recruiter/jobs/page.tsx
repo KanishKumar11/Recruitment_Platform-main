@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { IJob } from "@/app/models/Job";
+import { countries } from "@/lib/countries";
 import {
   Pagination,
   PaginationContent,
@@ -35,6 +36,14 @@ import {
   SelectValue,
 } from "@/app/components/ui/select";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+
+// Utility function to get full country name from country code
+const getCountryName = (countryCode: string): string => {
+  const country = countries.find(
+    (c) => c.countryCode?.toLowerCase() === countryCode?.toLowerCase()
+  );
+  return country?.country || countryCode; // Fallback to countryCode if not found
+};
 
 export default function RecruiterJobs() {
   const router = useRouter();
@@ -331,21 +340,52 @@ export default function RecruiterJobs() {
                                 <div className="text-sm font-medium text-indigo-600">
                                   {job.jobCode}
                                 </div>
-                                <div className="text-lg font-semibold text-gray-900 truncate">
+                                <button
+                                  onClick={() =>
+                                    router.push(
+                                      `/dashboard/recruiter/jobs/${job._id}`
+                                    )
+                                  }
+                                  className="text-lg font-semibold text-gray-900 hover:text-indigo-600 truncate text-left transition-colors duration-200"
+                                >
                                   {job.title}
-                                </div>
+                                </button>
                               </div>
                             </div>
-                            <div className="grid lg:grid-cols-2 gap-x-2">
+                            <div className="grid grid-cols-2 gap-2">
                               <button
                                 onClick={() =>
                                   router.push(
                                     `/dashboard/recruiter/jobs/${job._id}`
                                   )
                                 }
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                               >
                                 View Details
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/recruiter/jobs/${job._id}/apply`
+                                  )
+                                }
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <FileText className="mr-1.5 h-3 w-3" />
+                                Upload Resume
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions`
+                                  )
+                                }
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <QuestionMarkCircleIcon className="mr-1.5 h-3 w-3" />
+                                Screening Questions
                               </button>
                               <button
                                 onClick={() =>
@@ -353,31 +393,9 @@ export default function RecruiterJobs() {
                                     `/dashboard/recruiter/jobs/${job._id}/resumes`
                                   )
                                 }
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                               >
                                 View Submissions
-                              </button>
-                              <button
-                                onClick={() =>
-                                  router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/apply`
-                                  )
-                                }
-                                className="inline-flex mt-4  text-center justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                              >
-                                <FileText className="mr-2 h-4 w-4" />
-                                Upload Resume
-                              </button>
-                              <button
-                                onClick={() =>
-                                  router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions`
-                                  )
-                                }
-                                className="inline-flex  mt-4  text-center justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                              >
-                                <QuestionMarkCircleIcon className="mr-2 h-4 w-4" />
-                                View Screening Ques
                               </button>
                             </div>
                           </div>
@@ -389,15 +407,7 @@ export default function RecruiterJobs() {
                               </div>
                               <div className="flex items-center text-sm text-gray-500 mr-4">
                                 <MapPin className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                                {job.location}, {job.country}
-                              </div>
-                              <div className="flex items-center text-sm text-gray-500 mr-4">
-                                <Clock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                                Posted{" "}
-                                {format(
-                                  new Date(job.postedDate),
-                                  "MMM dd, yyyy"
-                                )}
+                                {job.location}, {getCountryName(job.country)}
                               </div>
                               <div className="flex items-center text-sm font-medium text-gray-800">
                                 {formatSalary(job)}

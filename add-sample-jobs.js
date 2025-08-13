@@ -291,7 +291,7 @@ async function addSampleJobs() {
 
     // Find or create a sample company user to post these jobs
     let sampleUser = await User.findOne({ email: 'company@techcorp.com' });
-    
+
     if (!sampleUser) {
       sampleUser = new User({
         name: 'TechCorp Admin',
@@ -309,7 +309,7 @@ async function addSampleJobs() {
     for (const jobData of sampleJobs) {
       // Create the job first (without screening questions)
       const { screeningQuestions: questionsData, ...jobWithoutQuestions } = jobData;
-      
+
       const job = new Job({
         ...jobWithoutQuestions,
         postedBy: sampleUser._id,
@@ -326,7 +326,7 @@ async function addSampleJobs() {
 
       // Create screening questions and link them to the job
       const screeningQuestionIds = [];
-      
+
       for (const questionData of questionsData) {
         const question = new ScreeningQuestion({
           jobId: job._id,
@@ -348,7 +348,7 @@ async function addSampleJobs() {
     }
 
     console.log('✅ All sample jobs with screening questions have been added successfully!');
-    
+
   } catch (error) {
     console.error('Error adding sample jobs:', error);
   } finally {

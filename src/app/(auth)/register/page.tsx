@@ -393,8 +393,18 @@ export default function RegisterPage() {
                     <Briefcase className="h-5 w-5 text-gray-400" />
                   </div>
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </div>
                   <select
@@ -420,7 +430,9 @@ export default function RegisterPage() {
                     }}
                     className="appearance-none block w-full pl-10 pr-10 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 sm:text-sm cursor-pointer"
                   >
-                    <option value="" disabled className="text-gray-400">Select Account Type</option>
+                    <option value="" disabled className="text-gray-400">
+                      Select Account Type
+                    </option>
                     <option value={UserRole.COMPANY}>Company</option>
                     <option value={UserRole.RECRUITER}>Recruiter</option>
                   </select>

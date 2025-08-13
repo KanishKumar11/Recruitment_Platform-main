@@ -10,10 +10,10 @@ import { toast } from "react-hot-toast";
 
 export default function ScreeningQuestionsPage() {
   const router = useRouter();
-      const params = useParams();
-      const id = params?.id as string;
-      
-      // const { user } = useSelector((state: RootState) => state.auth);
+  const params = useParams();
+  const id = params?.id as string;
+
+  // const { user } = useSelector((state: RootState) => state.auth);
   const { data: job, isLoading } = useGetJobByIdQuery(id);
 
   // State for storing answers to screening questions
@@ -27,7 +27,7 @@ export default function ScreeningQuestionsPage() {
 
   // Load candidate form data from sessionStorage if it exists
   useEffect(() => {
-    const fetchData =  () => {
+    const fetchData = () => {
       const savedFormData = sessionStorage.getItem("candidateFormData");
       if (savedFormData) {
         setCandidateFormData(JSON.parse(savedFormData));
@@ -112,7 +112,9 @@ export default function ScreeningQuestionsPage() {
                   <p className="mt-1 text-sm text-gray-500">
                     {isViewOnlyMode
                       ? "These are the screening questions that candidates will need to answer when applying for this job."
-                      : `Please answer all the screening questions below for ${candidateFormData?.candidateName || "the candidate"}`}
+                      : `Please answer all the screening questions below for ${
+                          candidateFormData?.candidateName || "the candidate"
+                        }`}
                   </p>
                 </div>
                 <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
@@ -128,37 +130,60 @@ export default function ScreeningQuestionsPage() {
                       <div key={String(question._id)} className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">
                           {index + 1}. {question.question}
-                          {question.questionType && question.questionType !== 'TEXT' && (
-                            <span className="ml-2 text-xs text-gray-500 font-normal">
-                              ({question.questionType === 'MCQ' ? 'Multiple Choice' : 
-                                question.questionType === 'YES_NO' ? 'Yes/No' : 
-                                question.questionType === 'NUMERIC' ? 'Numeric' : 
-                                question.questionType === 'MULTI_SELECT' ? 'Multi Select' : question.questionType})
-                            </span>
-                          )}
+                          {question.questionType &&
+                            question.questionType !== "TEXT" && (
+                              <span className="ml-2 text-xs text-gray-500 font-normal">
+                                (
+                                {question.questionType === "MCQ"
+                                  ? "Multiple Choice"
+                                  : question.questionType === "YES_NO"
+                                  ? "Yes/No"
+                                  : question.questionType === "NUMERIC"
+                                  ? "Numeric"
+                                  : question.questionType === "MULTI_SELECT"
+                                  ? "Multi Select"
+                                  : question.questionType}
+                                )
+                              </span>
+                            )}
                         </label>
-                        
+
                         {isViewOnlyMode ? (
                           <div className="mt-1 block w-full border border-gray-200 rounded-md shadow-sm py-2 px-3 bg-gray-50 text-sm text-gray-600">
-                            {question.questionType === 'MCQ' || question.questionType === 'MULTI_SELECT' ? (
-                              question.options && question.options.length > 0 ? (
+                            {question.questionType === "MCQ" ||
+                            question.questionType === "MULTI_SELECT" ? (
+                              question.options &&
+                              question.options.length > 0 ? (
                                 <div className="space-y-1">
-                                  <div className="text-gray-500 text-xs mb-2">Available options:</div>
+                                  <div className="text-gray-500 text-xs mb-2">
+                                    Available options:
+                                  </div>
                                   {question.options.map((option, optIndex) => (
-                                    <div key={optIndex} className="text-gray-700">
+                                    <div
+                                      key={optIndex}
+                                      className="text-gray-700"
+                                    >
                                       • {option}
                                     </div>
                                   ))}
                                 </div>
                               ) : (
-                                <span className="italic">Options will be configured by admin</span>
+                                <span className="italic">
+                                  Options will be configured by admin
+                                </span>
                               )
-                            ) : question.questionType === 'YES_NO' ? (
-                              <span className="italic">Candidates will select Yes or No</span>
-                            ) : question.questionType === 'NUMERIC' ? (
-                              <span className="italic">Candidates will enter a numeric value</span>
+                            ) : question.questionType === "YES_NO" ? (
+                              <span className="italic">
+                                Candidates will select Yes or No
+                              </span>
+                            ) : question.questionType === "NUMERIC" ? (
+                              <span className="italic">
+                                Candidates will enter a numeric value
+                              </span>
                             ) : (
-                              <span className="italic">Candidates will provide a text response</span>
+                              <span className="italic">
+                                Candidates will provide a text response
+                              </span>
                             )}
                           </div>
                         ) : (
@@ -185,7 +210,7 @@ export default function ScreeningQuestionsPage() {
                       >
                         {isViewOnlyMode ? "Back to Job Details" : "Cancel"}
                       </button>
-                      
+
                       {!isViewOnlyMode && (
                         <button
                           type="submit"
@@ -195,12 +220,14 @@ export default function ScreeningQuestionsPage() {
                           Save Answers & Continue
                         </button>
                       )}
-                      
+
                       {isViewOnlyMode && (
                         <button
                           type="button"
                           onClick={() =>
-                            router.push(`/dashboard/recruiter/jobs/${params.id}`)
+                            router.push(
+                              `/dashboard/recruiter/jobs/${params.id}`
+                            )
                           }
                           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                         >

@@ -179,8 +179,8 @@ export default function AdminDashboard() {
                 <div className="text-xs text-gray-500">Quick Statistics</div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {statCards.map((card, index) => {
+              <div className="grid grid-cols-4 gap-4 mb-4">
+                {statCards.slice(0, 4).map((card, index) => {
                   // Dynamically determine the icon component
                   let IconComponent;
                   switch (card.icon) {
@@ -222,6 +222,53 @@ export default function AdminDashboard() {
                   );
                 })}
               </div>
+              
+              {/* Second row with 3 cards */}
+              {statCards.length > 4 && (
+                <div className="grid grid-cols-3 gap-4">
+                  {statCards.slice(4).map((card, index) => {
+                    // Dynamically determine the icon component
+                    let IconComponent;
+                    switch (card.icon) {
+                      case "User":
+                        IconComponent = User;
+                        break;
+                      case "Briefcase":
+                        IconComponent = Briefcase;
+                        break;
+                      case "Layers":
+                        IconComponent = Layers;
+                        break;
+                      case "FileText":
+                        IconComponent = FileText;
+                        break;
+                      case "Calendar":
+                        IconComponent = Calendar;
+                        break;
+                      default:
+                        IconComponent = Briefcase;
+                    }
+
+                    return (
+                      <Link href={card.link} key={index + 4}>
+                        <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                          <div className={`${card.bgColor} rounded-lg p-2`}>
+                            <IconComponent className="h-5 w-5 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-600 truncate">
+                              {card.title}
+                            </p>
+                            <p className="text-lg font-bold text-gray-900">
+                              {card.value}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Charts Section */}

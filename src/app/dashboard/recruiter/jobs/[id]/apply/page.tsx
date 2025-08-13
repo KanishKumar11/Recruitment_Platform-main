@@ -33,6 +33,45 @@ import {
   UNIQUE_COUNTRIES,
   type CompensationType,
 } from "../../../../../utils/formUtils";
+import { countries } from "@/lib/countries";
+
+// Define the Country interface from the countries data (same as CreateJobForm)
+interface CountryData {
+  code: string; // Currency code (e.g., "USD")
+  name: string; // Currency name (e.g., "US Dollar")
+  country: string; // Country name (e.g., "United States")
+  countryCode: string; // Country code (e.g., "US")
+  flag?: string; // Base64 encoded flag image (optional)
+}
+
+// Use the countries data which contains both country and currency information
+const countriesData: CountryData[] = countries;
+
+// Create a unique list of countries for the country selector (same as CreateJobForm)
+const uniqueCountries = Array.from(
+  new Map(
+    countriesData.map((item) => [
+      item.countryCode,
+      {
+        code: item.countryCode,
+        name: item.country,
+        flag: item.flag || "",
+        currencyCode: item.code,
+      },
+    ])
+  ).values()
+).sort((a, b) => a.name.localeCompare(b.name));
+
+// Create a mapping for phone country codes with flag images from countries data
+const phoneCountryCodesWithFlags = PHONE_COUNTRY_CODES.map((phoneCountry) => {
+  const countryData = countriesData.find(
+    (c) => c.countryCode === phoneCountry.countryCode
+  );
+  return {
+    ...phoneCountry,
+    flagImage: countryData?.flag || null, // Use base64 flag image if available
+  };
+});
 
 // Validation types
 interface ValidationError {
@@ -513,18 +552,23 @@ export default function ApplyForJobPage() {
                                   <SelectValue>
                                     {phoneCountryCode ? (
                                       <div className="flex items-center gap-2">
-                                        {PHONE_COUNTRY_CODES.find(
-                                          (c) => c.code === phoneCountryCode
-                                        )?.flag && (
-                                          <span className="text-lg">
-                                            {
-                                              PHONE_COUNTRY_CODES.find(
-                                                (c) =>
-                                                  c.code === phoneCountryCode
-                                              )?.flag
-                                            }
-                                          </span>
-                                        )}
+                                        {(() => {
+                                          const phoneCountryData =
+                                            phoneCountryCodesWithFlags.find(
+                                              (c) => c.code === phoneCountryCode
+                                            );
+                                          return phoneCountryData?.flagImage ? (
+                                            <img
+                                              src={phoneCountryData.flagImage}
+                                              alt=""
+                                              className="w-6 h-4 object-contain"
+                                            />
+                                          ) : (
+                                            <span className="text-lg">
+                                              {phoneCountryData?.flag || "🌐"}
+                                            </span>
+                                          );
+                                        })()}
                                         <span className="font-mono text-sm">
                                           {phoneCountryCode}
                                         </span>
@@ -535,15 +579,23 @@ export default function ApplyForJobPage() {
                                   </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                                  {PHONE_COUNTRY_CODES.map((country) => (
+                                  {phoneCountryCodesWithFlags.map((country) => (
                                     <SelectItem
                                       key={`${country.code}-${country.name}`}
                                       value={country.code}
                                     >
                                       <div className="flex items-center gap-2">
-                                        <span className="text-lg">
-                                          {country.flag}
-                                        </span>
+                                        {country.flagImage ? (
+                                          <img
+                                            src={country.flagImage}
+                                            alt=""
+                                            className="w-6 h-4 object-contain"
+                                          />
+                                        ) : (
+                                          <span className="text-lg">
+                                            {country.flag}
+                                          </span>
+                                        )}
                                         <span className="font-mono text-sm">
                                           {country.code}
                                         </span>
@@ -591,12 +643,12 @@ export default function ApplyForJobPage() {
                                 <SelectValue placeholder="Select a country">
                                   {country ? (
                                     <div className="flex items-center gap-2">
-                                      {UNIQUE_COUNTRIES.find(
+                                      {uniqueCountries.find(
                                         (c) => c.name === country
                                       )?.flag ? (
                                         <img
                                           src={
-                                            UNIQUE_COUNTRIES.find(
+                                            uniqueCountries.find(
                                               (c) => c.name === country
                                             )?.flag
                                           }
@@ -614,7 +666,7 @@ export default function ApplyForJobPage() {
                                 </SelectValue>
                               </SelectTrigger>
                               <SelectContent className="max-h-[400px] overflow-y-auto">
-                                {UNIQUE_COUNTRIES.map((countryData) => (
+                                {uniqueCountries.map((countryData) => (
                                   <SelectItem
                                     key={countryData.code}
                                     value={countryData.name}
@@ -689,21 +741,25 @@ export default function ApplyForJobPage() {
                                   <SelectValue>
                                     {alternativePhoneCountryCode ? (
                                       <div className="flex items-center gap-2">
-                                        {PHONE_COUNTRY_CODES.find(
-                                          (c) =>
-                                            c.code ===
-                                            alternativePhoneCountryCode
-                                        )?.flag && (
-                                          <span className="text-lg">
-                                            {
-                                              PHONE_COUNTRY_CODES.find(
-                                                (c) =>
-                                                  c.code ===
-                                                  alternativePhoneCountryCode
-                                              )?.flag
-                                            }
-                                          </span>
-                                        )}
+                                        {(() => {
+                                          const phoneCountryData =
+                                            phoneCountryCodesWithFlags.find(
+                                              (c) =>
+                                                c.code ===
+                                                alternativePhoneCountryCode
+                                            );
+                                          return phoneCountryData?.flagImage ? (
+                                            <img
+                                              src={phoneCountryData.flagImage}
+                                              alt=""
+                                              className="w-6 h-4 object-contain"
+                                            />
+                                          ) : (
+                                            <span className="text-lg">
+                                              {phoneCountryData?.flag || "🌐"}
+                                            </span>
+                                          );
+                                        })()}
                                         <span className="font-mono text-sm">
                                           {alternativePhoneCountryCode}
                                         </span>
@@ -714,15 +770,23 @@ export default function ApplyForJobPage() {
                                   </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                                  {PHONE_COUNTRY_CODES.map((country) => (
+                                  {phoneCountryCodesWithFlags.map((country) => (
                                     <SelectItem
                                       key={`alt-${country.code}-${country.name}`}
                                       value={country.code}
                                     >
                                       <div className="flex items-center gap-2">
-                                        <span className="text-lg">
-                                          {country.flag}
-                                        </span>
+                                        {country.flagImage ? (
+                                          <img
+                                            src={country.flagImage}
+                                            alt={`${country.name} flag`}
+                                            className="w-4 h-3 object-cover rounded-sm"
+                                          />
+                                        ) : (
+                                          <span className="text-lg">
+                                            {country.flag}
+                                          </span>
+                                        )}
                                         <span className="font-mono text-sm">
                                           {country.code}
                                         </span>
@@ -1113,51 +1177,47 @@ export default function ApplyForJobPage() {
                                 {/* Render different input types based on questionType */}
                                 {question.questionType === "YES_NO" ? (
                                   <div className="mt-2">
-                                    <div className="flex space-x-4">
-                                      <label className="flex items-center">
-                                        <input
-                                          type="radio"
-                                          name={`question_${question._id}`}
-                                          value="Yes"
-                                          checked={
-                                            screeningAnswers[question._id] ===
-                                            "Yes"
-                                          }
-                                          onChange={(e) =>
-                                            handleAnswerChange(
-                                              question._id,
-                                              e.target.value
-                                            )
-                                          }
-                                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                                          required={question.required}
+                                    <div className="flex space-x-3">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleAnswerChange(question._id, "Yes")
+                                        }
+                                        className={`flex items-center justify-center px-6 py-3 border rounded-lg transition-all duration-200 ${
+                                          screeningAnswers[question._id] === "Yes"
+                                            ? "border-green-500 bg-green-50 text-green-700"
+                                            : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+                                        }`}
+                                      >
+                                        <Check 
+                                          className={`mr-2 h-4 w-4 ${
+                                            screeningAnswers[question._id] === "Yes"
+                                              ? "text-green-600"
+                                              : "text-gray-400"
+                                          }`} 
                                         />
-                                        <span className="ml-2 text-sm text-gray-700">
-                                          Yes
-                                        </span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="radio"
-                                          name={`question_${question._id}`}
-                                          value="No"
-                                          checked={
-                                            screeningAnswers[question._id] ===
-                                            "No"
-                                          }
-                                          onChange={(e) =>
-                                            handleAnswerChange(
-                                              question._id,
-                                              e.target.value
-                                            )
-                                          }
-                                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                                          required={question.required}
+                                        <span className="text-sm font-medium">Yes</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleAnswerChange(question._id, "No")
+                                        }
+                                        className={`flex items-center justify-center px-6 py-3 border rounded-lg transition-all duration-200 ${
+                                          screeningAnswers[question._id] === "No"
+                                            ? "border-red-500 bg-red-50 text-red-700"
+                                            : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+                                        }`}
+                                      >
+                                        <X 
+                                          className={`mr-2 h-4 w-4 ${
+                                            screeningAnswers[question._id] === "No"
+                                              ? "text-red-600"
+                                              : "text-gray-400"
+                                          }`} 
                                         />
-                                        <span className="ml-2 text-sm text-gray-700">
-                                          No
-                                        </span>
-                                      </label>
+                                        <span className="text-sm font-medium">No</span>
+                                      </button>
                                     </div>
                                   </div>
                                 ) : question.questionType === "NUMERIC" ? (
@@ -1282,7 +1342,7 @@ export default function ApplyForJobPage() {
                       )}
 
                     {/* Candidate Consent Checkbox */}
-                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
                       <div className="flex items-start">
                         <input
                           type="checkbox"
@@ -1298,7 +1358,7 @@ export default function ApplyForJobPage() {
                           htmlFor="candidateConsent"
                           className="ml-3 text-sm text-gray-700"
                         >
-                          <span className="font-medium">
+                          <span className="font-medium text-blue-800">
                             Candidate Consent Declaration:
                           </span>
                           <br />I confirm that I have spoken to the candidate,
