@@ -74,15 +74,14 @@ export async function GET(
     }
 
     // Authorization check: users can only view their own tickets,
-    // admins can view all, and assigned internal users can view assigned tickets
+    // admins and internal users can view all tickets
     const isOwner =
       (ticket as any).submittedBy._id.toString() === userData.userId;
     const isAdmin = userData.role === UserRole.ADMIN;
-    const isAssignedInternal =
-      userData.role === UserRole.INTERNAL &&
-      (ticket as any).assignedTo?.toString() === userData.userId;
+    const isInternalUser = userData.role === UserRole.INTERNAL;
+    const isAssignedInternal = isInternalUser && (ticket as any).assignedTo?._id.toString() === userData.userId;
 
-    if (!isOwner && !isAdmin && !isAssignedInternal) {
+    if (!isOwner && !isAdmin && !isInternalUser) {
       return forbidden();
     }
 

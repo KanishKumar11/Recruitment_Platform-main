@@ -82,7 +82,39 @@ export async function PUT(req: NextRequest) {
       );
     }
     
-    const { name, email, phone, companyName, designation, companySize, recruitmentFirmName } = await req.json();
+    const { 
+      name, 
+      email, 
+      phone, 
+      companyName, 
+      companySize, 
+      designation, 
+      recruitmentFirmName,
+      // Recruiter-specific fields
+      profilePicture,
+      mobileNumber,
+      whatsappNumber,
+      otherContactInfo,
+      country,
+      state,
+      city,
+      totalWorkExperience,
+      recruitmentExperience,
+      rolesClosedLastYear,
+      countriesWorkedIn,
+      bio,
+      linkedinUrl,
+      facebookUrl,
+      otherSocialUrl,
+      geographiesCanHireIn,
+      recruiterType,
+      recruiterCompanyName,
+      recruiterDesignation,
+      recruiterCompanySize,
+      companyEstablishmentYears,
+      companyProfile,
+      resumeFileUrl
+    } = await req.json();
     
     // Validation
     if (!name || !email) {
@@ -116,6 +148,30 @@ export async function PUT(req: NextRequest) {
       designation: designation || '',
       companySize: companySize || '',
       recruitmentFirmName: recruitmentFirmName || '',
+      // Recruiter-specific fields
+      ...(profilePicture !== undefined && { profilePicture }),
+      ...(mobileNumber !== undefined && { mobileNumber }),
+      ...(whatsappNumber !== undefined && { whatsappNumber }),
+      ...(otherContactInfo !== undefined && { otherContactInfo }),
+      ...(country !== undefined && { country }),
+      ...(state !== undefined && { state }),
+      ...(city !== undefined && { city }),
+      ...(totalWorkExperience !== undefined && { totalWorkExperience }),
+      ...(recruitmentExperience !== undefined && { recruitmentExperience }),
+      ...(rolesClosedLastYear !== undefined && { rolesClosedLastYear }),
+      ...(countriesWorkedIn !== undefined && { countriesWorkedIn }),
+      ...(bio !== undefined && { bio }),
+      ...(linkedinUrl !== undefined && { linkedinUrl }),
+      ...(facebookUrl !== undefined && { facebookUrl }),
+      ...(otherSocialUrl !== undefined && { otherSocialUrl }),
+      ...(geographiesCanHireIn !== undefined && { geographiesCanHireIn }),
+      ...(recruiterType !== undefined && { recruiterType }),
+      ...(recruiterCompanyName !== undefined && { recruiterCompanyName }),
+      ...(recruiterDesignation !== undefined && { recruiterDesignation }),
+      ...(recruiterCompanySize !== undefined && { recruiterCompanySize }),
+      ...(companyEstablishmentYears !== undefined && { companyEstablishmentYears }),
+      ...(companyProfile !== undefined && { companyProfile }),
+      ...(resumeFileUrl !== undefined && { resumeFileUrl })
     };
     
     // Update user

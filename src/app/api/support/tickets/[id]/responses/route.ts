@@ -123,21 +123,19 @@ export async function GET(
     }
 
     // Authorization check: users can only view responses for their own tickets,
-    // admins can view all, and assigned internal users can view assigned tickets
+    // admins and internal users can view all tickets
     const isOwner =
       (ticket as any).submittedBy._id.toString() === userData.userId;
     const isAdmin = userData.role === UserRole.ADMIN;
-    const isAssignedInternal =
-      userData.role === UserRole.INTERNAL &&
-      (ticket as any).assignedTo?.toString() === userData.userId;
+    const isInternalUser = userData.role === UserRole.INTERNAL;
 
-    if (!isOwner && !isAdmin && !isAssignedInternal) {
+    if (!isOwner && !isAdmin && !isInternalUser) {
       return forbidden();
     }
 
-    // Filter internal responses for non-admin/non-assigned users
+    // Filter internal responses for non-admin/non-internal users
     let responses = (ticket as any).responses;
-    if (!isAdmin && !isAssignedInternal) {
+    if (!isAdmin && !isInternalUser) {
       responses = responses.filter((response: any) => !response.isInternal);
     }
 
@@ -211,31 +209,31 @@ export async function POST(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // Authorization check: Only admins and assigned internal users can add responses
+    // Authorization check: Only admins and internal users can add responses
     const isAdmin = userData.role === UserRole.ADMIN;
-    const isAssignedInternal =
-      userData.role === UserRole.INTERNAL &&
-      (ticketToCheck as any).assignedTo?.toString() === userData.userId;
+    const isInternalUser = userData.role === UserRole.INTERNAL;
 
-    if (!isAdmin && !isAssignedInternal) {
+    if (!isAdmin && !isInternalUser) {
       return NextResponse.json(
         {
           error: "Forbidden",
           message:
-            "Only admins and assigned internal team members can respond to tickets",
+            "Only admins and internal team members can respond to tickets",
         },
         { status: 403 }
       );
     }
 
     const body = await request.json();
-    const { message, isInternal = false, notifyUser = false } = body;
+    const { message, isInternal, notifyUser } = body;
+    const isInternalValue = isInternal ?? false;
+    const notifyUserValue = notifyUser ?? false;
 
     // Validate response data
     const validation = validateResponseData({
       message,
-      isInternal,
-      notifyUser,
+      isInternal: isInternalValue,
+      notifyUser: notifyUserValue,
     });
     if (!validation.isValid) {
       return NextResponse.json(
@@ -258,7 +256,7 @@ export async function POST(
       _id: new mongoose.Types.ObjectId(),
       message: sanitizedMessage,
       respondedBy: new mongoose.Types.ObjectId(userData.userId),
-      isInternal,
+      isInternal: isInternalValue,
       createdAt: new Date(),
     };
 
@@ -288,18 +286,18 @@ export async function POST(
       userData.userId,
       {
         responseId: newResponse._id?.toString(),
-        isInternal,
+        isInternal: isInternalValue,
         messageLength: sanitizedMessage.length,
       },
       {
         userRole: userData.role,
-        notifyUser,
+        notifyUser: notifyUserValue,
         ticketNumber: ticket.ticketNumber,
       }
     );
 
     // Send email notification to user if requested and not internal
-    if (notifyUser && !isInternal) {
+    if (notifyUserValue && !isInternalValue) {
       sendTicketResponseEmail(ticket, newResponse as ITicketResponse, true)
         .then((result) => {
           logEmailAttempt(

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Authentication</title>
+</head>
+<body>
+    <h1>Authentication Debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        function debugAuth() {
+            const results = document.getElementById('results');
+            let output = '<h2>Debug Results:</h2>';
+            
+            // Check localStorage
+            const authData = localStorage.getItem('auth');
+            output += '<h3>LocalStorage Auth Data:</h3>';
+            if (authData) {
+                try {
+                    const parsed = JSON.parse(authData);
+                    output += '<pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                    
+                    // Check token expiry
+                    if (parsed.token) {
+                        try {
+                            const tokenParts = parsed.token.split('.');
+                            const payload = JSON.parse(atob(tokenParts[1]));
+                            const now = Math.floor(Date.now() / 1000);
+                            const isExpired = payload.exp < now;
+                            
+                            output += '<h3>Token Info:</h3>';
+                            output += '<p>Expires: ' + new Date(payload.exp * 1000).toLocaleString() + '</p>';
+                            output += '<p>Current Time: ' + new Date().toLocaleString() + '</p>';
+                            output += '<p>Is Expired: ' + isExpired + '</p>';
+                            output += '<p>User Role: ' + payload.role + '</p>';
+                            output += '<p>User ID: ' + payload.userId + '</p>';
+                        } catch (e) {
+                            output += '<p>Error parsing token: ' + e.message + '</p>';
+                        }
+                    }
+                } catch (e) {
+                    output += '<p>Error parsing auth data: ' + e.message + '</p>';
+                }
+            } else {
+                output += '<p>No auth data found in localStorage</p>';
+            }
+            
+            // Test API call
+            output += '<h3>API Test:</h3>';
+            if (authData) {
+                const parsed = JSON.parse(authData);
+                if (parsed.token) {
+                    fetch('/api/resumes/all-submissions', {
+                        headers: {
+                            'Authorization': 'Bearer ' + parsed.token
+                        }
+                    })
+                    .then(response => {
+                        output += '<p>API Response Status: ' + response.status + '</p>';
+                        if (response.status === 401) {
+                            output += '<p style="color: red;">UNAUTHORIZED - Token may be invalid or expired</p>';
+                        } else if (response.status === 403) {
+                            output += '<p style="color: red;">FORBIDDEN - User may not have admin role</p>';
+                        } else if (response.status === 200) {
+                            output += '<p style="color: green;">SUCCESS - API call worked</p>';
+                        }
+                        return response.text();
+                    })
+                    .then(text => {
+                        output += '<h4>API Response:</h4><pre>' + text + '</pre>';
+                        results.innerHTML = output;
+                    })
+                    .catch(error => {
+                        output += '<p style="color: red;">API Error: ' + error.message + '</p>';
+                        results.innerHTML = output;
+                    });
+                } else {
+                    output += '<p>No token found</p>';
+                    results.innerHTML = output;
+                }
+            } else {
+                output += '<p>No auth data to test with</p>';
+                results.innerHTML = output;
+            }
+        }
+        
+        // Run debug on page load
+        debugAuth();
+    </script>
+</body>
+</html>

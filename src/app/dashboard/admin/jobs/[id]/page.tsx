@@ -153,7 +153,7 @@ export default function AdminJobDetailPage() {
                     {job.title}
                   </h3>
                   <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                    Job Code: {job.jobCode}
+                    Job Code: {job.jobCode.replace(/^job-/i, '')}
                   </p>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -203,7 +203,7 @@ export default function AdminJobDetailPage() {
                     <p className="text-sm font-medium text-gray-900">
                       Job Code
                     </p>
-                    <p className="text-sm text-gray-500">{job.jobCode}</p>
+                    <p className="text-sm text-gray-500">{job.jobCode.replace(/^job-/i, '')}</p>
                   </div>
                 </div>
               </div>
@@ -260,7 +260,11 @@ export default function AdminJobDetailPage() {
                     </dt>
                     <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.salary.currency} {job.salary.min.toLocaleString()} -{" "}
-                      {job.salary.max.toLocaleString()}
+                      {job.salary.max.toLocaleString()} {
+                        job.compensationType === "HOURLY" ? "per hour" :
+                        job.compensationType === "MONTHLY" ? "per month" :
+                        "per year"
+                      }
                     </dd>
                   </div>
 
@@ -285,10 +289,10 @@ export default function AdminJobDetailPage() {
                     </dd>
                   </div>
 
-                  {/* Commission */}
+                  {/* Recruitment Fee */}
                   <div className="bg-gray-50 rounded-lg p-4">
                     <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Commission
+                      Recruitment Fee
                     </dt>
                     <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.commission?.type === "fixed"
@@ -297,14 +301,22 @@ export default function AdminJobDetailPage() {
                             job.commissionAmount.toLocaleString()
                           } (Fixed)`
                         : job.commission?.type === "percentage"
-                        ? `${job.commission.originalPercentage}% (${
+                        ? `${job.commission.originalPercentage}% of ${
+                            job.compensationType === "HOURLY" ? "hourly" :
+                            job.compensationType === "MONTHLY" ? "monthly" :
+                            "annual"
+                          } salary (${
                             job.salary.currency
                           } ${
                             job.commission.originalAmount?.toLocaleString() ||
                             job.commissionAmount.toLocaleString()
                           })`
                         : job.commissionPercentage > 0
-                        ? `${job.commissionPercentage}% (${
+                        ? `${job.commissionPercentage}% of ${
+                            job.compensationType === "HOURLY" ? "hourly" :
+                            job.compensationType === "MONTHLY" ? "monthly" :
+                            "annual"
+                          } salary (${
                             job.salary.currency
                           } ${job.commissionAmount.toLocaleString()})`
                         : `${

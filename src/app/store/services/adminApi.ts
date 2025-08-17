@@ -67,9 +67,10 @@ export const adminApi = createApi({
       page?: number; 
       limit?: number; 
       isPrimary?: boolean;
-      isActive?: boolean; // Add isActive parameter
+      isActive?: boolean;
+      search?: string; // Add search parameter
     }>({
-      query: ({ role, page = 1, limit = 10, isPrimary, isActive }) => {
+      query: ({ role, page = 1, limit = 10, isPrimary, isActive, search }) => {
         let queryString = `/users?page=${page}&limit=${limit}`;
         if (role) {
           queryString += `&role=${role}`;
@@ -77,13 +78,19 @@ export const adminApi = createApi({
         if (isPrimary !== undefined) {
           queryString += `&isPrimary=${isPrimary}`;
         }
-        // Add isActive parameter to query string
         if (isActive !== undefined) {
           queryString += `&isActive=${isActive}`;
+        }
+        if (search) {
+          queryString += `&search=${encodeURIComponent(search)}`;
         }
         return queryString;
       },
       providesTags: ['AdminUsers'],
+    }),
+    getUserById: builder.query<IUser, string>({
+      query: (id) => `/users/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'AdminUsers', id }],
     }),
     createInternalUser: builder.mutation<{ success: boolean; user: IUser }, CreateUserRequest>({
       query: (userData) => ({
@@ -108,6 +115,15 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ['AdminUsers', 'AdminStats'],
     }),
+    // New endpoint for admin to change user password
+    changeUserPassword: builder.mutation<{ success: boolean; message: string }, { id: string; newPassword: string }>({      
+      query: ({ id, newPassword }) => ({
+        url: `/users/${id}/change-password`,
+        method: 'PUT',
+        body: { newPassword },
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
     // New endpoint for activating/deactivating users
     toggleUserStatus: builder.mutation<UserStatusResponse, { id: string; isActive: boolean }>({
       query: ({ id, isActive }) => ({
@@ -126,9 +142,11 @@ export const adminApi = createApi({
 
 export const {
   useGetUsersQuery,
+  useGetUserByIdQuery,
   useCreateInternalUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
+  useChangeUserPasswordMutation, // New hook for password change
   useToggleUserStatusMutation, // New hook for activate/deactivate
   useGetAdminStatsQuery,
 } = adminApi;

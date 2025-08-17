@@ -264,6 +264,202 @@ export const sendOTPEmail = async (
   }
 };
 
+// Password reset email template
+const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
+  return {
+    subject: "Reset Your Password - Sourcing Screen",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+          .content { padding: 40px 30px; }
+          .reset-button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+          .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+          .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0; color: #856404; }
+          .url-box { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0; word-break: break-all; font-family: monospace; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Password Reset Request</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${name}!</h2>
+            <p>We received a request to reset your password for your Sourcing Screen account. If you made this request, click the button below to reset your password:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" class="reset-button">Reset Your Password</a>
+            </div>
+            
+            <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+            <div class="url-box">${resetUrl}</div>
+            
+            <div class="warning">
+              <strong>Security Notice:</strong> This password reset link will expire in 1 hour for security reasons. If you didn't request this password reset, please ignore this email and your password will remain unchanged.
+            </div>
+            
+            <p>If you continue to have problems or didn't request this reset, please contact our support team.</p>
+            
+            <p>Best regards,<br>The Sourcing Screen Team</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated message, please do not reply to this email.</p>
+            <p>&copy; ${new Date().getFullYear()} Sourcing Screen. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      Hello ${name}!
+      
+      We received a request to reset your password for your Sourcing Screen account. If you made this request, please visit the following link to reset your password:
+      
+      ${resetUrl}
+      
+      Security Notice: This password reset link will expire in 1 hour for security reasons. If you didn't request this password reset, please ignore this email and your password will remain unchanged.
+      
+      If you continue to have problems or didn't request this reset, please contact our support team.
+      
+      Best regards,
+      The Sourcing Screen Team
+      
+      This is an automated message, please do not reply to this email.
+    `,
+  };
+};
+
+// Password reset confirmation email template
+const getPasswordResetConfirmationTemplate = (name: string) => {
+  return {
+    subject: "Password Successfully Reset - Sourcing Screen",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset Confirmation</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+          .content { padding: 40px 30px; }
+          .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+          .success-icon { font-size: 48px; color: #28a745; text-align: center; margin: 20px 0; }
+          .warning { background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 5px; padding: 15px; margin: 20px 0; color: #0c5460; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Password Reset Successful</h1>
+          </div>
+          <div class="content">
+            <div class="success-icon">✅</div>
+            <h2>Hello ${name}!</h2>
+            <p>Your password has been successfully reset for your Sourcing Screen account.</p>
+            
+            <div class="warning">
+              <strong>Security Notice:</strong> If you didn't make this change, please contact our support team immediately. Your account security is important to us.
+            </div>
+            
+            <p>You can now log in to your account using your new password.</p>
+            
+            <p>Best regards,<br>The Sourcing Screen Team</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated message, please do not reply to this email.</p>
+            <p>&copy; ${new Date().getFullYear()} Sourcing Screen. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      Hello ${name}!
+      
+      Your password has been successfully reset for your Sourcing Screen account.
+      
+      Security Notice: If you didn't make this change, please contact our support team immediately. Your account security is important to us.
+      
+      You can now log in to your account using your new password.
+      
+      Best regards,
+      The Sourcing Screen Team
+      
+      This is an automated message, please do not reply to this email.
+    `,
+  };
+};
+
+export const sendPasswordResetEmail = async (
+  email: string,
+  name: string,
+  resetUrl: string
+): Promise<boolean> => {
+  try {
+    const transporter = createTransporter();
+    const emailTemplate = getPasswordResetEmailTemplate(name, resetUrl);
+
+    const mailOptions = {
+      from: {
+        name: "Sourcing Screen",
+        address: process.env.ZOHO_EMAIL!,
+      },
+      to: email,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Password reset email sent successfully:", result.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    return false;
+  }
+};
+
+export const sendPasswordResetConfirmationEmail = async (
+  email: string,
+  name: string
+): Promise<boolean> => {
+  try {
+    const transporter = createTransporter();
+    const emailTemplate = getPasswordResetConfirmationTemplate(name);
+
+    const mailOptions = {
+      from: {
+        name: "Sourcing Screen",
+        address: process.env.ZOHO_EMAIL!,
+      },
+      to: email,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Password reset confirmation email sent successfully:", result.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending password reset confirmation email:", error);
+    return false;
+  }
+};
+
 export const sendWelcomeEmail = async (
   email: string,
   name: string

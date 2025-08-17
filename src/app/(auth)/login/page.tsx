@@ -266,14 +266,14 @@ function LoginContent() {
                 </label>
               </div>
 
-              {/* <div className="text-sm">
+              <div className="text-sm">
                 <Link
                   href="/forgot-password"
                   className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
                 >
                   Forgot password?
                 </Link>
-              </div> */}
+              </div>
             </div>
 
             <div>

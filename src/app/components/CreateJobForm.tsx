@@ -28,28 +28,35 @@ import {
 } from "@/components/ui/select";
 import { useSelector } from "react-redux";
 import { countries } from "@/lib/countries";
+import { CountrySelector } from "@/components/ui/country-selector";
 import { useCreateJobMutation } from "@/app/store/services/jobsApi";
 import { JobStatus } from "../constants/jobStatus";
 import { JobType } from "../constants/jobType";
 import RichTextEditor from "./RichTextEditor";
 
-// Define the Country interface from the new countries data
-interface CountryData {
-  code: string; // Currency code (e.g., "USD")
-  name: string; // Currency name (e.g., "US Dollar")
-  country: string; // Country name (e.g., "United States")
-  countryCode: string; // Country code (e.g., "US")
-  flag?: string; // Base64 encoded flag image (optional)
-}
+// Import the Country type from lib/countries
+import { Country } from "@/lib/countries";
 
 // Use the countries data which contains both country and currency information
-const countriesData: CountryData[] = countries;
+const countriesData: Country[] = countries;
+
+// Helper function to get currency code from country code
+function getCurrencyFromCountryCode(countryCode: string): string {
+  const currencyMap: Record<string, string> = {
+    US: "USD", CA: "CAD", GB: "GBP", AU: "AUD", DE: "EUR", FR: "EUR", IT: "EUR", ES: "EUR",
+    JP: "JPY", CN: "CNY", IN: "INR", BR: "BRL", MX: "MXN", KR: "KRW", SG: "SGD",
+    CH: "CHF", SE: "SEK", NO: "NOK", DK: "DKK", NZ: "NZD", ZA: "ZAR", RU: "RUB",
+    AE: "AED", SA: "SAR", TR: "TRY", TH: "THB", ID: "IDR", PH: "PHP", MY: "MYR",
+    VN: "VND", EG: "EGP", PK: "PKR", BD: "BDT"
+  };
+  return currencyMap[countryCode] || "USD";
+}
 
 // Create a map of currency code to countries that use it
 const currencyToCountriesMap = countriesData.reduce<
-  Record<string, CountryData[]>
+  Record<string, Country[]>
 >((acc, item) => {
-  const currencyCode = item.code;
+  const currencyCode = getCurrencyFromCountryCode(item.code);
   if (currencyCode) {
     if (!acc[currencyCode]) {
       acc[currencyCode] = [];
@@ -60,9 +67,9 @@ const currencyToCountriesMap = countriesData.reduce<
 }, {});
 
 // Create a map of country code to country data for easy lookup
-const countryCodeToDataMap = countriesData.reduce<Record<string, CountryData>>(
+const countryCodeToDataMap = countriesData.reduce<Record<string, Country>>(
   (acc, item) => {
-    acc[item.countryCode] = item;
+    acc[item.code] = item;
     return acc;
   },
   {}
@@ -72,12 +79,12 @@ const countryCodeToDataMap = countriesData.reduce<Record<string, CountryData>>(
 const uniqueCountries = Array.from(
   new Map(
     countriesData.map((item) => [
-      item.countryCode,
+      item.code,
       {
-        code: item.countryCode,
-        name: item.country,
-        flag: item.flag || "",
-        currencyCode: item.code,
+        code: item.code,
+        name: item.name,
+        flag: item.image || "",
+        currencyCode: getCurrencyFromCountryCode(item.code),
       },
     ])
   ).values()
@@ -86,14 +93,17 @@ const uniqueCountries = Array.from(
 // Create a unique list of currencies for the currency selector
 const uniqueCurrencies = Array.from(
   new Map(
-    countriesData.map((item) => [
-      item.code,
-      {
-        code: item.code,
-        name: item.name,
-        symbol: getCurrencySymbol(item.code), // We'll implement this function
-      },
-    ])
+    countriesData.map((item) => {
+      const currencyCode = getCurrencyFromCountryCode(item.code);
+      return [
+        currencyCode,
+        {
+          code: currencyCode,
+          name: `${currencyCode} - ${item.name}`,
+          symbol: getCurrencySymbol(currencyCode),
+        },
+      ];
+    })
   ).values()
 );
 
@@ -203,7 +213,7 @@ function getCurrencySymbol(currencyCode: string): string {
 
 // Commission configuration
 const COMMISSION_CONFIG = {
-  DEFAULT_REDUCTION_PERCENTAGE: 40,
+  DEFAULT_REDUCTION_PERCENTAGE: 50,
   MIN_REDUCTION_PERCENTAGE: 0,
   MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
@@ -234,9 +244,10 @@ interface JobFormData {
   compensationDetails: string;
   replacementTerms: string;
   commission: {
-    type: "percentage" | "fixed";
+    type: "percentage" | "fixed" | "hourly";
     originalPercentage: number;
     fixedAmount: number;
+    hourlyRate: number;
     recruiterPercentage: number;
     platformFeePercentage: number;
     reductionPercentage: number;
@@ -299,11 +310,7 @@ export default function CreateJobForm({
     }
   }, [user, userRole]);
 
-  // Helper function to safely get currency symbol
-  const getCurrencySymbol = (currencyCode: string): string => {
-    // Use the existing getCurrencySymbol function we defined earlier
-    return getCurrencySymbol(currencyCode);
-  };
+  // Helper function removed - using the global getCurrencySymbol function defined above
 
   // Determine dynamic redirect path
   const dynamicRedirectPath = redirectPath || getRedirectPath(userRole);
@@ -338,6 +345,7 @@ export default function CreateJobForm({
       type: "percentage", // Default to percentage
       originalPercentage: 0,
       fixedAmount: 0, // New field
+      hourlyRate: 0, // Add missing hourlyRate property
       recruiterPercentage: 0,
       platformFeePercentage: 0,
       reductionPercentage: COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
@@ -422,10 +430,10 @@ export default function CreateJobForm({
   // Handle rich text editor changes
   const handleRichTextChange =
     (field: keyof JobFormData) => (content: string) => {
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         [field]: content,
-      });
+      }));
     };
 
   // Handle number inputs
@@ -456,20 +464,22 @@ export default function CreateJobForm({
   const handleCommissionTypeChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const commissionType = e.target.value as "percentage" | "fixed";
+    const commissionType = e.target.value as "percentage" | "fixed" | "hourly";
 
     setFormData({
       ...formData,
       commission: {
         ...formData.commission,
         type: commissionType,
-        // Reset the opposite field when switching types
+        // Reset the opposite fields when switching types
         originalPercentage:
           commissionType === "percentage"
             ? formData.commission.originalPercentage
             : 0,
         fixedAmount:
           commissionType === "fixed" ? formData.commission.fixedAmount : 0,
+        hourlyRate:
+          commissionType === "hourly" ? formData.commission.hourlyRate : 0,
       },
     });
   };
@@ -509,6 +519,27 @@ export default function CreateJobForm({
         ...formData.commission,
         fixedAmount,
         originalPercentage: 0, // Reset percentage when using fixed amount
+        recruiterPercentage: 0,
+        platformFeePercentage: 0,
+      },
+      // Update legacy field for backward compatibility
+      commissionPercentage: 0,
+    });
+  };
+
+  // Handle hourly commission rate change
+  const handleHourlyCommissionChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const hourlyRate = parseFloat(e.target.value) || 0;
+
+    setFormData({
+      ...formData,
+      commission: {
+        ...formData.commission,
+        hourlyRate,
+        originalPercentage: 0, // Reset percentage when using hourly rate
+        fixedAmount: 0, // Reset fixed amount when using hourly rate
         recruiterPercentage: 0,
         platformFeePercentage: 0,
       },
@@ -598,12 +629,32 @@ export default function CreateJobForm({
         // Update legacy field
         commissionAmount: formData.commission.fixedAmount,
       }));
+    } else if (
+      formData.commission.type === "hourly" &&
+      formData.commission.hourlyRate > 0
+    ) {
+      const { recruiterAmount } = calculateFixedCommissionBreakdown(
+        formData.commission.hourlyRate,
+        formData.commission.reductionPercentage
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        commission: {
+          ...prev.commission,
+          originalAmount: formData.commission.hourlyRate,
+          recruiterAmount,
+        },
+        // Update legacy field
+        commissionAmount: formData.commission.hourlyRate,
+      }));
     }
   }, [
     formData.salary.max,
     formData.commission.originalPercentage,
     formData.commission.recruiterPercentage,
     formData.commission.fixedAmount,
+    formData.commission.hourlyRate,
     formData.commission.reductionPercentage,
     formData.commission.type,
   ]);
@@ -965,8 +1016,8 @@ export default function CreateJobForm({
             </div>
           </div>
 
-          {/* Row 1.5: Company Name - Only show for internal users */}
-          {userRole === "INTERNAL" && (
+          {/* Row 1.5: Company Name - Only show for internal and admin users */}
+          {(userRole === "INTERNAL" || userRole === "ADMIN") && (
             <div className="grid grid-cols-1 gap-6 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1024,16 +1075,16 @@ export default function CreateJobForm({
               <label className="block text-sm font-medium text-gray-700">
                 Country
               </label>
-              <Select
-                value={formData.country}
-                onValueChange={(value: string) => {
+              <CountrySelector
+                value={uniqueCountries.find((c) => c.code === formData.country)?.name || ""}
+                onValueChange={(countryName: string) => {
                   const selectedCountry = uniqueCountries.find(
-                    (c) => c.code === value
+                    (c) => c.name === countryName
                   );
                   if (selectedCountry) {
                     setFormData((prev) => ({
                       ...prev,
-                      country: value,
+                      country: selectedCountry.code,
                       salary: {
                         ...prev.salary,
                         currency: selectedCountry.currencyCode || "USD",
@@ -1041,56 +1092,9 @@ export default function CreateJobForm({
                     }));
                   }
                 }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a country">
-                    {formData.country ? (
-                      <div className="flex items-center gap-2">
-                        {uniqueCountries.find(
-                          (c) => c.code === formData.country
-                        )?.flag ? (
-                          <img
-                            src={
-                              uniqueCountries.find(
-                                (c) => c.code === formData.country
-                              )?.flag
-                            }
-                            alt=""
-                            className="w-6 h-4 object-contain"
-                          />
-                        ) : (
-                          <span className="text-lg">🌐</span>
-                        )}
-                        <span>
-                          {uniqueCountries.find(
-                            (c) => c.code === formData.country
-                          )?.name || "Select a country"}
-                        </span>
-                      </div>
-                    ) : (
-                      "Select a country"
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="max-h-[400px] overflow-y-auto">
-                  {uniqueCountries.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
-                      <div className="flex items-center gap-2">
-                        {country.flag ? (
-                          <img
-                            src={country.flag}
-                            alt=""
-                            className="w-6 h-4 object-contain"
-                          />
-                        ) : (
-                          <span className="text-lg">🌐</span>
-                        )}
-                        <span className="flex-1">{country.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Select a country"
+                className="w-full"
+              />
             </div>
 
             <div>
@@ -1390,6 +1394,18 @@ export default function CreateJobForm({
                 />
                 <span className="ml-2 text-sm text-gray-700">Fixed Amount</span>
               </label>
+
+              <label className="inline-flex items-center">
+                <input
+                  type="radio"
+                  name="commission.type"
+                  value="hourly"
+                  checked={formData.commission.type === "hourly"}
+                  onChange={handleCommissionTypeChange}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                />
+                <span className="ml-2 text-sm text-gray-700">Hourly Rate</span>
+              </label>
             </div>
           </div>
 
@@ -1412,7 +1428,7 @@ export default function CreateJobForm({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-            ) : (
+            ) : formData.commission.type === "fixed" ? (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Fixed Commission Amount*
@@ -1422,6 +1438,22 @@ export default function CreateJobForm({
                   name="commission.fixedAmount"
                   value={formData.commission.fixedAmount || ""}
                   onChange={handleFixedCommissionChange}
+                  required
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hourly Commission Rate*
+                </label>
+                <input
+                  type="number"
+                  name="commission.hourlyRate"
+                  value={formData.commission.hourlyRate || ""}
+                  onChange={handleHourlyCommissionChange}
                   required
                   min="0"
                   step="0.01"
@@ -1442,7 +1474,9 @@ export default function CreateJobForm({
                 placeholder={
                   formData.commission.type === "percentage"
                     ? "Auto-calculated based on max salary and percentage"
-                    : "Fixed amount entered above"
+                    : formData.commission.type === "fixed"
+                    ? "Fixed amount entered above"
+                    : "Hourly rate entered above"
                 }
               />
             </div>

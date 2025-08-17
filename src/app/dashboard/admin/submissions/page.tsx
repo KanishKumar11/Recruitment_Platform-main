@@ -407,7 +407,7 @@ export default function AdminSubmissionsPage() {
 
           {/* Search and Filter Controls */}
           <div className="bg-white p-4 rounded-lg shadow mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Search
@@ -503,17 +503,16 @@ export default function AdminSubmissionsPage() {
                   </select>
                 </div>
               </div>
-            </div>
 
-            {/* Clear filters button */}
-            <div className="flex justify-end">
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Clear Filters
-              </button>
+              <div className="col-span-1 flex items-end">
+                <button
+                  onClick={clearFilters}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full justify-center"
+                >
+                  <Filter className="mr-2 h-4 w-4" />
+                  Clear Filters
+                </button>
+              </div>
             </div>
           </div>
 
@@ -537,23 +536,17 @@ export default function AdminSubmissionsPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Candidate
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Job Title
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Submitted By
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Last Updated
-                      </th>
+                      Candidate
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Job Title
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Submitted By
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -586,8 +579,21 @@ export default function AdminSubmissionsPage() {
                               }}
                             />
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {resume.qualification}
+                          <div className="text-xs text-gray-500 mt-1">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="bg-blue-50 px-2 py-1 rounded text-xs">
+                                CTC: {resume.currentCTC || "N/A"}
+                              </span>
+                              <span className="bg-green-50 px-2 py-1 rounded text-xs">
+                                Notice: {resume.noticePeriod || "N/A"}
+                              </span>
+                              <span className="bg-yellow-50 px-2 py-1 rounded text-xs">
+                                Total Exp: {resume.totalExperience || "N/A"}
+                              </span>
+                              <span className="bg-purple-50 px-2 py-1 rounded text-xs">
+                                Rel Exp: {resume.relevantExperience || "N/A"}
+                              </span>
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -611,72 +617,7 @@ export default function AdminSubmissionsPage() {
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex flex-col space-y-2">
-                            <ResumeStatusBadge status={resume.status} />
-
-                            {/* Show timestamp for the latest status change */}
-                            {resume.status === ResumeStatus.HIRED &&
-                              resume.hiredAt && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  <Clock className="inline-block h-3 w-3 mr-1" />
-                                  {new Date(
-                                    resume.hiredAt
-                                  ).toLocaleDateString()}
-                                </div>
-                              )}
-                            {resume.status === ResumeStatus.INTERVIEWED &&
-                              resume.interviewedAt && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  <Clock className="inline-block h-3 w-3 mr-1" />
-                                  {new Date(
-                                    resume.interviewedAt
-                                  ).toLocaleDateString()}
-                                </div>
-                              )}
-                            {resume.status === ResumeStatus.REJECTED &&
-                              resume.rejectedAt && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  <Clock className="inline-block h-3 w-3 mr-1" />
-                                  {new Date(
-                                    resume.rejectedAt
-                                  ).toLocaleDateString()}
-                                </div>
-                              )}
-                            {resume.status === ResumeStatus.DUPLICATE &&
-                              resume.duplicateAt && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  <Clock className="inline-block h-3 w-3 mr-1" />
-                                  {new Date(
-                                    resume.duplicateAt
-                                  ).toLocaleDateString()}
-                                </div>
-                              )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-xs text-gray-700">
-                            <span className="bg-gray-100 px-2 py-1 rounded-md mr-1">
-                              Notice: {resume.noticePeriod || "N/A"}
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-700 mt-1">
-                            <span className="bg-blue-50 px-2 py-1 rounded-md mr-1">
-                              CTC: {resume.currentCTC || "N/A"}
-                            </span>
-                            <span className="bg-green-50 px-2 py-1 rounded-md">
-                              Exp: {resume.expectedCTC || "N/A"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div>
-                            Updated:{" "}
-                            {new Date(resume.updatedAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs">
-                            Created:{" "}
-                            {new Date(resume.createdAt).toLocaleDateString()}
-                          </div>
+                          <ResumeStatusBadge status={resume.status} />
                         </td>
                       </tr>
                     ))}

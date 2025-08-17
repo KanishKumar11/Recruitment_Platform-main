@@ -22,7 +22,7 @@ import { JobStatus } from "@/app/constants/jobStatus";
 
 // Commission configuration
 const COMMISSION_CONFIG = {
-  DEFAULT_REDUCTION_PERCENTAGE: 40,
+  DEFAULT_REDUCTION_PERCENTAGE: 50,
   MIN_REDUCTION_PERCENTAGE: 0,
   MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
@@ -61,7 +61,7 @@ export default function AdminJobEditPage() {
     },
     // Enhanced commission structure
     commission: {
-      type: "percentage", // Default to percentage
+      type: "percentage" as "percentage" | "fixed" | "hourly", // Default to percentage
       originalPercentage: 0,
       recruiterPercentage: 0,
       platformFeePercentage: 0,
@@ -69,6 +69,7 @@ export default function AdminJobEditPage() {
       originalAmount: 0,
       recruiterAmount: 0,
       fixedAmount: 0,
+      hourlyRate: 0,
     },
     // Legacy fields for backward compatibility
     commissionPercentage: 0,
@@ -448,6 +449,7 @@ export default function AdminJobEditPage() {
           originalAmount: Number(formData.commission.originalAmount) || 0,
           recruiterAmount: Number(formData.commission.recruiterAmount) || 0,
           fixedAmount: Number(formData.commission.fixedAmount) || 0,
+          hourlyRate: Number(formData.commission.hourlyRate) || 0,
         },
       };
 
@@ -818,6 +820,19 @@ export default function AdminJobEditPage() {
                         Fixed amount
                       </span>
                     </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="commissionType"
+                        value="hourly"
+                        checked={formData.commission?.type === "hourly"}
+                        onChange={(e) => handleCommissionTypeChange("hourly")}
+                        className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Hourly rate
+                      </span>
+                    </label>
                   </div>
                 </div>
 
@@ -982,7 +997,7 @@ export default function AdminJobEditPage() {
                       </div>
                     </div>
                   </>
-                ) : (
+                ) : formData.commission?.type === "fixed" ? (
                   /* Fixed Amount Commission Fields */
                   <>
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -1101,18 +1116,146 @@ export default function AdminJobEditPage() {
                           </div>
                           <div className="text-lg font-bold text-green-900">
                             {formData.salary.currency}{" "}
-                            {(
-                              formData.commission?.fixedAmount ||
-                              formData.commissionAmount ||
-                              0
-                            ).toLocaleString()}
+                            {formData.commission?.fixedAmount > 0 &&
+                            formData.commission?.reductionPercentage !== undefined
+                              ? (
+                                  (formData.commission.fixedAmount *
+                                    (100 -
+                                      formData.commission.reductionPercentage)) /
+                                  100
+                                ).toLocaleString()
+                              : "0"}
                           </div>
-                          <div className="text-green-700">Full Amount</div>
+                          <div className="text-green-700">After Platform Fee ({formData.commission?.reductionPercentage || 50}%)</div>
                         </div>
                       </div>
                     </div>
                   </>
-                )}
+                ) : formData.commission?.type === "hourly" ? (
+                  /* Hourly Commission Fields */
+                  <>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      {/* Hourly Rate */}
+                      <div>
+                        <label
+                          htmlFor="hourlyRate"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Hourly Rate
+                        </label>
+                        <input
+                          type="number"
+                          id="hourlyRate"
+                          value={formData.commission?.hourlyRate || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              commission: {
+                                ...formData.commission,
+                                hourlyRate: parseFloat(e.target.value) || 0,
+                              },
+                            })
+                          }
+                          min="0"
+                          step="0.01"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                        <p className="mt-1 text-sm text-gray-500">
+                          Hourly rate in {formData.salary.currency}
+                        </p>
+                      </div>
+
+                      {/* Platform Fee Control for Hourly Rate */}
+                      <div>
+                        <label
+                          htmlFor="hourlyReductionPercentage"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Platform Fee Reduction % (Admin Control)
+                        </label>
+                        <input
+                          type="number"
+                          id="hourlyReductionPercentage"
+                          value={formData.commission?.reductionPercentage || ""}
+                          onChange={handleReductionChange}
+                          min={COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}
+                          max={COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}
+                          step="0.1"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-orange-50"
+                        />
+                        <p className="mt-1 text-sm text-orange-600">
+                          Percentage to reduce from hourly rate (default:{" "}
+                          {COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE}%,
+                          range: {COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}%-
+                          {COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}%)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-1">
+                      {/* Recruiter Hourly Rate Display */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Recruiter Hourly Rate ({formData.salary.currency})
+                        </label>
+                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                          {formData.commission?.hourlyRate > 0 &&
+                          formData.commission?.reductionPercentage !== undefined
+                            ? (
+                                (formData.commission.hourlyRate *
+                                  (100 -
+                                    formData.commission.reductionPercentage)) /
+                                100
+                              ).toFixed(2)
+                            : "0.00"}
+                          /hour
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Hourly rate recruiters will receive after platform fee
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Hourly Commission Summary */}
+                    <div className="mt-6 bg-gray-50 rounded-lg p-4">
+                      <h4 className="text-md font-medium text-gray-900 mb-3">
+                        Hourly Commission Summary
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="bg-blue-100 p-3 rounded">
+                          <div className="font-medium text-blue-800">
+                            Original Hourly Rate
+                          </div>
+                          <div className="text-lg font-bold text-blue-900">
+                            {formData.salary.currency}{" "}
+                            {(formData.commission?.hourlyRate || 0).toFixed(2)}
+                            /hour
+                          </div>
+                          <div className="text-blue-700">Company Set Rate</div>
+                        </div>
+                        <div className="bg-green-100 p-3 rounded">
+                          <div className="font-medium text-green-800">
+                            Recruiter Gets
+                          </div>
+                          <div className="text-lg font-bold text-green-900">
+                            {formData.salary.currency}{" "}
+                            {formData.commission?.hourlyRate > 0 &&
+                            formData.commission?.reductionPercentage !== undefined
+                              ? (
+                                  (formData.commission.hourlyRate *
+                                    (100 -
+                                      formData.commission.reductionPercentage)) /
+                                  100
+                                ).toFixed(2)
+                              : "0.00"}
+                            /hour
+                          </div>
+                          <div className="text-green-700">After Platform Fee ({formData.commission?.reductionPercentage || 50}%)</div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : null}
               </div>
 
               {/* Description & Guidelines */}

@@ -53,7 +53,7 @@ export default function EditJobPage() {
     commissionAmount: 0,
     // New commission structure
     commission: {
-      type: "percentage" as "percentage" | "fixed",
+      type: "percentage" as "percentage" | "fixed" | "hourly",
       originalPercentage: 0,
       recruiterPercentage: 0,
       platformFeePercentage: 0,
@@ -61,6 +61,7 @@ export default function EditJobPage() {
       originalAmount: 0,
       recruiterAmount: 0,
       fixedAmount: 0,
+      hourlyRate: 0,
     },
     description: "",
     companyDescription: "",
@@ -110,6 +111,7 @@ export default function EditJobPage() {
           fixedAmount:
             job.commission?.fixedAmount ||
             (job.commissionPercentage === 0 ? job.commissionAmount : 0),
+          hourlyRate: job.commission?.hourlyRate || 0,
         },
         description: job.description || "",
         companyDescription: job.companyDescription || "",
@@ -228,6 +230,13 @@ export default function EditJobPage() {
         commissionPercentage: 0,
         commissionAmount: prev.commission.fixedAmount,
       }));
+    } else if (formData.commission.type === "hourly") {
+      // For hourly commission, update legacy fields
+      setFormData((prev) => ({
+        ...prev,
+        commissionPercentage: 0,
+        commissionAmount: prev.commission.hourlyRate,
+      }));
     }
   }, [
     formData.salary.min,
@@ -235,6 +244,7 @@ export default function EditJobPage() {
     formData.commission.originalPercentage,
     formData.commission.type,
     formData.commission.fixedAmount,
+    formData.commission.hourlyRate,
   ]);
 
   // Handle form submission
@@ -569,6 +579,7 @@ export default function EditJobPage() {
                         >
                           <option value="percentage">Percentage</option>
                           <option value="fixed">Fixed Amount</option>
+                          <option value="hourly">Hourly Rate</option>
                         </select>
                       </div>
 
@@ -614,7 +625,7 @@ export default function EditJobPage() {
                             />
                           </div>
                         </>
-                      ) : (
+                      ) : formData.commission.type === "fixed" ? (
                         <>
                           {/* Fixed Commission Amount */}
                           <div className="col-span-6 sm:col-span-2">
@@ -639,7 +650,33 @@ export default function EditJobPage() {
                           {/* Empty column for alignment */}
                           <div className="col-span-6 sm:col-span-2"></div>
                         </>
-                      )}
+                      ) : formData.commission.type === "hourly" ? (
+                        <>
+                          {/* Hourly Rate */}
+                          <div className="col-span-6 sm:col-span-2">
+                            <label
+                              htmlFor="commission.hourlyRate"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Hourly Rate*
+                            </label>
+                            <input
+                              type="number"
+                              name="commission.hourlyRate"
+                              id="commission.hourlyRate"
+                              value={formData.commission.hourlyRate}
+                              onChange={handleNumberChange}
+                              required
+                              min="0"
+                              step="0.01"
+                              className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            />
+                          </div>
+
+                          {/* Empty column for alignment */}
+                          <div className="col-span-6 sm:col-span-2"></div>
+                        </>
+                      ) : null}
 
                       {/* Payment Terms */}
                       <div className="col-span-6">

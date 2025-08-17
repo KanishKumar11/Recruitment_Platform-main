@@ -22,7 +22,7 @@ import { JobStatus } from "@/app/constants/jobStatus";
 
 // Commission configuration
 const COMMISSION_CONFIG = {
-  DEFAULT_REDUCTION_PERCENTAGE: 40,
+  DEFAULT_REDUCTION_PERCENTAGE: 50,
   MIN_REDUCTION_PERCENTAGE: 0,
   MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
@@ -62,12 +62,15 @@ export default function InternalJobEditPage() {
     },
     // Enhanced commission structure
     commission: {
+      type: "percentage" as "percentage" | "fixed" | "hourly",
       originalPercentage: 0,
       recruiterPercentage: 0,
       platformFeePercentage: 0,
       reductionPercentage: COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
       originalAmount: 0,
       recruiterAmount: 0,
+      fixedAmount: 0,
+      hourlyRate: 0,
     },
     // Legacy fields for backward compatibility
     commissionPercentage: 0,
@@ -550,15 +553,22 @@ export default function InternalJobEditPage() {
                     </select>
                   </div>
 
-                  <div>
-                    <RichTextEditor
-                      label="Company Description"
-                      value={formData.companyDescription}
-                      onChange={handleRichTextChange("companyDescription")}
-                      required={false}
-                      placeholder="Brief description of the company..."
-                    />
-                  </div>
+                </div>
+              </div>
+
+              {/* Company Description */} 
+              <div className="bg-white shadow sm:rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Company Description
+                </h3>
+                <div>
+                  <RichTextEditor
+                    label="Company Description"
+                    value={formData.companyDescription}
+                    onChange={handleRichTextChange("companyDescription")}
+                    required={false}
+                    placeholder="Brief description of the company..."
+                  />
                 </div>
               </div>
 
@@ -740,6 +750,30 @@ export default function InternalJobEditPage() {
                           Fixed amount
                         </span>
                       </label>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          name="commissionType"
+                          value="hourly"
+                          checked={formData.commission.type === "hourly"}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                commission: {
+                                  ...prev.commission,
+                                  type: "hourly",
+                                  hourlyRate: prev.commission.hourlyRate || 0,
+                                },
+                              }));
+                            }
+                          }}
+                          className="form-radio h-4 w-4 text-indigo-600"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          Hourly rate
+                        </span>
+                      </label>
                     </div>
                   </div>
 
@@ -849,6 +883,58 @@ export default function InternalJobEditPage() {
                           </div>
                           <p className="mt-1 text-sm text-gray-500">
                             Amount recruiters will receive after platform fee
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hourly Commission Section */}
+                  {formData.commission.type === "hourly" && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="hourlyCommission"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Hourly Commission Rate ({formData.salary.currency})
+                          </label>
+                          <input
+                            type="number"
+                            id="hourlyCommission"
+                            value={formData.commission.hourlyRate || ""}
+                            onChange={(e) => {
+                              const hourlyRate =
+                                parseFloat(e.target.value) || 0;
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                commission: {
+                                  ...prev.commission,
+                                  hourlyRate,
+                                },
+                                // Update legacy field for backward compatibility
+                                commissionAmount: hourlyRate,
+                              }));
+                            }}
+                            min="0"
+                            step="0.01"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          />
+                          <p className="mt-1 text-sm text-gray-500">
+                            Hourly rate paid for commission
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Commission Type
+                          </label>
+                          <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                            Hourly Rate
+                          </div>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Commission based on hourly rate
                           </p>
                         </div>
                       </div>

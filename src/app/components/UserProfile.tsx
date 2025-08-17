@@ -14,7 +14,33 @@ interface UpdateProfileFormData {
   companySize?: string;
   designation?: string;
 
-  recruitmentFirmName?: string; 
+  // Recruiter-specific fields
+  recruitmentFirmName?: string;
+  profilePicture?: string;
+  mobileNumber?: string;
+  whatsappNumber?: string;
+  otherContactInfo?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  totalWorkExperience?: number;
+  recruitmentExperience?: number;
+  rolesClosedLastYear?: number;
+  countriesWorkedIn?: string[];
+  bio?: string;
+  linkedinUrl?: string;
+  facebookUrl?: string;
+  otherSocialUrl?: string;
+  geographiesCanHireIn?: string[];
+  recruiterType?: 'individual' | 'company';
+  // Company details for recruiters
+  recruiterCompanyName?: string;
+  recruiterDesignation?: string;
+  recruiterCompanySize?: string;
+  companyEstablishmentYears?: number;
+  companyProfile?: string;
+  resumeFile?: File | null;
+  resumeFileUrl?: string;
 }
 
 interface ChangePasswordFormData {
@@ -24,12 +50,35 @@ interface ChangePasswordFormData {
 }
 
 const COMPANY_SIZES = [
-  '1-10 employees',
-  '11-50 employees',
-  '51-200 employees',
-  '201-500 employees',
-  '501-1000 employees',
-  '1000+ employees'
+  'Self Employed',
+  '2-10 Employees',
+  '11-50 Employees',
+  '51-200 Employees',
+  '201-500 Employees',
+  '501+ Employees'
+];
+
+const COUNTRIES = [
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
+  'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
+  'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
+  'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
+  'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Democratic Republic of the Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador',
+  'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France',
+  'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau',
+  'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland',
+  'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait',
+  'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg',
+  'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico',
+  'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru',
+  'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway', 'Oman',
+  'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal',
+  'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe',
+  'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
+  'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
+  'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey',
+  'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu',
+  'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
 ];
 
 export default function UserProfile() {
@@ -47,11 +96,37 @@ export default function UserProfile() {
       companySize: '',
       designation: ''
     }),
-    // Initialize recruiter field
-  ...(user?.role === 'RECRUITER' && {
-    recruitmentFirmName: ''
-  })
+    // Initialize recruiter fields
+    ...(user?.role === 'RECRUITER' && {
+      recruitmentFirmName: '',
+      profilePicture: '',
+      mobileNumber: '',
+      whatsappNumber: '',
+      otherContactInfo: '',
+      country: '',
+      state: '',
+      city: '',
+      totalWorkExperience: 0,
+      recruitmentExperience: 0,
+      rolesClosedLastYear: 0,
+      countriesWorkedIn: [],
+      bio: '',
+      linkedinUrl: '',
+      facebookUrl: '',
+      otherSocialUrl: '',
+      geographiesCanHireIn: [],
+      recruiterType: 'individual',
+      recruiterCompanyName: '',
+      recruiterDesignation: '',
+      recruiterCompanySize: '',
+      companyEstablishmentYears: 0,
+      companyProfile: '',
+      resumeFile: null
+    })
   });
+
+  // Additional state for file handling
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>('');
   
   // Password change states
   const [passwordData, setPasswordData] = useState<ChangePasswordFormData>({
@@ -90,11 +165,39 @@ export default function UserProfile() {
               companySize: userData.companySize || '',
               designation: userData.designation || ''
             }),
-            // Include recruiter field if user is RECRUITER role
-  ...(userData.role === 'RECRUITER' && {
-    recruitmentFirmName: userData.recruitmentFirmName || ''
-  })
+            // Include recruiter fields if user is RECRUITER role
+            ...(userData.role === 'RECRUITER' && {
+              recruitmentFirmName: userData.recruitmentFirmName || '',
+              profilePicture: userData.profilePicture || '',
+              mobileNumber: userData.mobileNumber || '',
+              whatsappNumber: userData.whatsappNumber || '',
+              otherContactInfo: userData.otherContactInfo || '',
+              country: userData.country || '',
+              state: userData.state || '',
+              city: userData.city || '',
+              totalWorkExperience: userData.totalWorkExperience || 0,
+              recruitmentExperience: userData.recruitmentExperience || 0,
+              rolesClosedLastYear: userData.rolesClosedLastYear || 0,
+              countriesWorkedIn: userData.countriesWorkedIn || [],
+              bio: userData.bio || '',
+              linkedinUrl: userData.linkedinUrl || '',
+              facebookUrl: userData.facebookUrl || '',
+              otherSocialUrl: userData.otherSocialUrl || '',
+              geographiesCanHireIn: userData.geographiesCanHireIn || [],
+              recruiterType: userData.recruiterType || 'individual',
+              recruiterCompanyName: userData.recruiterCompanyName || '',
+              recruiterDesignation: userData.recruiterDesignation || '',
+              recruiterCompanySize: userData.recruiterCompanySize || '',
+              companyEstablishmentYears: userData.companyEstablishmentYears || 0,
+              companyProfile: userData.companyProfile || '',
+              resumeFile: null
+            })
           });
+          
+          // Set profile picture preview if exists
+          if (userData.role === 'RECRUITER' && userData.profilePicture) {
+            setProfilePicturePreview(userData.profilePicture);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
@@ -105,6 +208,91 @@ export default function UserProfile() {
       fetchUserProfile();
     }
   }, [user, token]);
+
+  // Handle profile picture upload
+  const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 500 * 1024) { // 500KB limit
+        setError('Profile picture must be less than 500KB');
+        return;
+      }
+      
+      try {
+        // Upload file to server
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileType', 'profile');
+        
+        const response = await fetch('/api/user/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          setProfilePicturePreview(result.fileUrl);
+          setProfileData({...profileData, profilePicture: result.fileUrl});
+        } else {
+          const error = await response.json();
+          setError(error.error || 'Failed to upload profile picture');
+        }
+      } catch (error) {
+        console.error('Profile picture upload error:', error);
+        setError('Failed to upload profile picture');
+      }
+    }
+  };
+
+  // Handle resume file upload
+  const handleResumeFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 500 * 1024) { // 500KB limit
+        setError('Resume file must be less than 500KB');
+        return;
+      }
+      
+      try {
+        // Upload file to server
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileType', 'resume');
+        
+        const response = await fetch('/api/user/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          setProfileData({...profileData, resumeFileUrl: result.fileUrl});
+          setProfileUpdateSuccess(true);
+        } else {
+          const error = await response.json();
+          setError(error.error || 'Failed to upload resume');
+        }
+      } catch (error) {
+        console.error('Resume upload error:', error);
+        setError('Failed to upload resume');
+      }
+    }
+  };
+
+  // Handle multi-select for countries
+  const handleCountrySelection = (country: string, field: 'countriesWorkedIn' | 'geographiesCanHireIn') => {
+    const currentList = profileData[field] || [];
+    const updatedList = currentList.includes(country)
+      ? currentList.filter(c => c !== country)
+      : [...currentList, country];
+    setProfileData({...profileData, [field]: updatedList});
+  };
 
   // Handle profile update
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -482,38 +670,406 @@ export default function UserProfile() {
               )}
 
               {/* Recruiter Information Section - Only for RECRUITER role */}
-{user.role === 'RECRUITER' && profileData.recruitmentFirmName && (
-  <>
-    <div className="pt-6 border-t border-gray-200">
-      <div className="bg-green-50 p-5 rounded-lg mb-6">
-        <h3 className="text-lg font-medium text-green-800 mb-2">Recruitment Firm Information</h3>
-        <p className="text-green-600 text-sm">Update your recruitment firm details.</p>
-      </div>
-      
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Recruitment Firm Name
-          </label>
-          <div className="relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              value={profileData.recruitmentFirmName || ''}
-              onChange={(e) => setProfileData({...profileData, recruitmentFirmName: e.target.value})}
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
-              required
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </>
-)}
+              {user.role === 'RECRUITER' && (
+                <>
+                  <div className="pt-6 border-t border-gray-200">
+                    <div className="bg-green-50 p-5 rounded-lg mb-6">
+                      <h3 className="text-lg font-medium text-green-800 mb-2">Recruiter Profile Information</h3>
+                      <p className="text-green-600 text-sm">Complete your professional recruiter profile.</p>
+                    </div>
+                    
+                    <div className="space-y-8">
+                      {/* Profile Picture */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Profile Picture
+                        </label>
+                        <div className="flex items-center space-x-6">
+                          <div className="shrink-0">
+                            {profilePicturePreview ? (
+                              <img className="h-20 w-20 object-cover rounded-full" src={profilePicturePreview} alt="Profile preview" />
+                            ) : (
+                              <div className="h-20 w-20 bg-gray-300 rounded-full flex items-center justify-center">
+                                <svg className="h-8 w-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleProfilePictureChange}
+                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Max file size: 500KB</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Contact Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Mobile Number
+                          </label>
+                          <input
+                            type="tel"
+                            value={profileData.mobileNumber || ''}
+                            onChange={(e) => setProfileData({...profileData, mobileNumber: e.target.value})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="+1 234 567 8900"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            WhatsApp Number
+                          </label>
+                          <input
+                            type="tel"
+                            value={profileData.whatsappNumber || ''}
+                            onChange={(e) => setProfileData({...profileData, whatsappNumber: e.target.value})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="+1 234 567 8900"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Other Contact Information
+                        </label>
+                        <textarea
+                          value={profileData.otherContactInfo || ''}
+                          onChange={(e) => setProfileData({...profileData, otherContactInfo: e.target.value})}
+                          rows={2}
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Skype, Telegram, or other contact methods"
+                        />
+                      </div>
+
+                      {/* Location */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Country
+                          </label>
+                          <select
+                            value={profileData.country || ''}
+                            onChange={(e) => setProfileData({...profileData, country: e.target.value})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          >
+                            <option value="">Select Country</option>
+                            {COUNTRIES.map(country => (
+                              <option key={country} value={country}>{country}</option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            State
+                          </label>
+                          <input
+                            type="text"
+                            value={profileData.state || ''}
+                            onChange={(e) => setProfileData({...profileData, state: e.target.value})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="State/Province"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            City
+                          </label>
+                          <input
+                            type="text"
+                            value={profileData.city || ''}
+                            onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="City"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Experience Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Total Work Experience (Years)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="50"
+                            value={profileData.totalWorkExperience || ''}
+                            onChange={(e) => setProfileData({...profileData, totalWorkExperience: parseInt(e.target.value) || 0})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Years of Recruitment Experience
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="50"
+                            value={profileData.recruitmentExperience || ''}
+                            onChange={(e) => setProfileData({...profileData, recruitmentExperience: parseInt(e.target.value) || 0})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Roles Closed (Last 12 Months)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={profileData.rolesClosedLastYear || ''}
+                            onChange={(e) => setProfileData({...profileData, rolesClosedLastYear: parseInt(e.target.value) || 0})}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Countries Worked In */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Which Countries have you closed roles before?
+                        </label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                          {COUNTRIES.map(country => (
+                            <label key={country} className="flex items-center space-x-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={profileData.countriesWorkedIn?.includes(country) || false}
+                                onChange={() => handleCountrySelection(country, 'countriesWorkedIn')}
+                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <span>{country}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Bio */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Bio
+                        </label>
+                        <textarea
+                          value={profileData.bio || ''}
+                          onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                          rows={4}
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Tell us about your recruitment experience, specializations, and what makes you unique..."
+                        />
+                      </div>
+
+                      {/* Social Media Links */}
+                      <div className="space-y-4">
+                        <h4 className="text-md font-medium text-gray-800">Social Media Links</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              LinkedIn
+                            </label>
+                            <input
+                              type="url"
+                              value={profileData.linkedinUrl || ''}
+                              onChange={(e) => setProfileData({...profileData, linkedinUrl: e.target.value})}
+                              className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="https://linkedin.com/in/yourprofile"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Facebook
+                            </label>
+                            <input
+                              type="url"
+                              value={profileData.facebookUrl || ''}
+                              onChange={(e) => setProfileData({...profileData, facebookUrl: e.target.value})}
+                              className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="https://facebook.com/yourprofile"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Other
+                            </label>
+                            <input
+                              type="url"
+                              value={profileData.otherSocialUrl || ''}
+                              onChange={(e) => setProfileData({...profileData, otherSocialUrl: e.target.value})}
+                              className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="https://twitter.com/yourprofile"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Geographies Can Hire In */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Geographies you can hire in
+                        </label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                          {COUNTRIES.map(country => (
+                            <label key={country} className="flex items-center space-x-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={profileData.geographiesCanHireIn?.includes(country) || false}
+                                onChange={() => handleCountrySelection(country, 'geographiesCanHireIn')}
+                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <span>{country}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Individual or Company Toggle */}
+                      <div className="space-y-4">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Are you an individual recruiter or part of a company?
+                        </label>
+                        <div className="flex space-x-4">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="recruiterType"
+                              value="individual"
+                              checked={profileData.recruiterType === 'individual'}
+                              onChange={(e) => setProfileData({...profileData, recruiterType: e.target.value as 'individual' | 'company'})}
+                              className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            Individual
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="recruiterType"
+                              value="company"
+                              checked={profileData.recruiterType === 'company'}
+                              onChange={(e) => setProfileData({...profileData, recruiterType: e.target.value as 'individual' | 'company'})}
+                              className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            Company
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Company Details - Show only if recruiterType is 'company' */}
+                      {profileData.recruiterType === 'company' && (
+                        <div className="space-y-6 p-6 bg-blue-50 rounded-lg">
+                          <h4 className="text-lg font-medium text-blue-800">Company Details/Agency Details</h4>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700">
+                                Company Name
+                              </label>
+                              <input
+                                type="text"
+                                value={profileData.recruiterCompanyName || ''}
+                                onChange={(e) => setProfileData({...profileData, recruiterCompanyName: e.target.value})}
+                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Your Company Name"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700">
+                                Your Designation
+                              </label>
+                              <input
+                                type="text"
+                                value={profileData.recruiterDesignation || ''}
+                                onChange={(e) => setProfileData({...profileData, recruiterDesignation: e.target.value})}
+                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Senior Recruiter, HR Manager"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700">
+                                Company Size
+                              </label>
+                              <select
+                                value={profileData.recruiterCompanySize || ''}
+                                onChange={(e) => setProfileData({...profileData, recruiterCompanySize: e.target.value})}
+                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              >
+                                <option value="">Select Company Size</option>
+                                {COMPANY_SIZES.map(size => (
+                                  <option key={size} value={size}>{size}</option>
+                                ))}
+                              </select>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700">
+                                Company Establishment (in years)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={profileData.companyEstablishmentYears || ''}
+                                onChange={(e) => setProfileData({...profileData, companyEstablishmentYears: parseInt(e.target.value) || 0})}
+                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Years in business"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Company Profile
+                            </label>
+                            <textarea
+                              value={profileData.companyProfile || ''}
+                              onChange={(e) => setProfileData({...profileData, companyProfile: e.target.value})}
+                              rows={4}
+                              className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Describe your company, services, specializations, and achievements..."
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Resume/Company Profile Upload */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Resume/Company Profile Upload
+                        </label>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleResumeFileChange}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                        />
+                        <p className="text-xs text-gray-500">Max file size: 500KB. Accepted formats: PDF, DOC, DOCX</p>
+                        {profileData.resumeFile && (
+                          <p className="text-sm text-green-600">Selected: {profileData.resumeFile.name}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
               
               <div className="pt-5">
                 <button

@@ -14,6 +14,7 @@ import {
   useGetUsersQuery,
   useDeleteUserMutation,
   useToggleUserStatusMutation,
+  useChangeUserPasswordMutation,
 } from "../../../store/services/adminApi";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { UserRole } from "@/app/constants/userRoles";
@@ -34,12 +35,14 @@ function AdminUsersContent() {
     role: UserRole | undefined;
     isPrimary: boolean | undefined;
     isActive: boolean | undefined;
+    search: string;
     page: number;
     limit: number;
   }>({
     role: roleParam as UserRole | undefined,
     isPrimary: isPrimaryParam ? isPrimaryParam === "true" : undefined,
     isActive: isActiveParam ? isActiveParam === "true" : true, // Default to active users
+    search: '',
     page: pageParam ? parseInt(pageParam) : 1,
     limit: 10,
   });
@@ -51,6 +54,7 @@ function AdminUsersContent() {
     isActive: filters.isActive, // Include isActive in the query
     page: filters.page,
     limit: filters.limit,
+    search: filters.search || undefined,
   });
 
   // Delete user mutation
@@ -59,6 +63,17 @@ function AdminUsersContent() {
   // Toggle user status mutation
   const [toggleUserStatus, { isLoading: isToggling }] =
     useToggleUserStatusMutation();
+
+  const [changeUserPassword, { isLoading: isChangingPassword }] =
+    useChangeUserPasswordMutation();
+
+  // Password change modal state
+  const [passwordModal, setPasswordModal] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+  }>({ isOpen: false, userId: '', userName: '' });
+  const [newPassword, setNewPassword] = useState('');
 
   // Redirect if not admin
   useEffect(() => {
@@ -94,6 +109,10 @@ function AdminUsersContent() {
 
   const handleActiveFilter = (isActive?: boolean) => {
     setFilters((prev) => ({ ...prev, isActive, page: 1 }));
+  };
+
+  const handleSearchFilter = (search: string) => {
+    setFilters((prev) => ({ ...prev, search, page: 1 }));
   };
 
   const handlePageChange = (page: number) => {
@@ -144,6 +163,33 @@ function AdminUsersContent() {
         toast.error(`Failed to ${action} user`);
       }
     }
+  };
+
+  // Handle password change
+  const handlePasswordChange = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      await changeUserPassword({
+        id: passwordModal.userId,
+        newPassword,
+      }).unwrap();
+      toast.success(`Password changed successfully for ${passwordModal.userName}`);
+      setPasswordModal({ isOpen: false, userId: '', userName: '' });
+      setNewPassword('');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast.error('Failed to change password');
+    }
+  };
+
+  // Open password change modal
+  const openPasswordModal = (userId: string, userName: string) => {
+    setPasswordModal({ isOpen: true, userId, userName });
+    setNewPassword('');
   };
 
   // Function to get badge color based on role
@@ -298,7 +344,23 @@ function AdminUsersContent() {
                 <h3 className="text-lg font-medium leading-6 text-gray-900">
                   Filter Users
                 </h3>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-5">
+                  <div>
+                    <label
+                      htmlFor="search-filter"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Search Users
+                    </label>
+                    <input
+                      type="text"
+                      id="search-filter"
+                      placeholder="Search by name or email..."
+                      value={filters.search}
+                      onChange={(e) => handleSearchFilter(e.target.value)}
+                      className="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    />
+                  </div>
                   <div>
                     <label
                       htmlFor="role-filter"
@@ -389,6 +451,7 @@ function AdminUsersContent() {
                           role: undefined,
                           isPrimary: undefined,
                           isActive: true, // Reset to active by default
+                          search: '',
                           page: 1,
                           limit: 10,
                         })
@@ -547,6 +610,14 @@ function AdminUsersContent() {
                               </Link>
                               <button
                                 onClick={() =>
+                                  openPasswordModal(user._id as string, user.name)
+                                }
+                                className="text-purple-600 hover:text-purple-900"
+                              >
+                                Change Password
+                              </button>
+                              <button
+                                onClick={() =>
                                   handleToggleUserStatus(
                                     user._id as string,
                                     user.isActive,
@@ -600,6 +671,50 @@ function AdminUsersContent() {
             </div>
           </div>
         </div>
+
+        {/* Password Change Modal */}
+        {passwordModal.isOpen && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Change Password for {passwordModal.userName}
+                </h3>
+                <div className="mb-4">
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min 6 characters)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setPasswordModal({ isOpen: false, userId: '', userName: '' });
+                      setNewPassword('');
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handlePasswordChange}
+                    disabled={isChangingPassword || !newPassword}
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isChangingPassword ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </DashboardLayout>
     </ProtectedLayout>
   );

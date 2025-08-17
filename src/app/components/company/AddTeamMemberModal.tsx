@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/app/store/index'; // Adjust path as needed
+import React, { useState } from "react";
+import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/index"; // Adjust path as needed
+import { PhoneInput } from "@/components/ui/phone-input";
 
 interface AddTeamMemberModalProps {
   isOpen: boolean;
@@ -9,67 +10,73 @@ interface AddTeamMemberModalProps {
   onSuccess: () => void;
 }
 
-const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ 
-  isOpen, 
+const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({
+  isOpen,
   onClose,
-  onSuccess 
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
   });
+  const [selectedCountry, setSelectedCountry] = useState<string>("IN");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const token = useSelector((state: RootState) => state.auth.token);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      email: '',
-      password: '',
-      phone: '',
+      name: "",
+      email: "",
+      password: "",
+      phone: "",
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.password || !formData.phone) {
-      toast.error('All fields are required');
+
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.phone
+    ) {
+      toast.error("All fields are required");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      const response = await fetch('/api/auth/team', {
-        method: 'POST',
+      const response = await fetch("/api/auth/team", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Use token from Redux state
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Use token from Redux state
         },
         body: JSON.stringify(formData),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add team member');
+        throw new Error(data.error || "Failed to add team member");
       }
-      
-      toast.success('Team member added successfully');
+
+      toast.success("Team member added successfully");
       onSuccess();
       resetForm();
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
-      console.error('Add team member error:', error);
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+      console.error("Add team member error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +96,10 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({
               <div className="mt-2">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Name
                     </label>
                     <input
@@ -103,9 +113,12 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({
                       required
                     />
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Email
                     </label>
                     <input
@@ -119,9 +132,12 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({
                       required
                     />
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Password
                     </label>
                     <input
@@ -135,21 +151,27 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({
                       required
                     />
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Phone Number
                     </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      id="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Enter phone number"
-                      required
-                    />
+                    <div className="mt-1">
+                      <PhoneInput
+                        value={formData.phone}
+                        onChange={(phone: string | undefined) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            phone: phone || "",
+                          }))
+                        }
+                        placeholder="Enter phone number"
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                 </form>
               </div>
@@ -165,14 +187,30 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Adding...
               </>
             ) : (
-              'Add Team Member'
+              "Add Team Member"
             )}
           </button>
           <button

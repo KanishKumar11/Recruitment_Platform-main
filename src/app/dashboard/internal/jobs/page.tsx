@@ -468,7 +468,7 @@ export default function InternalJobsPage() {
                                 {job.title}
                               </div>
                               <div className="text-sm text-gray-500">
-                                Code: {job.jobCode}
+                                Code: {job.jobCode.replace(/^job-/i, '')}
                               </div>
                               <div className="text-sm text-gray-500">
                                 Posted:{" "}

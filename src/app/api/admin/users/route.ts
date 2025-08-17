@@ -26,6 +26,9 @@ export async function GET(req: NextRequest) {
     // Get query params for filtering
     const url = new URL(req.url);
     const role = url.searchParams.get('role');
+    const isPrimary = url.searchParams.get('isPrimary');
+    const isActive = url.searchParams.get('isActive');
+    const search = url.searchParams.get('search');
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
@@ -34,6 +37,19 @@ export async function GET(req: NextRequest) {
     const query: any = {};
     if (role && Object.values(UserRole).includes(role as UserRole)) {
       query.role = role;
+    }
+    if (isPrimary !== null) {
+      query.isPrimary = isPrimary === 'true';
+    }
+    if (isActive !== null) {
+      query.isActive = isActive === 'true';
+    }
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
     }
 
     // Count total users matching query

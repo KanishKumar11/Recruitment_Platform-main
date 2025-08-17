@@ -12,6 +12,9 @@ import { setCredentials } from "./../../store/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { UserRole } from "@/app/constants/userRoles";
 import { motion, AnimatePresence } from "framer-motion";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { Country } from "@/lib/countries";
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   User,
   Mail,
@@ -49,6 +52,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<string>("IN");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<UserRole | "">("");
@@ -68,6 +72,7 @@ export default function RegisterPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isAuthorizedRep, setIsAuthorizedRep] = useState(false);
   const [recaptchaVerified, setRecaptchaVerified] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   // UI state
   const [error, setError] = useState("");
@@ -109,10 +114,15 @@ export default function RegisterPage() {
     return !personalEmailDomains.includes(domain);
   };
 
-  // Simulate reCAPTCHA verification
-  const handleRecaptchaVerification = () => {
-    // In a real implementation, this would integrate with Google reCAPTCHA
-    setRecaptchaVerified(true);
+  // Handle reCAPTCHA verification
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+    setRecaptchaVerified(!!token);
+  };
+
+  const handleRecaptchaExpired = () => {
+    setRecaptchaToken(null);
+    setRecaptchaVerified(false);
   };
 
   // Timer effect for OTP countdown
@@ -206,6 +216,7 @@ export default function RegisterPage() {
         password,
         phone,
         role,
+        recaptchaToken,
         ...(role === UserRole.COMPANY && {
           companyName,
           companySize,
@@ -575,19 +586,14 @@ export default function RegisterPage() {
                   )}
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="text"
-                    required
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-gray-700 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 sm:text-sm"
-                    placeholder="Phone Number"
+                <motion.div variants={itemVariants}>
+                  <PhoneInput
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(phone: string | undefined) =>
+                      setPhone(phone || "")
+                    }
+                    placeholder="Phone Number"
+                    className="bg-gray-700 text-white border-gray-600  placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </motion.div>
 
@@ -712,27 +718,13 @@ export default function RegisterPage() {
 
                 {/* reCAPTCHA */}
                 <motion.div variants={itemVariants} className="space-y-3">
-                  <div className="border border-gray-600 rounded-lg p-4 bg-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="flex items-center h-5">
-                          <input
-                            id="recaptcha"
-                            name="recaptcha"
-                            type="checkbox"
-                            checked={recaptchaVerified}
-                            onChange={handleRecaptchaVerification}
-                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded"
-                          />
-                        </div>
-                        <div className="ml-3 text-sm">
-                          <label htmlFor="recaptcha" className="text-gray-300">
-                            I'm not a robot
-                          </label>
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-400">reCAPTCHA</div>
-                    </div>
+                  <div className="flex justify-center">
+                    <ReCAPTCHA
+                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                      onChange={handleRecaptchaChange}
+                      onExpired={handleRecaptchaExpired}
+                      theme="dark"
+                    />
                   </div>
                 </motion.div>
 

@@ -1,11 +1,31 @@
 // Source: ISO 3166-1 country codes with emoji flags
+// Updated to use comprehensive country data from countryData.ts
+import { COMPLETE_COUNTRY_DATA } from "../app/utils/countryData";
+
 export interface Country {
   code: string;
   name: string;
-  emoji: string;
+  image: string;
 }
 
-export const countries = [
+// Legacy interface for backward compatibility
+export interface CountryWithCurrency {
+  code: string;
+  name: string;
+  country: string;
+  countryCode: string;
+  flag: string;
+}
+
+// Convert comprehensive country data to the format expected by this file
+export const countries: Country[] = COMPLETE_COUNTRY_DATA.map((country) => ({
+  code: country.code,
+  name: country.name,
+  image: country.image,
+}));
+
+// Legacy countries array with currency codes (keeping for backward compatibility)
+export const legacyCountries = [
   {
     code: "AED",
     name: "UAE Dirham",
@@ -1111,3 +1131,6 @@ export const countries = [
     flag: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAONSURBVHja7JddaBxVGIafMz87m91NJ41utsXWoogGWq32ploQRK9KKQUr0Rvjpqm7ikZs6UWTYKtWL6Wg0Ba8MGlEjbUaaYuI4k8LogTqRamKuQlVENOku8nuZn9m5hwvdrqZxPSqu5ubvnAYOJyZ7533e79zviOUUqwkNFYYtwgIQAcs/9lMeEDZAFa99eaRaxemL2M9sbGJ0muM7RpsNwC7f2CAzWfP8VvuCtam9SipoMHFcXnmCoBtAJama+zYuYPCR6P8cv4ioQfvqiYH/k9EBOYEyxNd+u6SdbYVpey5AJYA7lNK/QGgFIwMj6AZP9PVZRGSXoOcZ4P8ExEZ7VxUBUJAd/JZSoUtjH2aBXMeRBFUEajnmAcqNXFqCgRx7L1jGPqPpPYa4Ik6K7AK1N+IyJnOZQko1wHd5Og7RwlPfsuTU+31rYBoFHd6mjvOnl6cgsLscSrT4+ROfIAQsP/APmYTjzL8718Yc3koFFB1GDKfh3I1BUaQQChWoPL7S8x+lSDW04MWNel/7SCHyyVOfH2OnuhtvrkVAoHyrS1821+frykZWBecF55EOQEC7tQUufdP4m2YZHVXnsS782RPH4LJ29HjUQ4fPMBAucKH338DqhpWCD+o8j8ublCyQUgFmsCohPBcd7EJS9/9xNyvr9L24jTevI4uSmSGOmjbdQrrnrsB2Ne3n8/GTt20B0zTxDAMJiYmOmspCD++jfIDFqWZq2RzIVbbFcK9GzHbNlQ3binJeiUymUxdCNi2vZACpRQIga4EcwUXXbhksxDRt6Gh40hJOp0m8eUZXo7EbpqAbhiErDCvBwlorkflh0do374bXRg45SnKF9pwdkp6UiniIyOk7bX12QaEgfLMBQJSSjRN0Lq1DyO2DhToLQ76Q/+Q7E4THx3mFXstSFmfjUAppOMspEBKCaEQ5p3rau4tlhS9h95g/aVhXmhdg1ou+FLnBw+hGx1UPgHPcZcQCMB14Zmnk2y+9xOOjIehcq3Op1ELxaIHHcsQ8FxFb/J5tm76mMG3Q1CQ9e8NhELKgAKe5/nBJXue6yW+ZojBfgvyjesEr/90TQHPcdnTneTkzHkiDz/F8aHGdUMxM0x+Lg+M+VtxxSHVt5cvChfp2P0YQlSbk0ZCqQUFvFQqxeeZcVq2byGXnW1qZyyABHA/EG9yW34VuCT8O0Gr/2wmykBO3LqcrjSB/wYAEiG3c5HbdI4AAAAASUVORK5CYII=",
   },
 ].sort((a, b) => a.name.localeCompare(b.name));
+
+// Export the comprehensive countries data as the default export
+export default countries;

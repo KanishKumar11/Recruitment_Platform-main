@@ -33,11 +33,35 @@ const WYSIWYGRichTextEditor: React.FC<RichTextEditorProps> = ({
 
   // Initialize editor content
   useEffect(() => {
-    if (editorRef.current && !isLoaded) {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      // Save cursor position
+      const selection = window.getSelection();
+      const range = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+      const cursorOffset = range ? range.startOffset : 0;
+      const cursorContainer = range ? range.startContainer : null;
+      
+      // Update content
       editorRef.current.innerHTML = value || "";
-      setIsLoaded(true);
+      
+      // Restore cursor position if possible
+      if (cursorContainer && editorRef.current.contains(cursorContainer)) {
+        try {
+          const newRange = document.createRange();
+          newRange.setStart(cursorContainer, Math.min(cursorOffset, cursorContainer.textContent?.length || 0));
+          newRange.collapse(true);
+          selection?.removeAllRanges();
+          selection?.addRange(newRange);
+        } catch (e) {
+          // If cursor restoration fails, place cursor at the end
+          const newRange = document.createRange();
+          newRange.selectNodeContents(editorRef.current);
+          newRange.collapse(false);
+          selection?.removeAllRanges();
+          selection?.addRange(newRange);
+        }
+      }
     }
-  }, [value, isLoaded]);
+  }, [value]);
 
   // Close color pickers when clicking outside
   useEffect(() => {

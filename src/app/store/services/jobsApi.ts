@@ -1,6 +1,6 @@
 // src/app/store/services/jobsApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { RootState } from "./../index";
+import { RootState } from "../index";
 import { IJob, JobStatus } from "../../models/Job";
 
 // Updated interface to match the new commission structure
@@ -26,9 +26,10 @@ interface JobFormData {
   compensationDetails: string;
   replacementTerms: string;
   commission: {
-    type: "percentage" | "fixed"; // New field to track commission type
+    type: "percentage" | "fixed" | "hourly"; // New field to track commission type
     originalPercentage: number;
     fixedAmount: number; // New field for fixed commission amount
+    hourlyRate: number; // New field for hourly commission rate
     recruiterPercentage: number;
     platformFeePercentage: number;
     reductionPercentage: number;
@@ -133,11 +134,10 @@ export const jobsApi = createApi({
       { jobId: string; questionId: string }
     >({
       query: ({ jobId, questionId }) => ({
-        url: `/${jobId}/questions`,
+        url: `/jobs/${jobId}/questions?questionId=${questionId}`,
         method: "DELETE",
-        params: { questionId },
       }),
-      invalidatesTags: (_result, _error, { jobId }) => [
+      invalidatesTags: (result, error, { jobId }) => [
         { type: "Job", id: jobId },
       ],
     }),
@@ -168,3 +168,49 @@ export const {
   useUpdateJobStatusMutation,
   useGetResumeCountsQuery,
 } = jobsApi;
+
+// Separate API for recruiter jobs
+export const recruiterJobsApi = createApi({
+  reducerPath: "recruiterJobsApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "/api/recruiter-jobs",
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  tagTypes: ["RecruiterJob"],
+  endpoints: (builder) => ({
+    getRecruiterJobs: builder.query<{ savedJobs: IJob[] }, void>({
+      query: () => "/",
+      providesTags: ["RecruiterJob"],
+    }),
+    addJobToSaved: builder.mutation<{ message: string }, { jobId: string }>({
+      query: (body) => ({
+        url: "/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["RecruiterJob"],
+    }),
+    removeJobFromSaved: builder.mutation<
+      { message: string },
+      { jobId: string }
+    >({
+      query: ({ jobId }) => ({
+        url: `/?jobId=${jobId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["RecruiterJob"],
+    }),
+  }),
+});
+
+export const {
+  useGetRecruiterJobsQuery,
+  useAddJobToSavedMutation,
+  useRemoveJobFromSavedMutation,
+} = recruiterJobsApi;

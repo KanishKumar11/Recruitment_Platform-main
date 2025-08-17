@@ -6,7 +6,12 @@ import { v4 as uuidv4 } from "uuid";
 import connectDb from "./../../lib/db";
 import Resume from "./../../models/Resume";
 import Job from "./../../models/Job";
+import RecruiterJob from "./../../models/RecruiterJob";
 import { authenticateRequest, unauthorized } from "./../../lib/auth";
+import { UserRole } from "./../../models/User";
+
+// File size limit: 1MB (1,048,576 bytes)
+const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,8 +49,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate resume file size
+    if (resumeFile.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { 
+          error: "Resume file size exceeds the maximum limit of 1MB",
+          maxSize: "1MB",
+          currentSize: `${(resumeFile.size / (1024 * 1024)).toFixed(2)}MB`
+        },
+        { status: 400 }
+      );
+    }
+
     // Get additional documents
     const additionalFiles = formData.getAll("additionalDocuments") as File[];
+
+    // Validate additional document file sizes
+    for (let i = 0; i < additionalFiles.length; i++) {
+      const file = additionalFiles[i];
+      if (file && file.size > 0 && file.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { 
+            error: `Additional document "${file.name}" exceeds the maximum file size limit of 1MB`,
+            maxSize: "1MB",
+            currentSize: `${(file.size / (1024 * 1024)).toFixed(2)}MB`
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     // Validate required fields
     if (
@@ -150,6 +182,28 @@ export async function POST(req: NextRequest) {
     });
 
     await resume.save();
+
+    // Auto-add job to recruiter's saved jobs if not already saved
+    if (userData.role === UserRole.RECRUITER) {
+      try {
+        const existingSavedJob = await RecruiterJob.findOne({
+          recruiterId: userData.userId,
+          jobId: jobId,
+          isActive: true,
+        });
+
+        if (!existingSavedJob) {
+          const recruiterJob = new RecruiterJob({
+            recruiterId: userData.userId,
+            jobId: jobId,
+          });
+          await recruiterJob.save();
+        }
+      } catch (error) {
+        console.error("Error auto-saving job for recruiter:", error);
+        // Don't fail the resume upload if auto-save fails
+      }
+    }
 
     return NextResponse.json(resume);
   } catch (error) {

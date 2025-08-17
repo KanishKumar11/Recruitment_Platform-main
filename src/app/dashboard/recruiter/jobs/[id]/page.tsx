@@ -134,7 +134,7 @@ export default function RecruiterJobDetailsPage() {
                           {job.title}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Job Code: {job.jobCode}
+                          Job Code: {job.jobCode.replace(/^job-/i, '')}
                         </p>
                       </div>
                       <div className="flex items-center space-x-4">
@@ -264,7 +264,11 @@ export default function RecruiterJobDetailsPage() {
                               </span>
                             ) : (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                {job.commission.recruiterPercentage}% of Salary
+                                {job.commission.recruiterPercentage}% of {
+                                  job.compensationType === "HOURLY" ? "hourly" :
+                                  job.compensationType === "MONTHLY" ? "monthly" :
+                                  "annual"
+                                } salary
                               </span>
                             )
                           ) : (

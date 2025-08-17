@@ -15,12 +15,13 @@ import mongoose from "mongoose";
 
 // Commission configuration - should match frontend config
 const COMMISSION_CONFIG = {
-  DEFAULT_REDUCTION_PERCENTAGE: 40,
+  DEFAULT_REDUCTION_PERCENTAGE: 50,
   MIN_REDUCTION_PERCENTAGE: 0,
   MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
   MAX_COMMISSION_PERCENTAGE: 50,
   MIN_FIXED_AMOUNT: 100, // Minimum fixed commission amount
+  MIN_HOURLY_RATE: 10, // Minimum hourly commission rate
 };
 
 // Function to validate commission data
@@ -29,12 +30,12 @@ function validateCommissionData(commission: any) {
     return { isValid: false, error: "Commission data is required" };
   }
 
-  const { type, originalPercentage, fixedAmount } = commission;
+  const { type, originalPercentage, fixedAmount, hourlyRate } = commission;
 
-  if (!type || !["percentage", "fixed"].includes(type)) {
+  if (!type || !["percentage", "fixed", "hourly"].includes(type)) {
     return {
       isValid: false,
-      error: 'Commission type must be either "percentage" or "fixed"',
+      error: 'Commission type must be either "percentage", "fixed", or "hourly"',
     };
   }
 
@@ -59,6 +60,18 @@ function validateCommissionData(commission: any) {
       return {
         isValid: false,
         error: `Fixed commission amount must be at least $${COMMISSION_CONFIG.MIN_FIXED_AMOUNT}`,
+      };
+    }
+  }
+
+  if (type === "hourly") {
+    if (
+      typeof hourlyRate !== "number" ||
+      hourlyRate < COMMISSION_CONFIG.MIN_HOURLY_RATE
+    ) {
+      return {
+        isValid: false,
+        error: `Hourly commission rate must be at least $${COMMISSION_CONFIG.MIN_HOURLY_RATE}`,
       };
     }
   }
@@ -98,6 +111,23 @@ const calculateFixedCommissionBreakdown = (
   };
 };
 
+// Function to calculate hourly commission breakdown
+const calculateHourlyCommissionBreakdown = (
+  hourlyRate: number,
+  reductionPercentage: number = COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
+): { recruiterAmount: number; platformFeeAmount: number } => {
+  if (hourlyRate <= 0) return { recruiterAmount: 0, platformFeeAmount: 0 };
+
+  const platformFeeAmount = (hourlyRate * reductionPercentage) / 100;
+  const recruiterAmount = hourlyRate - platformFeeAmount;
+
+  return {
+    recruiterAmount: Math.max(recruiterAmount, 0),
+    platformFeeAmount,
+  };
+};
+
+
 // Function to calculate commission amount (for percentage type)
 const calculateCommissionAmount = (
   salary: number,
@@ -108,12 +138,13 @@ const calculateCommissionAmount = (
 
 // Function to create complete commission structure
 const createCommissionStructure = (
-  type: "percentage" | "fixed",
+  type: "percentage" | "fixed" | "hourly",
   originalPercentage: number,
   fixedAmount: number,
   maxSalary: number,
   reductionPercentage: number = COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
-  isAdminUser: boolean = false
+  isAdminUser: boolean = false,
+  hourlyRate: number = 0
 ) => {
   if (type === "percentage") {
     let recruiterPercentage;
@@ -145,13 +176,14 @@ const createCommissionStructure = (
       type: "percentage",
       originalPercentage: actualOriginalPercentage,
       fixedAmount: 0,
+      hourlyRate: 0,
       recruiterPercentage,
       platformFeePercentage,
       reductionPercentage,
       originalAmount,
       recruiterAmount,
     };
-  } else {
+  } else if (type === "fixed") {
     // Fixed commission type
     const { recruiterAmount, platformFeeAmount } =
       calculateFixedCommissionBreakdown(fixedAmount, reductionPercentage);
@@ -160,10 +192,27 @@ const createCommissionStructure = (
       type: "fixed",
       originalPercentage: 0,
       fixedAmount,
+      hourlyRate: 0,
       recruiterPercentage: 0,
       platformFeePercentage: 0,
       reductionPercentage,
       originalAmount: fixedAmount,
+      recruiterAmount,
+    };
+  } else {
+    // Hourly commission type
+    const { recruiterAmount, platformFeeAmount } =
+      calculateHourlyCommissionBreakdown(hourlyRate, reductionPercentage);
+
+    return {
+      type: "hourly",
+      originalPercentage: 0,
+      fixedAmount: 0,
+      hourlyRate,
+      recruiterPercentage: 0,
+      platformFeePercentage: 0,
+      reductionPercentage,
+      originalAmount: hourlyRate,
       recruiterAmount,
     };
   }
@@ -391,7 +440,8 @@ export async function POST(req: NextRequest) {
         maxSalary,
         commission.reductionPercentage ||
           COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
-        isAdminUser
+        isAdminUser,
+        commission.hourlyRate || 0
       );
 
       // Special handling for admin users who can set custom reductions
@@ -459,7 +509,9 @@ export async function POST(req: NextRequest) {
         originalPercentage,
         0,
         maxSalary,
-        reductionPercentage
+        reductionPercentage,
+        false,
+        0
       );
 
       jobData.commission = commissionStructure;

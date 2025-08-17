@@ -125,7 +125,7 @@ export default function ViewJobPage() {
                       {job.title}
                     </h3>
                     <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                      Job Code: {job.jobCode}
+                      Job Code: {job.jobCode.replace(/^job-/i, '')}
                     </p>
                   </div>
                   <div className="flex items-center space-x-4">

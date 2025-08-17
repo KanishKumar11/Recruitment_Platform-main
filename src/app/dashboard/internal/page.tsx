@@ -140,8 +140,8 @@ export default function InternalDashboardPage() {
                   <div className="text-xs text-gray-500">Quick Statistics</div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4 mb-4">
-                  {/* First row - 5 cards */}
+                {/* First row - Job Statistics */}
+                <div className="grid grid-cols-4 gap-4 mb-4">
                   {/* Total Jobs */}
                   <Link href="/dashboard/internal/jobs">
                     <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
@@ -261,7 +261,10 @@ export default function InternalDashboardPage() {
                       </div>
                     </div>
                   </Link>
+                </div>
 
+                {/* Second row - Submission Statistics */}
+                <div className="grid grid-cols-4 gap-4 mb-4">
                   {/* Total Submissions */}
                   <Link href="/dashboard/internal/submissions">
                     <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
@@ -287,38 +290,6 @@ export default function InternalDashboardPage() {
                         </p>
                         <p className="text-lg font-bold text-gray-900">
                           {totalSubmissions}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-
-                {/* Second row - 4 cards */}
-                <div className="grid grid-cols-4 gap-4">{/* Interview In Process */}
-                  <Link href="/dashboard/internal/submissions">
-                    <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
-                      <div className="bg-orange-500 rounded-lg p-2">
-                        <svg
-                          className="h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-600 truncate">
-                          In Process
-                        </p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {interviewInProcess}
                         </p>
                       </div>
                     </div>
@@ -407,6 +378,99 @@ export default function InternalDashboardPage() {
                         </p>
                         <p className="text-lg font-bold text-gray-900">
                           {rejected}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Third row - Additional Statistics (smaller cards) */}
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Total Companies */}
+                  <Link href="/dashboard/internal/companies">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-purple-500 rounded-lg p-1.5">
+                        <svg
+                          className="h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-600 truncate">
+                          Total Companies
+                        </p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {stats?.users?.byRole?.companyPrimary || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Total Recruiters */}
+                  <Link href="/dashboard/internal/recruiters">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-cyan-500 rounded-lg p-1.5">
+                        <svg
+                          className="h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-600 truncate">
+                          Total Recruiters
+                        </p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {stats?.users?.byRole?.recruiter || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* In Process */}
+                  <Link href="/dashboard/internal/submissions">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="bg-orange-500 rounded-lg p-1.5">
+                        <svg
+                          className="h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-600 truncate">
+                          In Process
+                        </p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {interviewInProcess}
                         </p>
                       </div>
                     </div>
@@ -509,7 +573,7 @@ export default function InternalDashboardPage() {
                                   {job.location}
                                 </div>
                                 <div className="text-xs text-gray-400 mt-1">
-                                  Job Code: {job.jobCode}
+                                  Job Code: {job.jobCode.replace(/^job-/i, '')}
                                 </div>
                               </div>
                             </div>

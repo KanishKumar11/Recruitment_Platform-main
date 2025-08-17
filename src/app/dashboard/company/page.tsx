@@ -329,7 +329,7 @@ export default function CompanyDashboard() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
-                                  {job.jobCode}
+                                  {job.jobCode.replace(/^job-/i, '')}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">

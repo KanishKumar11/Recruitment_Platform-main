@@ -2,9 +2,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useGetRecruiterSubmissionsQuery } from "../../../store/services/resumesApi";
 import ResumeStatusBadge from "@/app/components/company/ResumeStatusBadge";
+import RecruiterResumeDetailModal from "@/app/components/recruiter/RecruiterResumeDetailModal";
 import {
   Loader2,
   Filter,
@@ -28,7 +29,7 @@ import ErrorAlert from "@/app/components/ui/ErrorAlert";
 import { Suspense } from "react";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import RecruiterResumeView from "@/app/components/recruiter/RecruiterResumeView";
+
 import { ResumeStatus } from "@/app/models/Resume";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
@@ -39,11 +40,12 @@ function RecruiterSubmissionsPageContent() {
   const searchParams = useSearchParams();
   const jobIdFromUrl = searchParams.get("jobId");
 
-  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [jobFilter, setJobFilter] = useState<string>(jobIdFromUrl || "");
   const [recruiterFilter, setRecruiterFilter] = useState<string>("");
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Get user data from auth state to check isPrimary status
   const user = useSelector((state: RootState) => state.auth.user);
@@ -63,11 +65,15 @@ function RecruiterSubmissionsPageContent() {
     }
   }, [jobIdFromUrl]);
 
+  const router = useRouter();
+
   const handleViewResume = (resumeId: string) => {
     setSelectedResumeId(resumeId);
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
+    setIsModalOpen(false);
     setSelectedResumeId(null);
   };
 
@@ -139,10 +145,10 @@ function RecruiterSubmissionsPageContent() {
         )
     : [];
 
-  // Stats calculation
+  // Stats calculation - now based on filtered resumes to match table display
   const getStatusCount = (status: ResumeStatus) => {
-    return resumes
-      ? resumes.filter((resume) => resume.status === status).length
+    return filteredResumes
+      ? filteredResumes.filter((resume) => resume.status === status).length
       : 0;
   };
 
@@ -212,8 +218,8 @@ function RecruiterSubmissionsPageContent() {
           <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-900">Quick Stats</h3>
-              <span className="text-xs text-gray-500">
-                Total: {resumes?.length || 0}
+              <span className="text-base text-gray-500">
+                Total Resume: {filteredResumes?.length || 0}
               </span>
             </div>
 
@@ -581,8 +587,8 @@ function RecruiterSubmissionsPageContent() {
           </div>
 
           {/* Resume View Modal */}
-          {selectedResumeId && (
-            <RecruiterResumeView
+          {selectedResumeId && isModalOpen && (
+            <RecruiterResumeDetailModal
               resumeId={selectedResumeId}
               onClose={handleCloseModal}
             />

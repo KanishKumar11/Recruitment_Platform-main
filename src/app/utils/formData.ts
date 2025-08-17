@@ -1,7 +1,16 @@
 // Shared form data utilities
+// Updated to use comprehensive country data from countryData.ts
+import { COMPLETE_COUNTRY_DATA } from './countryData';
 
-// Country codes with phone country codes
-export const COUNTRIES_WITH_CODES = [
+// Country codes with phone country codes - now comprehensive with all 195 countries
+export const COUNTRIES_WITH_CODES = COMPLETE_COUNTRY_DATA.map(country => ({
+  name: country.name,
+  code: country.code,
+  phoneCode: country.phoneCode
+})).sort((a, b) => a.name.localeCompare(b.name));
+
+// Legacy countries with codes (keeping for reference)
+const LEGACY_COUNTRIES_WITH_CODES = [
   { name: "United States", code: "US", phoneCode: "+1" },
   { name: "United Kingdom", code: "GB", phoneCode: "+44" },
   { name: "Canada", code: "CA", phoneCode: "+1" },
@@ -71,8 +80,11 @@ export const COMPENSATION_TYPES = [
   { value: "ANNUALLY", label: "Annual" },
 ] as const;
 
-// Full countries list from CreateJobForm
-export const COUNTRIES_LIST = [
+// Simple country list for dropdowns - now comprehensive with all 195 countries
+export const COUNTRIES_LIST = COMPLETE_COUNTRY_DATA.map(country => country.name).sort();
+
+// Legacy countries list (keeping for reference)
+const LEGACY_COUNTRIES_LIST = [
   "Afghanistan",
   "Albania",
   "Algeria",

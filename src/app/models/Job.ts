@@ -20,7 +20,7 @@ export enum JobType {
 
 // Commission configuration - can be moved to a config file
 export const COMMISSION_CONFIG = {
-  DEFAULT_REDUCTION_PERCENTAGE: 40, // 40% reduction by default
+  DEFAULT_REDUCTION_PERCENTAGE: 50, // 50% reduction by default
   MIN_REDUCTION_PERCENTAGE: 0, // Minimum 0% platform fee
   MAX_REDUCTION_PERCENTAGE: 80, // Maximum 80% platform fee
   MIN_COMMISSION_PERCENTAGE: 1, // Minimum 1% commission
@@ -28,9 +28,10 @@ export const COMMISSION_CONFIG = {
 };
 
 export interface IJobCommission {
-  type: "percentage" | "fixed"; // New field to track commission type
+  type: "percentage" | "fixed" | "hourly"; // New field to track commission type
   originalPercentage: number; // Set by company (for percentage-based)
   fixedAmount: number; // New field for fixed commission amount
+  hourlyRate: number; // New field for hourly commission rate
   recruiterPercentage: number; // Calculated and shown to recruiters (for percentage-based)
   platformFeePercentage: number; // Platform's cut (for percentage-based)
   reductionPercentage: number; // Configurable reduction percentage
@@ -86,12 +87,13 @@ export interface IJob extends Document {
 const CommissionSchema = new Schema<IJobCommission>({
   type: {
     type: String,
-    enum: ["percentage", "fixed"],
+    enum: ["percentage", "fixed", "hourly"],
     default: "percentage",
     required: true,
   },
   originalPercentage: { type: Number, default: 0 },
   fixedAmount: { type: Number, default: 0 }, // New field
+  hourlyRate: { type: Number, default: 0 }, // New field for hourly commission rate
   recruiterPercentage: { type: Number, default: 0 },
   platformFeePercentage: { type: Number, default: 0 },
   reductionPercentage: {
@@ -219,11 +221,12 @@ export class CommissionCalculator {
   }
 
   static createCommissionStructure(
-    type: "percentage" | "fixed",
+    type: "percentage" | "fixed" | "hourly",
     originalPercentage: number,
     fixedAmount: number,
     maxSalary: number,
-    reductionPercentage: number = COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
+    reductionPercentage: number = COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
+    hourlyRate: number = 0
   ): IJobCommission {
     if (type === "percentage") {
       const recruiterPercentage = this.calculateRecruiterCommission(
@@ -247,13 +250,14 @@ export class CommissionCalculator {
         type: "percentage",
         originalPercentage,
         fixedAmount: 0,
+        hourlyRate: 0,
         recruiterPercentage,
         platformFeePercentage,
         reductionPercentage,
         originalAmount,
         recruiterAmount,
       };
-    } else {
+    } else if (type === "fixed") {
       // Fixed commission type
       const { recruiterAmount } = this.calculateFixedCommissionBreakdown(
         fixedAmount,
@@ -264,10 +268,29 @@ export class CommissionCalculator {
         type: "fixed",
         originalPercentage: 0,
         fixedAmount,
+        hourlyRate: 0,
         recruiterPercentage: 0,
         platformFeePercentage: 0,
         reductionPercentage,
         originalAmount: fixedAmount,
+        recruiterAmount,
+      };
+    } else {
+      // Hourly commission type
+      const { recruiterAmount } = this.calculateFixedCommissionBreakdown(
+        hourlyRate,
+        reductionPercentage
+      );
+
+      return {
+        type: "hourly",
+        originalPercentage: 0,
+        fixedAmount: 0,
+        hourlyRate,
+        recruiterPercentage: 0,
+        platformFeePercentage: 0,
+        reductionPercentage,
+        originalAmount: hourlyRate,
         recruiterAmount,
       };
     }
@@ -313,7 +336,8 @@ JobSchema.pre("save", async function (next) {
         this.commission.originalPercentage || 0,
         this.commission.fixedAmount || 0,
         this.salary?.max || 0,
-        reductionPercentage
+        reductionPercentage,
+        this.commission.hourlyRate || 0
       );
       this.commission = commissionData;
 

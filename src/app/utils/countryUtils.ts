@@ -3,7 +3,7 @@ import { countries } from "@/lib/countries";
 
 // Create a map of country codes to country names for quick lookup
 const countryCodeToNameMap = countries.reduce<Record<string, string>>((acc, country) => {
-  acc[country.countryCode] = country.country;
+  acc[country.code] = country.name;
   return acc;
 }, {});
 

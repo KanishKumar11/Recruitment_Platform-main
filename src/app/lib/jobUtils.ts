@@ -3,7 +3,7 @@ import { IJob } from "@/app/models/Job";
 
 // Commission configuration - should match frontend config
 const COMMISSION_CONFIG = {
-  DEFAULT_REDUCTION_PERCENTAGE: 40,
+  DEFAULT_REDUCTION_PERCENTAGE: 50,
   MIN_REDUCTION_PERCENTAGE: 0,
   MAX_REDUCTION_PERCENTAGE: 80,
   MIN_COMMISSION_PERCENTAGE: 1,
@@ -62,12 +62,13 @@ export const transformJobForUser = (job: any, userRole: string): IJob => {
       originalCommission.originalPercentage || jobObj.commissionPercentage || 0;
     const originalFixedAmount =
       originalCommission.fixedAmount || jobObj.fixedCommissionAmount || 0;
+    const originalHourlyRate = originalCommission.hourlyRate || 0;
     const reductionPercentage =
       originalCommission.reductionPercentage ||
       COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE;
 
-    // Check if this is a fixed commission job
-    if (originalFixedAmount > 0) {
+    // Check commission type
+    if (originalCommission.type === "fixed" || (originalCommission.type !== "hourly" && originalCommission.type !== "percentage" && originalFixedAmount > 0)) {
       // Calculate fixed commission breakdown for recruiter
       const { recruiterAmount } = calculateFixedCommissionBreakdown(
         originalFixedAmount,
@@ -85,6 +86,28 @@ export const transformJobForUser = (job: any, userRole: string): IJob => {
           ...jobObj.commission,
           type: "fixed",
           fixedAmount: originalFixedAmount,
+          recruiterAmount,
+        },
+      };
+    } else if (originalCommission.type === "hourly") {
+      // Handle hourly commission
+      const { recruiterAmount } = calculateFixedCommissionBreakdown(
+        originalHourlyRate,
+        reductionPercentage
+      );
+
+      // Return job with recruiter-visible hourly commission data
+      return {
+        ...jobObj,
+        // Show recruiter commission as the main commission fields
+        hourlyCommissionRate: recruiterAmount,
+        commissionPercentage: 0, // Not applicable for hourly commission
+        commissionAmount: 0, // Not applicable for hourly commission
+        fixedCommissionAmount: 0, // Not applicable for hourly commission
+        commission: {
+          ...jobObj.commission,
+          type: "hourly",
+          hourlyRate: originalHourlyRate,
           recruiterAmount,
         },
       };

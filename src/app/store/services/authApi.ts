@@ -60,6 +60,24 @@ interface ResendOTPRequest {
   email: string;
 }
 
+interface ForgotPasswordRequest {
+  email: string;
+}
+
+interface ForgotPasswordResponse {
+  message: string;
+  email: string;
+}
+
+interface ResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+interface ResetPasswordResponse {
+  message: string;
+}
+
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({
@@ -113,6 +131,22 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    
+    forgotPassword: builder.mutation<ForgotPasswordResponse, ForgotPasswordRequest>({
+      query: (data) => ({
+        url: '/forgot-password',
+        method: 'POST',
+        body: data,
+      }),
+    }),
+    
+    resetPassword: builder.mutation<ResetPasswordResponse, ResetPasswordRequest>({
+      query: (data) => ({
+        url: '/reset-password',
+        method: 'POST',
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -121,5 +155,7 @@ export const {
   useRegisterMutation, 
   useRegisterWithOTPMutation,
   useVerifyOTPMutation,
-  useResendOTPMutation, 
+  useResendOTPMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
 } = authApi;

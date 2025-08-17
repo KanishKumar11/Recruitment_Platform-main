@@ -15,6 +15,7 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 // Define TypeScript interfaces
 interface FormData {
@@ -44,6 +45,7 @@ export default function ContactPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [selectedCountry, setSelectedCountry] = useState<string>("IN");
 
   // Handle scroll progress for the progress bar at the top
   useEffect(() => {
@@ -113,62 +115,60 @@ export default function ContactPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!validateForm()) {
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const response = await fetch('/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        company: formData.company,
-        message: formData.message,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to send message');
+    if (!validateForm()) {
+      return;
     }
 
-    console.log('Form submitted successfully:', data);
+    setIsSubmitting(true);
 
-    setIsSubmitted(true);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      message: "",
-    });
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          message: formData.message,
+        }),
+      });
 
-    // Hide success message after 5 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 5000);
+      const data = await response.json();
 
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    
-    // You might want to show an error message to the user
-    // For now, we'll just log it, but you could add an error state
-    alert('Failed to send message. Please try again later.');
-    
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      console.log("Form submitted successfully:", data);
+
+      setIsSubmitted(true);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        company: "",
+        message: "",
+      });
+
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 5000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+
+      // You might want to show an error message to the user
+      // For now, we'll just log it, but you could add an error state
+      alert("Failed to send message. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -390,18 +390,17 @@ export default function ContactPage() {
                       >
                         Phone Number <span className="text-red-400">*</span>
                       </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input
-                          type="tel"
-                          id="phone"
-                          name="phone"
+                      <div className="mt-1">
+                        <PhoneInput
                           value={formData.phone}
-                          onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-700/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
-                            errors.phone ? "border-red-500" : "border-gray-600"
-                          }`}
+                          onChange={(phone: string | undefined) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              phone: phone || "",
+                            }))
+                          }
                           placeholder="Enter your phone number"
+                          className="w-full bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
                         />
                       </div>
                       {errors.phone && (

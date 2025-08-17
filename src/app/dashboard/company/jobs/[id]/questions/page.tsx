@@ -321,7 +321,7 @@ export default function JobQuestionsPage() {
 
   if (isLoading) {
     return (
-      <ProtectedLayout allowedRoles={["COMPANY"]}>
+      <ProtectedLayout allowedRoles={["COMPANY", "ADMIN", "INTERNAL"]}>
         <DashboardLayout>
           <div className="flex items-center justify-center h-80">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -333,7 +333,7 @@ export default function JobQuestionsPage() {
 
   if (!job) {
     return (
-      <ProtectedLayout allowedRoles={["COMPANY"]}>
+      <ProtectedLayout allowedRoles={["COMPANY", "ADMIN", "INTERNAL"]}>
         <DashboardLayout>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
@@ -360,7 +360,7 @@ export default function JobQuestionsPage() {
   }
 
   return (
-    <ProtectedLayout allowedRoles={["COMPANY"]}>
+    <ProtectedLayout allowedRoles={["COMPANY", "ADMIN", "INTERNAL"]}>
       <DashboardLayout>
         <div className="min-h-screen bg-gray-50 py-8">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -398,7 +398,7 @@ export default function JobQuestionsPage() {
                 <div className="flex items-center space-x-3">
                   <Plus className="w-5 h-5 text-white" />
                   <h3 className="text-lg font-semibold text-white">
-                    Add New Question
+                    Add New Screening Question
                   </h3>
                 </div>
               </div>

@@ -319,7 +319,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                 <div className="space-y-1">
                   <div className="flex gap-2">
                     <span className="text-gray-500 text-xs w-36 flex-shrink-0">
-                      Company:
+                      Current Company:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.currentCompany}
@@ -327,7 +327,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                   </div>
                   <div className="flex gap-2">
                     <span className="text-gray-500 text-xs w-36 flex-shrink-0">
-                      Designation:
+                      Current Designation:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
                       {resume.currentDesignation}

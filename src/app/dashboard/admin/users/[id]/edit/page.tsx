@@ -9,7 +9,7 @@ import ProtectedLayout from '@/app/components/layout/ProtectedLayout';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import { UserRole } from '@/app/constants/userRoles';
-import { useGetUserByIdQuery, useUpdateUserMutation } from '../../../../../store/services/usersApi';
+import { useGetUserByIdQuery, useUpdateUserMutation } from '../../../../../store/services/adminApi';
 
 export default function EditUserPage() {
   const params = useParams();

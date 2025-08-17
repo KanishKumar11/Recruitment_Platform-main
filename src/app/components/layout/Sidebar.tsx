@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/index";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SidebarLink {
   path: string;
@@ -18,8 +18,41 @@ export default function Sidebar() {
   const { user } = useSelector((state: RootState) => state.auth);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   if (!user) return null;
+
+  // Prevent hydration mismatch by not rendering mobile elements until mounted
+  if (!isMounted) {
+    return (
+      <div className="fixed top-0 left-0 h-full bg-gray-800 text-white z-50 transform transition-all duration-300 ease-in-out -translate-x-full md:translate-x-0 md:static md:flex-shrink-0 md:w-64 w-64">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <h2 className="text-xl font-bold truncate">
+            {user.role.charAt(0) + user.role.slice(1).toLowerCase()} Portal
+          </h2>
+          <button
+            className="hidden md:block text-gray-300 hover:text-white focus:outline-none"
+            title="Collapse sidebar"
+          >
+            ←
+          </button>
+        </div>
+        {/* Navigation placeholder */}
+        <nav className="mt-5">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-700 rounded w-3/4 mx-4 mb-4"></div>
+            <div className="h-4 bg-gray-700 rounded w-1/2 mx-4 mb-4"></div>
+            <div className="h-4 bg-gray-700 rounded w-2/3 mx-4 mb-4"></div>
+          </div>
+        </nav>
+      </div>
+    );
+  }
 
   const toggleMobileSidebar = () => setIsMobileOpen(!isMobileOpen);
   const toggleDesktopCollapse = () =>
