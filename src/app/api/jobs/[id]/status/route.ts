@@ -6,6 +6,7 @@ import { authenticateRequest, unauthorized, forbidden, JwtPayload } from './../.
 import User, { UserRole } from './../../../../models/User';
 import mongoose from 'mongoose';
 import { NotificationService } from './../../../../lib/notificationService';
+import { JobUpdateNotificationService } from './../../../../lib/jobUpdateNotificationService';
 
 // Helper function to check if user has access to modify job questions
 async function hasAccessToModifyJobQuestions(userData: JwtPayload, jobId: string) {
@@ -95,22 +96,25 @@ export async function PUT(
       { new: true }
     ).populate('screeningQuestions');
 
-    // Create notification for job status change
+    // Create notification for job status change - only for recruiters who have saved the job
     try {
-      // Find all recruiters who might be interested in this job status change
-      const recruiters = await User.find({ role: UserRole.RECRUITER }).select('_id');
-      
-      if (recruiters.length > 0 && updatedJob) {
-        const recruiterIds = recruiters.map(r => r._id.toString());
-        // Create notifications for each recruiter
-        for (const recruiterId of recruiterIds) {
+      if (updatedJob) {
+        // Get recruiters who have saved this job or uploaded resumes for it
+        const eligibleRecruiters = await JobUpdateNotificationService.getEligibleRecruiters(
+          (updatedJob._id as mongoose.Types.ObjectId).toString()
+        );
+        
+        // Create notifications for each eligible recruiter
+        for (const recruiter of eligibleRecruiters) {
           await NotificationService.createJobModificationNotification(
-            recruiterId,
+            recruiter.recruiterId,
             updatedJob.title,
             ['status'], // modifiedFields - status change
             (updatedJob._id as mongoose.Types.ObjectId).toString()
           );
         }
+        
+        console.log(`Job status change notifications sent to ${eligibleRecruiters.length} eligible recruiters for job: ${updatedJob.title}`);
       }
     } catch (notificationError) {
       console.error('Failed to create job status change notification:', notificationError);

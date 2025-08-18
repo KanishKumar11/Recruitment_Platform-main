@@ -190,9 +190,7 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
                     </p>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-900">
-                      Notice Period:
-                    </span>
+                    <span className="font-medium text-gray-900">Notice Period:</span>
                     <p className="text-gray-600">
                       {resume.noticePeriod || "N/A"}
                     </p>

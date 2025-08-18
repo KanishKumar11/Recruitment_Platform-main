@@ -293,13 +293,13 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                     </div>
                     {resume.alternativePhone && (
                       <div className="flex gap-2">
-                        <span className="text-gray-500 text-xs w-20 flex-shrink-0">
-                          Alt Phone:
-                        </span>
-                        <span className="text-gray-900 font-medium text-xs">
-                          {resume.alternativePhone}
-                        </span>
-                      </div>
+                      <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                        Alt Phone:
+                      </span>
+                      <span className="text-gray-900 font-medium text-xs">
+                        {resume.alternativePhone}
+                      </span>
+                    </div>
                     )}
                     <div className="flex gap-2">
                       <span className="text-gray-500 text-xs w-20 flex-shrink-0">

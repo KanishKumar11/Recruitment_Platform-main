@@ -172,6 +172,39 @@ export class NotificationService {
   }
 
   /**
+   * Create notification for job update
+   */
+  static async createJobUpdateNotification(
+    recruiterId: string | mongoose.Types.ObjectId,
+    jobTitle: string,
+    updateTitle: string,
+    updateContent: string,
+    postedByName: string,
+    jobId?: string | mongoose.Types.ObjectId
+  ): Promise<INotification> {
+    // Truncate update content if too long
+    const truncatedContent =
+      updateContent.length > 100
+        ? updateContent.substring(0, 100) + "..."
+        : updateContent;
+
+    return this.createNotification({
+      recipientId: recruiterId,
+      type: NotificationType.JOB_MODIFICATION,
+      title: `Job Update: ${updateTitle}`,
+      message: `New update posted for "${jobTitle}" by ${postedByName}: ${truncatedContent}`,
+      jobId,
+      jobTitle,
+      metadata: {
+        updateTitle,
+        updateContent: truncatedContent,
+        fullUpdateContent: updateContent,
+        postedByName,
+      },
+    });
+  }
+
+  /**
    * Get notifications for a user with pagination
    */
   static async getNotifications(

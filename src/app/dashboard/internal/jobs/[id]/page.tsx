@@ -16,6 +16,8 @@ import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { UserRole } from "@/app/constants/userRoles";
 import { JobStatus } from "@/app/constants/jobStatus";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
+import JobUpdatesModal from "@/components/JobUpdatesModal";
+import { MessageSquare } from "lucide-react";
 
 // Helper function to get currency symbol from currency code
 const getCurrencySymbol = (currencyCode: string): string => {
@@ -130,6 +132,29 @@ export default function AdminJobDetailPage() {
 
   const { data: job, isLoading, error, refetch } = useGetJobByIdQuery(id);
   const [updateJobStatus] = useUpdateJobStatusMutation();
+  
+  // Job updates modal state
+  const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
+  const [updatesCount, setUpdatesCount] = useState(0);
+  
+  // Fetch updates count
+  const fetchUpdatesCount = async () => {
+    try {
+      const response = await fetch(`/api/jobs/${id}/updates`);
+      if (response.ok) {
+        const data = await response.json();
+        setUpdatesCount(data.updates?.length || 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch updates count:', error);
+    }
+  };
+  
+  useEffect(() => {
+    if (id) {
+      fetchUpdatesCount();
+    }
+  }, [id]);
 
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -194,6 +219,7 @@ export default function AdminJobDetailPage() {
   }
 
   return (
+    <>
     <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
       <DashboardLayout>
         <div className="py-6">
@@ -229,6 +255,21 @@ export default function AdminJobDetailPage() {
                   >
                     View Resumes
                   </Link>
+                  
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsUpdatesModalOpen(true)}
+                      className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Job Updates
+                    </button>
+                    {updatesCount > 0 && (
+                      <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-green-500 rounded-full">
+                        {updatesCount}
+                      </span>
+                    )}
+                  </div>
                   <Link
                     href="/dashboard/internal/jobs"
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
@@ -586,5 +627,15 @@ export default function AdminJobDetailPage() {
         </div>
       </DashboardLayout>
     </ProtectedLayout>
+    
+    <JobUpdatesModal
+      isOpen={isUpdatesModalOpen}
+      onClose={() => setIsUpdatesModalOpen(false)}
+      jobId={id as string}
+      onUpdatePosted={() => {
+        fetchUpdatesCount();
+      }}
+    />
+    </>
   );
 }

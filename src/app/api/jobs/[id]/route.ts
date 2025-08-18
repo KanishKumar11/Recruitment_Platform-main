@@ -15,6 +15,7 @@ import { UserRole } from "./../../../models/User";
 import mongoose from "mongoose";
 import { transformJobForUser } from "@/app/lib/jobUtils";
 import { NotificationService } from "@/app/lib/notificationService";
+import { JobUpdateNotificationService } from "@/app/lib/jobUpdateNotificationService";
 
 // Helper function to validate commission data
 function validateCommissionData(commission: any) {
@@ -326,22 +327,25 @@ export async function PUT(
       await updatedJob.populate("screeningQuestions");
     }
 
-    // Create notification for job modification
+    // Create notification for job modification - only for recruiters who have saved the job
     try {
-      // Find all recruiters who might be interested in this job
-      const recruiters = await User.find({ role: UserRole.RECRUITER }).select('_id');
-      
-      if (recruiters.length > 0 && updatedJob) {
-        const recruiterIds = recruiters.map(r => r._id.toString());
-        // Create notifications for each recruiter
-        for (const recruiterId of recruiterIds) {
+      if (updatedJob) {
+        // Get recruiters who have saved this job or uploaded resumes for it
+        const eligibleRecruiters = await JobUpdateNotificationService.getEligibleRecruiters(
+          (updatedJob._id as mongoose.Types.ObjectId).toString()
+        );
+        
+        // Create notifications for each eligible recruiter
+        for (const recruiter of eligibleRecruiters) {
           await NotificationService.createJobModificationNotification(
-            recruiterId,
+            recruiter.recruiterId,
             updatedJob.title,
             ['job'], // modifiedFields - we'll use a generic field for now
             (updatedJob._id as mongoose.Types.ObjectId).toString()
           );
         }
+        
+        console.log(`Job modification notifications sent to ${eligibleRecruiters.length} eligible recruiters for job: ${updatedJob.title}`);
       }
     } catch (notificationError) {
       console.error('Failed to create job modification notification:', notificationError);

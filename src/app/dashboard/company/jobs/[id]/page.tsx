@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   useGetJobByIdQuery,
@@ -8,11 +8,12 @@ import {
 } from "../../../../store/services/jobsApi";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { Loader2, ArrowLeft, Edit, FileQuestion } from "lucide-react";
+import { Loader2, ArrowLeft, Edit, FileQuestion, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 import { JobStatus } from "@/app/constants/jobStatus";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
+import JobUpdatesModal from "@/components/JobUpdatesModal";
 
 export default function ViewJobPage() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function ViewJobPage() {
   const [updateJobStatus, { isLoading: isUpdating }] =
     useUpdateJobStatusMutation();
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
+  const [updatesCount, setUpdatesCount] = useState(0);
 
   // Status badge colors
   const statusColors = {
@@ -35,6 +38,26 @@ export default function ViewJobPage() {
   const formatStatus = (status: string) => {
     return status.charAt(0) + status.slice(1).toLowerCase();
   };
+
+  // Fetch updates count for badge
+  const fetchUpdatesCount = async () => {
+    if (!id) return;
+    
+    try {
+      const response = await fetch(`/api/jobs/${id}/updates`);
+      if (response.ok) {
+        const data = await response.json();
+        setUpdatesCount(data.data?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching updates count:', error);
+    }
+  };
+
+  // Fetch updates count on component mount
+  useEffect(() => {
+    fetchUpdatesCount();
+  }, [id]);
 
   // Handle job status update with improved error handling
   const handleStatusChange = (status: JobStatus) => {
@@ -208,6 +231,20 @@ export default function ViewJobPage() {
                       <FileQuestion className="mr-2 h-4 w-4" />
                       Screening Questions
                     </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setIsUpdatesModalOpen(true)}
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Job Updates
+                      </button>
+                      {updatesCount > 0 && (
+                        <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-green-500 rounded-full">
+                          {updatesCount}
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => router.push(`${params.id}/resumes`)}
                       className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -396,6 +433,16 @@ export default function ViewJobPage() {
             )}
           </div>
         </div>
+        
+        {/* Job Updates Modal */}
+        <JobUpdatesModal
+          isOpen={isUpdatesModalOpen}
+          onClose={() => {
+            setIsUpdatesModalOpen(false);
+            fetchUpdatesCount(); // Refresh count when modal closes
+          }}
+          jobId={id}
+        />
       </DashboardLayout>
     </ProtectedLayout>
   );

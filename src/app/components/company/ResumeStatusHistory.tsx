@@ -130,12 +130,12 @@ const ResumeStatusHistory: React.FC<ResumeStatusHistoryProps> = ({
       // Sort by date chronologically - oldest first, newest last
       const dateA = new Date(a.date!);
       const dateB = new Date(b.date!);
-
+      
       // Ensure we're comparing valid dates
       if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
         return 0;
       }
-
+      
       return dateA.getTime() - dateB.getTime();
     });
 
