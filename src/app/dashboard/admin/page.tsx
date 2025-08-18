@@ -35,6 +35,7 @@ import {
   FileText,
   Bell,
   Calendar,
+  Mail,
 } from "lucide-react";
 import {
   filterDataByTime,
@@ -222,7 +223,7 @@ export default function AdminDashboard() {
                   );
                 })}
               </div>
-              
+
               {/* Second row with 3 cards */}
               {statCards.length > 4 && (
                 <div className="grid grid-cols-3 gap-4">
@@ -439,6 +440,13 @@ export default function AdminDashboard() {
                   >
                     <Bell className="mr-2 h-4 w-4" />
                     Support Tickets
+                  </Link>
+                  <Link
+                    href="/dashboard/admin/email-notifications"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Email Statistics
                   </Link>
                 </div>
               </div>

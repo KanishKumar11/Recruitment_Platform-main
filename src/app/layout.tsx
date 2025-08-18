@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/app/components/providers/ReduxProvider";
 import ToastProvider from "@/app/components/providers/ToastProvider";
+import "@/app/lib/initializeServices"; // Initialize background services
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -8,6 +8,7 @@ import { adminApi } from "./services/adminApi";
 import { faqApi } from "./services/faqApi";
 import { settingsApi } from "./services/settingsApi";
 import { supportApi } from "./services/supportApi";
+import { emailNotificationsApi } from "./services/emailNotificationsApi";
 import authReducer from "./slices/authSlice";
 import uiReducer from "./slices/uiSlice";
 
@@ -24,6 +25,7 @@ export const store = configureStore({
     [faqApi.reducerPath]: faqApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
     [supportApi.reducerPath]: supportApi.reducer,
+    [emailNotificationsApi.reducerPath]: emailNotificationsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -35,7 +37,8 @@ export const store = configureStore({
       adminApi.middleware,
       faqApi.middleware,
       settingsApi.middleware,
-      supportApi.middleware
+      supportApi.middleware,
+      emailNotificationsApi.middleware
     ),
 });
 

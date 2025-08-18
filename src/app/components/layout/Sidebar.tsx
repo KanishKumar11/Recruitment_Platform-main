@@ -84,6 +84,11 @@ export default function Sidebar() {
         label: "Candidates",
         icon: "user-circle",
       },
+      {
+        path: "/dashboard/admin/email-notifications",
+        label: "Email Statistics",
+        icon: "mail",
+      },
       { path: "/dashboard/admin/faqs", label: "FAQs", icon: "question-mark" },
       {
         path: "/dashboard/admin/support",
@@ -128,6 +133,7 @@ export default function Sidebar() {
       "question-mark": "❓",
       support: "🎫",
       help: "🆘",
+      mail: "📧",
     };
     return icons[iconName as keyof typeof icons] || "📄";
   };

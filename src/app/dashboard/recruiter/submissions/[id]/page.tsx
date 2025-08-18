@@ -571,7 +571,8 @@ export default function ResumeDetail() {
                                     "question" in answer.questionId
                                       ? (answer.questionId
                                           .question as React.ReactNode)
-                                      : `Question ${index + 1}`}:
+                                      : `Question ${index + 1}`}
+                                    :
                                   </dt>
                                   <dd className="text-sm text-gray-900">
                                     {answer.answer || "No answer provided"}

@@ -54,7 +54,7 @@ interface PaginatedResumesTableProps {
   onDownloadResume?: (resumeId: string) => void;
 }
 
-const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
 
 export default function PaginatedResumesTable({
   resumes,
@@ -63,7 +63,7 @@ export default function PaginatedResumesTable({
   onDownloadResume,
 }: PaginatedResumesTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const itemsPerPage = 25;
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -99,10 +99,7 @@ export default function PaginatedResumesTable({
     setCurrentPage(1);
   };
 
-  const handleItemsPerPageChange = (value: string) => {
-    setItemsPerPage(parseInt(value));
-    setCurrentPage(1);
-  };
+
 
   // Get status badge color
   const getStatusColor = (status: string) => {
@@ -204,26 +201,7 @@ export default function PaginatedResumesTable({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Label htmlFor="itemsPerPage" className="text-sm text-gray-600">
-            Show:
-          </Label>
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={handleItemsPerPageChange}
-          >
-            <SelectTrigger className="w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option.toString()}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+
       </div>
 
       {/* Results Summary */}

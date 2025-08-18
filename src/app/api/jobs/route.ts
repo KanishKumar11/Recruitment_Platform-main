@@ -12,6 +12,11 @@ import {
 import { UserRole } from "./../../models/User";
 import { transformJobForUser } from "@/app/lib/jobUtils";
 import mongoose from "mongoose";
+import {
+  shouldSendGlobalNotification,
+  getActiveRecruiters,
+} from "@/app/lib/recruiterEmailService";
+import { addBulkEmailNotificationJob } from "@/app/lib/backgroundJobProcessor";
 
 // Commission configuration - should match frontend config
 const COMMISSION_CONFIG = {
@@ -35,7 +40,8 @@ function validateCommissionData(commission: any) {
   if (!type || !["percentage", "fixed", "hourly"].includes(type)) {
     return {
       isValid: false,
-      error: 'Commission type must be either "percentage", "fixed", or "hourly"',
+      error:
+        'Commission type must be either "percentage", "fixed", or "hourly"',
     };
   }
 
@@ -126,7 +132,6 @@ const calculateHourlyCommissionBreakdown = (
     platformFeeAmount,
   };
 };
-
 
 // Function to calculate commission amount (for percentage type)
 const calculateCommissionAmount = (
@@ -631,6 +636,28 @@ export async function POST(req: NextRequest) {
 
     // Transform the created job based on user role before returning
     const transformedJob = transformJobForUser(jobObj, userData.role);
+
+    // Trigger email notifications for recruiters (non-blocking)
+    try {
+      // Check if we should send notifications (every 5 jobs)
+      const notificationCheck = await shouldSendGlobalNotification();
+      if (notificationCheck.shouldSend) {
+        console.log(
+          `Triggering email notifications for ${notificationCheck.jobCount} jobs`
+        );
+
+        // Add bulk email notification job to queue for background processing
+        await addBulkEmailNotificationJob(
+          notificationCheck.jobIds,
+          notificationCheck.jobCount
+        );
+
+        console.log("Email notification job added to queue successfully");
+      }
+    } catch (emailError) {
+      // Log error but don't fail the job creation
+      console.error("Error triggering email notifications:", emailError);
+    }
 
     return NextResponse.json(transformedJob);
   } catch (error) {

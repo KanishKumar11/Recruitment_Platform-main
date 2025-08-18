@@ -53,11 +53,11 @@ export default function JobsListPage() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPage = 10;
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
 
   // Status badge colors
   const statusColors = {
@@ -180,32 +180,7 @@ export default function JobsListPage() {
                       </Select>
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="itemsPerPage"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Items per page
-                      </label>
-                      <Select
-                        value={itemsPerPage.toString()}
-                        onValueChange={(value) => {
-                          setItemsPerPage(parseInt(value));
-                          setCurrentPage(1);
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                            <SelectItem key={option} value={option.toString()}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+
 
                     <div className="flex items-end">
                       <Button

@@ -552,11 +552,10 @@ export default function InternalJobEditPage() {
                       ))}
                     </select>
                   </div>
-
                 </div>
               </div>
 
-              {/* Company Description */} 
+              {/* Company Description */}
               <div className="bg-white shadow sm:rounded-lg p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Company Description

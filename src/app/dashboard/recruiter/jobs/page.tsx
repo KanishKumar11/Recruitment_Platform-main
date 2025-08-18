@@ -80,9 +80,9 @@ export default function RecruiterJobs() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPage = 10;
 
-  const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
+
 
   // Derived data for filter dropdowns
   const [locations, setLocations] = useState<string[]>([]);
@@ -549,29 +549,7 @@ export default function RecruiterJobs() {
                 <div className="px-6 py-4 border-t border-gray-200 bg-white">
                   <Pagination>
                     <PaginationContent>
-                      <div>
-                        <Select
-                          value={itemsPerPage.toString()}
-                          onValueChange={(value) => {
-                            setItemsPerPage(parseInt(value));
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                              <SelectItem
-                                key={option}
-                                value={option.toString()}
-                              >
-                                {option} per page
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() =>
