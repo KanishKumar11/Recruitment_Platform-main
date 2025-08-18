@@ -210,11 +210,11 @@ export default function AdminDashboard() {
                         <div className={`${card.bgColor} rounded-lg p-2`}>
                           <IconComponent className="h-5 w-5 text-white" />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 max-w-max">
                           <p className="text-sm text-gray-600 truncate">
                             {card.title}
                           </p>
-                          <p className="text-lg font-bold text-gray-900">
+                          <p className="text-lg font-bold text-center text-gray-900">
                             {card.value}
                           </p>
                         </div>
@@ -256,11 +256,11 @@ export default function AdminDashboard() {
                           <div className={`${card.bgColor} rounded-lg p-2`}>
                             <IconComponent className="h-5 w-5 text-white" />
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 max-w-max ">
                             <p className="text-sm text-gray-600 truncate">
                               {card.title}
                             </p>
-                            <p className="text-lg font-bold text-gray-900">
+                            <p className="text-lg font-bold text-center text-gray-900">
                               {card.value}
                             </p>
                           </div>

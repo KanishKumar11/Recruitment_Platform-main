@@ -81,8 +81,6 @@ export default function InternalJobsPage() {
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-
-
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
     if (
@@ -345,8 +343,6 @@ export default function InternalJobsPage() {
                     onChange={(e) => handleCompanyFilterChange(e.target.value)}
                   />
                 </div>
-
-
               </div>
             </div>
 
@@ -443,7 +439,7 @@ export default function InternalJobsPage() {
                                 {job.title}
                               </div>
                               <div className="text-sm text-gray-500">
-                                Code: {job.jobCode.replace(/^job-/i, '')}
+                                Code: {job.jobCode.replace(/^job-/i, "")}
                               </div>
                               <div className="text-sm text-gray-500">
                                 Posted:{" "}
@@ -463,9 +459,9 @@ export default function InternalJobsPage() {
                           </TableCell>
                           <TableCell className="align-top">
                             <div className="py-2">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-green-600">
                                 {isLoadingCounts ? (
-                                  <span className="text-gray-400">
+                                  <span className="text-green-400">
                                     Loading...
                                   </span>
                                 ) : (
@@ -474,7 +470,7 @@ export default function InternalJobsPage() {
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-green-600">
                                 {(resumeCounts?.[job._id as string] || 0) === 1
                                   ? "resume"
                                   : "resumes"}

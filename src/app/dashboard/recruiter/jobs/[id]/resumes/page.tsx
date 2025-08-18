@@ -1,8 +1,8 @@
 // app/dashboard/recruiter/jobs/[id]/resumes/page.tsx
 "use client";
 
-import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useGetResumesByJobIdQuery } from "../../../../../store/services/resumesApi";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
 import ResumeStatusBadge from "@/app/components/company/ResumeStatusBadge";
@@ -34,6 +34,7 @@ import * as XLSX from "xlsx";
 export default function RecruiterJobResumesPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const jobId = params.id as string;
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [downloadDropdownOpen, setDownloadDropdownOpen] = useState<
@@ -66,6 +67,21 @@ export default function RecruiterJobResumesPage() {
   const jobTitle = !Array.isArray(typedResumesData)
     ? typedResumesData?.jobTitle
     : null;
+
+  // Check for resumeId in URL parameters and open modal automatically
+  useEffect(() => {
+    const resumeIdFromUrl = searchParams.get("resumeId");
+    if (resumeIdFromUrl && resumes) {
+      // Verify that the resume exists in the current job's resumes
+      const resumeExists = resumes.some(
+        (resume: any) =>
+          resume._id === resumeIdFromUrl || resume.id === resumeIdFromUrl
+      );
+      if (resumeExists) {
+        setSelectedResumeId(resumeIdFromUrl);
+      }
+    }
+  }, [searchParams, resumes]);
 
   // Filter and sort resumes
   const filteredAndSortedResumes = resumes
@@ -114,6 +130,10 @@ export default function RecruiterJobResumesPage() {
 
   const handleCloseModal = () => {
     setSelectedResumeId(null);
+    // Clear the resumeId parameter from URL
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete("resumeId");
+    router.replace(currentUrl.pathname + currentUrl.search, { scroll: false });
   };
 
   const toggleDownloadDropdown = (resumeId: string) => {

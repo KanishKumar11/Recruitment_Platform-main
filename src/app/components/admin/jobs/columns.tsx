@@ -189,7 +189,7 @@ export const createJobColumns = ({
       
       return (
         <div className="py-2">
-          <div className="text-sm text-gray-900">
+          <div className="text-sm text-green-600">
             {isLoadingCounts ? (
               <span className="text-gray-400">Loading...</span>
             ) : (

@@ -18,6 +18,7 @@ import {
 } from "../../../store/services/adminApi";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { UserRole } from "@/app/constants/userRoles";
+import { Input } from "@/components/ui/input";
 
 function AdminUsersContent() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -42,7 +43,7 @@ function AdminUsersContent() {
     role: roleParam as UserRole | undefined,
     isPrimary: isPrimaryParam ? isPrimaryParam === "true" : undefined,
     isActive: isActiveParam ? isActiveParam === "true" : true, // Default to active users
-    search: '',
+    search: "",
     page: pageParam ? parseInt(pageParam) : 1,
     limit: 10,
   });
@@ -72,8 +73,8 @@ function AdminUsersContent() {
     isOpen: boolean;
     userId: string;
     userName: string;
-  }>({ isOpen: false, userId: '', userName: '' });
-  const [newPassword, setNewPassword] = useState('');
+  }>({ isOpen: false, userId: "", userName: "" });
+  const [newPassword, setNewPassword] = useState("");
 
   // Redirect if not admin
   useEffect(() => {
@@ -168,7 +169,7 @@ function AdminUsersContent() {
   // Handle password change
   const handlePasswordChange = async () => {
     if (!newPassword || newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters long');
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
@@ -177,19 +178,21 @@ function AdminUsersContent() {
         id: passwordModal.userId,
         newPassword,
       }).unwrap();
-      toast.success(`Password changed successfully for ${passwordModal.userName}`);
-      setPasswordModal({ isOpen: false, userId: '', userName: '' });
-      setNewPassword('');
+      toast.success(
+        `Password changed successfully for ${passwordModal.userName}`
+      );
+      setPasswordModal({ isOpen: false, userId: "", userName: "" });
+      setNewPassword("");
     } catch (error) {
-      console.error('Error changing password:', error);
-      toast.error('Failed to change password');
+      console.error("Error changing password:", error);
+      toast.error("Failed to change password");
     }
   };
 
   // Open password change modal
   const openPasswordModal = (userId: string, userName: string) => {
     setPasswordModal({ isOpen: true, userId, userName });
-    setNewPassword('');
+    setNewPassword("");
   };
 
   // Function to get badge color based on role
@@ -211,6 +214,52 @@ function AdminUsersContent() {
   // Function to get status badge color
   const getStatusBadgeColor = (isActive: boolean) => {
     return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+  };
+
+  // Function to export filtered users to CSV
+  const exportFilteredUsersToCSV = () => {
+    if (!data?.users || data.users.length === 0) {
+      toast.error("No users to export");
+      return;
+    }
+
+    const csvHeaders = [
+      "Name",
+      "Email",
+      "Role",
+      "Account Type",
+      "Status",
+      "Created At",
+    ];
+
+    const csvData = data.users.map((user) => [
+      user.name || "",
+      user.email || "",
+      user.role || "",
+      user.isPrimary ? "Primary" : "Secondary",
+      user.isActive ? "Active" : "Inactive",
+      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "",
+    ]);
+
+    const csvContent = [
+      csvHeaders.join(","),
+      ...csvData.map((row) => row.map((field) => `"${field}"`).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `filtered_users_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success(`Exported ${data.users.length} users to CSV`);
   };
 
   const renderPagination = () => {
@@ -344,15 +393,9 @@ function AdminUsersContent() {
                 <h3 className="text-lg font-medium leading-6 text-gray-900">
                   Filter Users
                 </h3>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-5">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-6">
                   <div>
-                    <label
-                      htmlFor="search-filter"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Search Users
-                    </label>
-                    <input
+                    <Input
                       type="text"
                       id="search-filter"
                       placeholder="Search by name or email..."
@@ -362,12 +405,6 @@ function AdminUsersContent() {
                     />
                   </div>
                   <div>
-                    <label
-                      htmlFor="role-filter"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      User Role
-                    </label>
                     <select
                       id="role-filter"
                       value={filters.role || ""}
@@ -378,7 +415,7 @@ function AdminUsersContent() {
                             : undefined
                         )
                       }
-                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-2 border-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     >
                       <option value="">All Roles</option>
                       <option value={UserRole.COMPANY}>Company</option>
@@ -389,12 +426,6 @@ function AdminUsersContent() {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="primary-filter"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Account Type
-                    </label>
                     <select
                       id="primary-filter"
                       value={
@@ -408,7 +439,7 @@ function AdminUsersContent() {
                           val === "" ? undefined : val === "true"
                         );
                       }}
-                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-2 border-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     >
                       <option value="">All Types</option>
                       <option value="true">Primary Accounts</option>
@@ -417,12 +448,6 @@ function AdminUsersContent() {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="status-filter"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Status
-                    </label>
                     <select
                       id="status-filter"
                       value={
@@ -436,7 +461,7 @@ function AdminUsersContent() {
                           val === "" ? undefined : val === "true"
                         );
                       }}
-                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-2 border-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     >
                       <option value="true">Active Users</option>
                       <option value="false">Inactive Users</option>
@@ -451,7 +476,7 @@ function AdminUsersContent() {
                           role: undefined,
                           isPrimary: undefined,
                           isActive: true, // Reset to active by default
-                          search: '',
+                          search: "",
                           page: 1,
                           limit: 10,
                         })
@@ -459,6 +484,15 @@ function AdminUsersContent() {
                       className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       Clear Filters
+                    </button>
+                  </div>
+
+                  <div className="flex items-end">
+                    <button
+                      onClick={exportFilteredUsersToCSV}
+                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      Export CSV
                     </button>
                   </div>
                 </div>
@@ -610,7 +644,10 @@ function AdminUsersContent() {
                               </Link>
                               <button
                                 onClick={() =>
-                                  openPasswordModal(user._id as string, user.name)
+                                  openPasswordModal(
+                                    user._id as string,
+                                    user.name
+                                  )
                                 }
                                 className="text-purple-600 hover:text-purple-900"
                               >
@@ -681,7 +718,10 @@ function AdminUsersContent() {
                   Change Password for {passwordModal.userName}
                 </h3>
                 <div className="mb-4">
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     New Password
                   </label>
                   <input
@@ -696,8 +736,12 @@ function AdminUsersContent() {
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => {
-                      setPasswordModal({ isOpen: false, userId: '', userName: '' });
-                      setNewPassword('');
+                      setPasswordModal({
+                        isOpen: false,
+                        userId: "",
+                        userName: "",
+                      });
+                      setNewPassword("");
                     }}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
                   >
@@ -708,7 +752,7 @@ function AdminUsersContent() {
                     disabled={isChangingPassword || !newPassword}
                     className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isChangingPassword ? 'Changing...' : 'Change Password'}
+                    {isChangingPassword ? "Changing..." : "Change Password"}
                   </button>
                 </div>
               </div>

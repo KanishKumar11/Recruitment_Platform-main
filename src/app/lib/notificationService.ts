@@ -1,5 +1,8 @@
 // src/app/lib/notificationService.ts
-import Notification, { NotificationType, INotification } from "@/app/models/Notification";
+import Notification, {
+  NotificationType,
+  INotification,
+} from "@/app/models/Notification";
 import { ResumeStatus } from "@/app/models/Resume";
 import mongoose from "mongoose";
 import connectDb from "@/app/lib/db";
@@ -20,7 +23,9 @@ export class NotificationService {
   /**
    * Create a new notification
    */
-  static async createNotification(params: CreateNotificationParams): Promise<INotification> {
+  static async createNotification(
+    params: CreateNotificationParams
+  ): Promise<INotification> {
     await connectDb();
 
     const notification = new Notification({
@@ -114,7 +119,7 @@ export class NotificationService {
     };
 
     const modifiedFieldsDisplay = modifiedFields
-      .map(field => fieldDisplayNames[field] || field)
+      .map((field) => fieldDisplayNames[field] || field)
       .join(", ");
 
     return this.createNotification({
@@ -144,15 +149,16 @@ export class NotificationService {
     resumeId?: string | mongoose.Types.ObjectId
   ): Promise<INotification> {
     // Truncate note preview if too long
-    const truncatedPreview = notePreview.length > 100 
-      ? notePreview.substring(0, 100) + "..." 
-      : notePreview;
+    const truncatedPreview =
+      notePreview.length > 100
+        ? notePreview.substring(0, 100) + "..."
+        : notePreview;
 
     return this.createNotification({
       recipientId: recruiterId,
       type: NotificationType.NEW_NOTE_COMMENT,
-      title: "New Note Added",
-      message: `${noteAuthor} added a note to ${candidateName}'s application for "${jobTitle}": ${truncatedPreview}`,
+      title: `New Note Added - for ${candidateName} - ${jobTitle}`,
+      message: truncatedPreview,
       jobId,
       resumeId,
       candidateName,
@@ -297,7 +303,7 @@ export class NotificationService {
    */
   static async cleanupOldNotifications(daysOld: number = 30): Promise<number> {
     await connectDb();
-    
+
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 

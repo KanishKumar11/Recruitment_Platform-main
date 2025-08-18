@@ -303,10 +303,10 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                     )}
                     <div className="flex gap-2">
                       <span className="text-gray-500 text-xs w-20 flex-shrink-0">
-                        Education:
+                        Notice Period:
                       </span>
                       <span className="text-gray-900 font-medium text-xs">
-                        {resume.qualification}
+                        {resume.noticePeriod}
                       </span>
                     </div>
                   </div>
@@ -367,10 +367,10 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                   </div>
                   <div className="flex gap-2">
                     <span className="text-gray-500 text-xs w-36 flex-shrink-0">
-                      Notice Period:
+                      Education:
                     </span>
                     <span className="text-gray-900 font-medium text-xs">
-                      {resume.noticePeriod} days
+                      {resume.qualification}
                     </span>
                   </div>
                 </div>
@@ -408,7 +408,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
             </div>
 
             {/* Middle section: Add Note and Notes History (spans 1 column) */}
-            <div className="lg:col-span-1 space-y-3">
+            <div className="lg:col-span-1 space-y-3 flex flex-col">
               {/* Add Note Section */}
               <div className="compact-section">
                 <h3>Add Note</h3>
@@ -502,9 +502,9 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                 )}
 
               {resume.notes && resume.notes.length > 0 && (
-                <div className="compact-section">
+                <div className="compact-section flex-1 flex flex-col">
                   <h3>Notes History</h3>
-                  <div className="bg-white shadow overflow-hidden rounded-md max-h-32 overflow-y-auto compact-scroll">
+                  <div className="bg-white shadow overflow-hidden rounded-md flex-1 overflow-y-auto compact-scroll">
                     <ul className="divide-y divide-gray-200">
                       {resume.notes.map((note, index) => (
                         <li key={index} className="px-2 py-1.5">

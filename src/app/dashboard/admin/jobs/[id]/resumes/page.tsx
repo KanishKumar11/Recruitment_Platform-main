@@ -133,7 +133,7 @@ const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
 
             <div className="text-right">
               {jobTitle && (
-                <div className="text-lg font-medium text-gray-900">
+                <div className="text-lg font-medium text-gray-900" style={{color: 'green'}}>
                   {jobTitle}
                 </div>
               )}
@@ -146,9 +146,9 @@ const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold mb-6">
-            Resume Applications ({resumes.length})
-          </h1>
+          <div className="text-sm text-gray-600 mb-6" style={{color: 'green'}}>
+            Showing {resumes.length} candidates
+          </div>
 
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
@@ -247,12 +247,13 @@ const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
   <div className="flex space-x-2 justify-end">
-    <button
+    <div
       onClick={() => handleViewResume(resume._id as string)}
-      className="text-indigo-600 hover:text-indigo-900"
+      className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
+      style={{color: 'green'}}
     >
       View Details
-    </button>
+    </div>
     <button
       onClick={() => handleDeleteResume(resume._id as string)}
       disabled={isDeleting}

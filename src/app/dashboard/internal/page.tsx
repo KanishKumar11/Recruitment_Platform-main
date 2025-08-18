@@ -112,7 +112,7 @@ export default function InternalDashboardPage() {
         <div className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="md:flex md:items-center md:justify-between">
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 ">
                 <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
                   Internal Team Dashboard
                 </h2>
@@ -161,11 +161,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">
                           Total Jobs
                         </p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center">
                           {totalJobs}
                         </p>
                       </div>
@@ -191,11 +191,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">
                           Active Jobs
                         </p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center">
                           {activeJobs}
                         </p>
                       </div>
@@ -221,11 +221,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">
                           Paused Jobs
                         </p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center">
                           {pausedJobs}
                         </p>
                       </div>
@@ -251,11 +251,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">
                           Closed Jobs
                         </p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center">
                           {closedJobs}
                         </p>
                       </div>
@@ -284,11 +284,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">
                           Total Submissions
                         </p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center">
                           {totalSubmissions}
                         </p>
                       </div>
@@ -314,11 +314,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">
                           Selected
                         </p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center">
                           {selected}
                         </p>
                       </div>
@@ -344,9 +344,9 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">Joined</p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center">
                           {joined}
                         </p>
                       </div>
@@ -372,11 +372,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-sm text-gray-600 truncate">
                           Rejected
                         </p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 text-center ">
                           {rejected}
                         </p>
                       </div>
@@ -405,11 +405,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-xs text-gray-600 truncate">
                           Total Companies
                         </p>
-                        <p className="text-sm font-bold text-gray-900">
+                        <p className="text-sm font-bold text-gray-900 text-center">
                           {stats?.users?.byRole?.companyPrimary || 0}
                         </p>
                       </div>
@@ -435,11 +435,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-xs text-gray-600 truncate">
                           Total Recruiters
                         </p>
-                        <p className="text-sm font-bold text-gray-900">
+                        <p className="text-sm font-bold text-gray-900 text-center ">
                           {stats?.users?.byRole?.recruiter || 0}
                         </p>
                       </div>
@@ -465,11 +465,11 @@ export default function InternalDashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-max">
                         <p className="text-xs text-gray-600 truncate">
                           In Process
                         </p>
-                        <p className="text-sm font-bold text-gray-900">
+                        <p className="text-sm font-bold text-gray-900 text-center">
                           {interviewInProcess}
                         </p>
                       </div>
@@ -573,7 +573,7 @@ export default function InternalDashboardPage() {
                                   {job.location}
                                 </div>
                                 <div className="text-xs text-gray-400 mt-1">
-                                  Job Code: {job.jobCode.replace(/^job-/i, '')}
+                                  Job Code: {job.jobCode.replace(/^job-/i, "")}
                                 </div>
                               </div>
                             </div>

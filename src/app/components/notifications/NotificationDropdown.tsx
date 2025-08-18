@@ -78,7 +78,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     <div
       ref={dropdownRef}
       className={cn(
-        "absolute top-full right-0 mt-2 w-[550px] max-h-96 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50",
+        "absolute top-full right-0 mt-2 w-[550px] max-h-[600px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50",
         className
       )}
     >
@@ -115,11 +115,23 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               Mark All Read
             </Button>
           )}
+
+          {notifications.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={deleteAllNotifications}
+              className="text-red-600 hover:text-red-700"
+              disabled={loading}
+            >
+              Clear All
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Notification List */}
-      <div className="max-h-80 overflow-y-auto">
+      <div className="max-h- overflow-y-auto">
         <NotificationList
           notifications={notifications}
           loading={loading}

@@ -70,7 +70,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         : String(jobId || "");
 
     if (resumeId && jobIdString) {
-      return `/dashboard/recruiter/jobs/${jobIdString}/resumes`;
+      const resumeIdString =
+        typeof resumeId === "object" && resumeId !== null
+          ? (resumeId as any)._id || (resumeId as any).id || String(resumeId)
+          : String(resumeId);
+      return `/dashboard/recruiter/jobs/${jobIdString}/resumes?resumeId=${resumeIdString}`;
     }
     if (jobIdString) {
       return `/dashboard/recruiter/jobs/${jobIdString}`;

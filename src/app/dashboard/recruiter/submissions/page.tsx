@@ -382,11 +382,11 @@ function RecruiterSubmissionsPageContent() {
               )}
             </div>
 
-            {/* Clear filters button */}
-            <div className="flex justify-end">
+            {/* Clear filters button moved to same row */}
+            <div className="col-span-1 flex items-end">
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 justify-center"
               >
                 <Filter className="mr-2 h-4 w-4" />
                 Clear Filters
@@ -419,16 +419,8 @@ function RecruiterSubmissionsPageContent() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Job Title
                       </th>
-                      {isPrimary && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Submitted By
-                        </th>
-                      )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Last Updated
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
@@ -436,6 +428,11 @@ function RecruiterSubmissionsPageContent() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
+                      {isPrimary && (
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Submitted By
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -449,7 +446,7 @@ function RecruiterSubmissionsPageContent() {
                             {resume.candidateName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {resume.email}
+                            {resume.phone || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -460,41 +457,25 @@ function RecruiterSubmissionsPageContent() {
                             {resume.qualification}
                           </div>
                         </td>
-                        {/* Submitted By column only for primary users */}
-                        {isPrimary && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <SubmitterInfo
-                              submitterId={resume.submittedBy?.toString() || ""}
-                              currentUserId={user?.id?.toString()}
-                              fallbackName={
-                                resume.submittedByName || "Team Member"
-                              }
-                            />
-                          </td>
-                        )}
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-xs text-gray-700">
-                            <span className="bg-gray-100 px-2 py-1 rounded-md mr-1">
-                              Notice: {resume.noticePeriod || "N/A"}
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-700 mt-1">
-                            <span className="bg-blue-50 px-2 py-1 rounded-md mr-1">
-                              CTC: {resume.currentCTC || "N/A"}
-                            </span>
-                            <span className="bg-green-50 px-2 py-1 rounded-md">
-                              Exp: {resume.expectedCTC || "N/A"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div>
-                            Updated:{" "}
-                            {new Date(resume.updatedAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs">
-                            Created:{" "}
-                            {new Date(resume.createdAt).toLocaleDateString()}
+                          <div className="text-sm text-gray-900">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Exp CTC: {resume.expectedCTC || "N/A"}
+                              </span>
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Cur CTC: {resume.currentCTC || "N/A"}
+                              </span>
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Notice: {resume.noticePeriod || "N/A"}
+                              </span>
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                Total Exp: {resume.totalExperience || "N/A"}
+                              </span>
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                Rel Exp: {resume.relevantExperience || "N/A"}
+                              </span>
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -568,16 +549,28 @@ function RecruiterSubmissionsPageContent() {
                                 ).toLocaleDateString()}
                               </div>
                             )}
-                          {resume.status === "DUPLICATE" &&
-                            resume.duplicateAt && (
+                          {resume.status === "OFFER_DECLINED" &&
+                            resume.offerDeclinedAt && (
                               <div className="text-xs text-gray-500 mt-1">
                                 <Clock className="inline-block h-3 w-3 mr-1" />
                                 {new Date(
-                                  resume.duplicateAt
+                                  resume.offerDeclinedAt
                                 ).toLocaleDateString()}
                               </div>
                             )}
                         </td>
+                        {/* Submitted By column only for primary users */}
+                        {isPrimary && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <SubmitterInfo
+                              submitterId={resume.submittedBy?.toString() || ""}
+                              currentUserId={user?.id?.toString()}
+                              fallbackName={
+                                resume.submittedByName || "Team Member"
+                              }
+                            />
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

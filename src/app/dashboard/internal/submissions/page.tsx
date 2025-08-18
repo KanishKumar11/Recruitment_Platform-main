@@ -421,7 +421,7 @@ export default function InternalSubmissionsPage() {
                             {resume.candidateName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {resume.email}
+                            {resume.phone || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -441,14 +441,17 @@ export default function InternalSubmissionsPage() {
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
                             <div className="flex flex-wrap gap-2">
+                              <span className="bg-orange-50 px-2 py-1 rounded text-xs">
+                                ECTC: {resume.expectedCTC || "N/A"}
+                              </span>
                               <span className="bg-blue-50 px-2 py-1 rounded text-xs">
-                                CTC: {resume.currentCTC || "N/A"}
+                                C CTC: {resume.currentCTC || "N/A"}
                               </span>
                               <span className="bg-green-50 px-2 py-1 rounded text-xs">
-                                Notice: {resume.noticePeriod || "N/A"}
+                                N: {resume.noticePeriod || "N/A"}
                               </span>
                               <span className="bg-yellow-50 px-2 py-1 rounded text-xs">
-                                Total Exp: {resume.totalExperience || "N/A"}
+                                T Exp: {resume.totalExperience || "N/A"}
                               </span>
                               <span className="bg-purple-50 px-2 py-1 rounded text-xs">
                                 Rel Exp: {resume.relevantExperience || "N/A"}

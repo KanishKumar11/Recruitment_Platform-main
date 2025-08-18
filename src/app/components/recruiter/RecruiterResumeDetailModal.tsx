@@ -189,6 +189,14 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
                       {resume.country && `, ${resume.country}`}
                     </p>
                   </div>
+                  <div>
+                    <span className="font-medium text-gray-900">
+                      Notice Period:
+                    </span>
+                    <p className="text-gray-600">
+                      {resume.noticePeriod || "N/A"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -196,14 +204,6 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
               <div className="compact-section">
                 <h3>Career Information</h3>
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className="font-medium text-gray-900">
-                      Qualification:
-                    </span>
-                    <p className="text-gray-600">
-                      {resume.qualification || "N/A"}
-                    </p>
-                  </div>
                   <div>
                     <span className="font-medium text-gray-900">
                       Current CTC:
@@ -222,10 +222,10 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
                   </div>
                   <div>
                     <span className="font-medium text-gray-900">
-                      Notice Period:
+                      Education:
                     </span>
                     <p className="text-gray-600">
-                      {resume.noticePeriod || "N/A"}
+                      {resume.qualification || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -263,7 +263,7 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
             </div>
 
             {/* Right section: Documents and Status History (spans 1 column) */}
-            <div className="lg:col-span-1 space-y-3">
+            <div className="lg:col-span-1 space-y-3 flex flex-col">
               {/* Additional Documents Row */}
               {resume.additionalDocuments &&
                 resume.additionalDocuments.length > 0 && (
@@ -327,9 +327,9 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
 
               {/* Notes History (Read-only) */}
               {resume.notes && resume.notes.length > 0 && (
-                <div className="compact-section">
+                <div className="compact-section flex-1 flex flex-col">
                   <h3>Notes History</h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 flex-1 overflow-y-auto">
                     {resume.notes.map((note, index) => (
                       <div
                         key={index}

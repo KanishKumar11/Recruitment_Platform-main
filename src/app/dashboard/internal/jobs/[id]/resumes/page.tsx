@@ -345,9 +345,6 @@ export default function InternalJobResumesPage() {
 
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                  Resume Applications
-                </h1>
                 {jobTitle && (
                   <div className="text-lg font-medium text-gray-700 mb-1">
                     {jobTitle}
@@ -432,7 +429,7 @@ export default function InternalJobResumesPage() {
 
           {/* Results Count */}
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600" style={{color: 'green'}}>
               Showing {filteredAndSortedResumes?.length || 0} of{" "}
               {resumes.length} candidates
             </div>
@@ -483,13 +480,14 @@ export default function InternalJobResumesPage() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-1">
-                        <button
+                        <div
                           onClick={() => handleViewResume(resume._id as string)}
-                          className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                          className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
                           title="View Details"
+                          style={{color: 'green'}}
                         >
-                          <Eye className="h-4 w-4" />
-                        </button>
+                          View Details
+                        </div>
 
                         {/* Individual Download Dropdown */}
                         <div className="relative">
