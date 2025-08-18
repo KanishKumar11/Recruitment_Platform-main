@@ -29,7 +29,7 @@ export default function Sidebar() {
   // Prevent hydration mismatch by not rendering mobile elements until mounted
   if (!isMounted) {
     return (
-      <div className="fixed top-0 left-0 h-full bg-gray-800 text-white z-50 transform transition-all duration-300 ease-in-out -translate-x-full md:translate-x-0 md:static md:flex-shrink-0 md:w-64 w-64">
+      <div className="fixed top-0 left-0 h-full bg-gray-800 text-white z-50 transform transition-all duration-300 ease-in-out -translate-x-full md:translate-x-0 md:static md:flex-shrink-0 md:w-48 w-64">
         {/* Header */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           <h2 className="text-xl font-bold truncate">
@@ -161,12 +161,12 @@ export default function Sidebar() {
         className={`fixed top-0 left-0 h-full bg-gray-800 text-white z-50 transform transition-all duration-300 ease-in-out
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} 
           md:translate-x-0 md:static md:flex-shrink-0
-          ${isDesktopCollapsed ? "md:w-16" : "md:w-64"} w-64`}
+          ${isDesktopCollapsed ? "md:w-16" : "md:w-48"} w-64`}
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           {!isDesktopCollapsed && (
-            <h2 className="text-xl font-bold truncate">
+            <h2 className="text-sm font-bold truncate">
               {user.role.charAt(0) + user.role.slice(1).toLowerCase()} Portal
             </h2>
           )}
@@ -204,7 +204,9 @@ export default function Sidebar() {
                     </span>
 
                     {!isDesktopCollapsed && (
-                      <span className="ml-3 truncate">{link.label}</span>
+                      <span className="ml-3 truncate text-sm">
+                        {link.label}
+                      </span>
                     )}
 
                     {/* Tooltip for collapsed state */}

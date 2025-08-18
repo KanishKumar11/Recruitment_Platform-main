@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "@/app/lib/db";
 import Notification, { NotificationType } from "@/app/models/Notification";
+import Resume from "@/app/models/Resume";
+import Job from "@/app/models/Job";
 import { authenticateRequest, authorizeRoles } from "@/app/lib/auth";
 import { UserRole } from "@/app/models/User";
 import mongoose from "mongoose";

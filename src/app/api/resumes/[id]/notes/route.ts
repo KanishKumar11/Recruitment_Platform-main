@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "./../../../../lib/db";
 import Resume from "./../../../../models/Resume";
+import Job from "./../../../../models/Job";
 import User, { UserRole } from "./../../../../models/User";
 import mongoose from "mongoose";
 import {
@@ -63,15 +64,25 @@ export async function POST(
 
     // Create notification for new note
     try {
+      // Get job information and author details for the notification
+      const [job, noteAuthor] = await Promise.all([
+        Job.findById(resume.jobId).select('title').lean(),
+        User.findById(userData.userId).select('name email').lean()
+      ]);
+
+      const jobTitle = (job as any)?.title || 'Job Application';
+      const authorName = (noteAuthor as any)?.name || (noteAuthor as any)?.email || 'Unknown User';
+
       // Find the recruiter who submitted this resume to notify them
       if (resume.submittedBy && resume.submittedBy.toString() !== userData.userId) {
         await NotificationService.createNewNoteNotification(
           resume.submittedBy.toString(),
           resume.candidateName,
-          "Job Application", // jobTitle - we'll use a default since we don't have job info here
-          note.substring(0, 100), // notePreview
-          "", // jobId - empty string since we don't have job info
-          (resume._id as mongoose.Types.ObjectId).toString() // resumeId
+          jobTitle,
+          authorName,
+          note.trim(),
+          resume.jobId?.toString(),
+          (resume._id as mongoose.Types.ObjectId).toString()
         );
       }
     } catch (notificationError) {

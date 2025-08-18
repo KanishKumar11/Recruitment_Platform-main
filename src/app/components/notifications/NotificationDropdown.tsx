@@ -12,16 +12,22 @@ interface NotificationDropdownProps {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
+  notificationsHook?: ReturnType<typeof useNotifications>;
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   isOpen,
   onClose,
   className,
+  notificationsHook,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Use notifications hook
+  // Use shared notifications hook or create a new one
+  const defaultHook = useNotifications({
+    autoRefresh: true,
+    refreshInterval: 30000,
+  });
   const {
     notifications,
     unreadCount,
@@ -32,7 +38,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     deleteNotification,
     deleteAllNotifications,
     refresh,
-  } = useNotifications({ autoRefresh: true, refreshInterval: 30000 });
+  } = notificationsHook || defaultHook;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -72,7 +78,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     <div
       ref={dropdownRef}
       className={cn(
-        "absolute top-full right-0 mt-2 w-[500px] max-h-96 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50",
+        "absolute top-full right-0 mt-2 w-[550px] max-h-96 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50",
         className
       )}
     >

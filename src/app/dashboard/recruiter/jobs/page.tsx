@@ -20,10 +20,21 @@ import {
   Filter,
   Loader2,
   FileText,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import { format } from "date-fns";
 import { IJob } from "@/app/models/Job";
 import { countries } from "@/lib/countries";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/app/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -34,8 +45,6 @@ import {
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import SaveJobModal from "@/app/components/SaveJobModal";
 import toast from "@/app/lib/toast";
-import { DataTable } from "@/app/components/ui/data-table";
-import { createRecruiterJobColumns } from "@/app/components/recruiter/jobs/columns";
 
 // Utility function to get full country name from country code
 const getCountryName = (countryCode: string): string => {
@@ -71,38 +80,14 @@ export default function RecruiterJobs() {
   const [clientFilter, setClientFilter] = useState("");
   const [industryFilter, setIndustryFilter] = useState("");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Derived data for filter dropdowns
   const [locations, setLocations] = useState<string[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [clients, setClients] = useState<string[]>([]);
-
-  // Handle save job action
-  const handleSaveJob = (job: IJob) => {
-    setSelectedJobForSaving(job);
-    setSaveJobModalOpen(true);
-  };
-
-  // Handle remove job action
-  const handleRemoveJob = async (jobId: string) => {
-    try {
-      await removeJobFromSaved({ jobId }).unwrap();
-      toast.success("Job removed from saved jobs!");
-    } catch (error) {
-      toast.error("Failed to remove job");
-    }
-  };
-
-  // Get saved job IDs for column actions
-  const savedJobIds =
-    recruiterJobs?.savedJobs?.map((job) => job._id as string) || [];
-
-  // Create columns for DataTable
-  const columns = createRecruiterJobColumns({
-    onSaveJob: handleSaveJob,
-    onRemoveJob: handleRemoveJob,
-    savedJobIds,
-    activeTab,
-  });
 
   // Filter jobs based on current filter settings
   const filteredJobs =
@@ -127,9 +112,17 @@ export default function RecruiterJobs() {
       return true;
     }) || [];
 
-  // Handle search and filter changes
+  // Calculate pagination
+  const totalItems = filteredJobs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = filteredJobs.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    setCurrentPage(1);
   };
 
   const handleFilterChange = (
@@ -137,6 +130,7 @@ export default function RecruiterJobs() {
     value: string
   ) => {
     setValue(value);
+    setCurrentPage(1);
   };
 
   // Extract unique values for filters
@@ -164,6 +158,65 @@ export default function RecruiterJobs() {
     setCountryFilter("");
     setClientFilter("");
     setIndustryFilter("");
+    setCurrentPage(1);
+  };
+
+  // Format salary for display
+  const formatSalary = (job: IJob) => {
+    return `${
+      job.salary.currency
+    } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
+  };
+
+  // Calculate commission value based on new commission structure
+  const calculateCommission = (job: IJob) => {
+    if (!job.commission) {
+      // Fallback to legacy commission calculation
+      const commissionValue = job.salary.max * (job.commissionPercentage / 100);
+      return `${job.salary.currency} ${commissionValue.toLocaleString(
+        undefined,
+        {
+          maximumFractionDigits: 0,
+        }
+      )}`;
+    }
+
+    if (job.commission.type === "fixed") {
+      // For fixed commission, show the recruiter amount directly
+      return `${
+        job.salary.currency
+      } ${job.commission.recruiterAmount.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      })}`;
+    } else {
+      // For percentage-based commission, calculate based on max salary
+      const commissionValue =
+        job.salary.max * (job.commission.recruiterPercentage / 100);
+      return `${job.salary.currency} ${commissionValue.toLocaleString(
+        undefined,
+        {
+          maximumFractionDigits: 0,
+        }
+      )}`;
+    }
+  };
+
+  // Get commission type badge
+  const getCommissionTypeBadge = (job: IJob) => {
+    if (!job.commission) {
+      return "Legacy";
+    }
+    return job.commission.type === "fixed" ? "Fixed" : "Percentage";
+  };
+
+  // Get commission badge color based on type
+  const getCommissionBadgeColor = (job: IJob) => {
+    if (!job.commission) {
+      return "bg-gray-100 text-gray-800";
+    }
+    return job.commission.type === "fixed"
+      ? "bg-blue-100 text-blue-800"
+      : "bg-purple-100 text-purple-800";
   };
 
   return (
@@ -281,15 +334,224 @@ export default function RecruiterJobs() {
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
               <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  {activeTab === "live" ? "Available Jobs" : "My Saved Jobs"}
+                  {activeTab === "live" ? "Available Jobs" : "My Saved Jobs"}{" "}
+                  (Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+                  {totalItems} jobs)
                 </h3>
               </div>
               {isLoading ? (
                 <div className="flex justify-center items-center h-64">
                   <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
                 </div>
+              ) : currentJobs && currentJobs.length > 0 ? (
+                <ul className="divide-y divide-gray-200">
+                  {currentJobs.map((job) => (
+                    <li key={job._id as string}>
+                      <div className="block hover:bg-gray-50 transition duration-150">
+                        <div className="px-4 py-4 sm:px-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 mr-4">
+                              <div className="flex items-center mb-2">
+                                <div className="flex-shrink-0 bg-indigo-100 rounded-md p-2">
+                                  <Briefcase className="h-6 w-6 text-indigo-600" />
+                                </div>
+                                <div className="ml-4">
+                                  <div className="flex items-center gap-2">
+                                    <div className="text-sm font-medium text-indigo-600">
+                                      {job.jobCode.replace(/^job-/i, "")}
+                                    </div>
+                                    {(() => {
+                                      const isJobSaved =
+                                        recruiterJobs?.savedJobs?.some(
+                                          (savedJob) => savedJob._id === job._id
+                                        );
+
+                                      if (activeTab === "saved" || isJobSaved) {
+                                        return (
+                                          <button
+                                            onClick={async () => {
+                                              try {
+                                                await removeJobFromSaved({
+                                                  jobId: job._id as string,
+                                                }).unwrap();
+                                                toast.success(
+                                                  "Job removed from saved jobs!"
+                                                );
+                                              } catch (error) {
+                                                toast.error("Failed to remove job");
+                                              }
+                                            }}
+                                            className="text-yellow-500 hover:text-yellow-600 transition-colors"
+                                            title="Remove from saved jobs"
+                                          >
+                                            <BookmarkCheck className="h-4 w-4" />
+                                          </button>
+                                        );
+                                      } else {
+                                        return (
+                                          <button
+                                            onClick={() => {
+                                              setSelectedJobForSaving(job);
+                                              setSaveJobModalOpen(true);
+                                            }}
+                                            className="text-gray-400 hover:text-yellow-500 transition-colors"
+                                            title="Save job"
+                                          >
+                                            <Bookmark className="h-4 w-4" />
+                                          </button>
+                                        );
+                                      }
+                                    })()}
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      router.push(
+                                        `/dashboard/recruiter/jobs/${job._id}`
+                                      )
+                                    }
+                                    className="text-lg font-semibold text-gray-900 hover:text-indigo-600 truncate text-left transition-colors duration-200 overflow-hidden text-ellipsis whitespace-nowrap"
+                                  >
+                                    {job.title}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Job details */}
+                              <div className="flex flex-wrap gap-y-1 mb-2">
+                                <div className="flex items-center text-sm text-gray-500 mr-4 overflow-hidden">
+                                  <Building className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                                  <span className="truncate">
+                                    {job.postedByName || "Company"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center text-sm text-gray-500 mr-4 overflow-hidden">
+                                  <MapPin className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                                  <span className="truncate">
+                                    {job.location},{" "}
+                                    {getCountryName(job.country)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center text-sm font-medium text-gray-800 overflow-hidden">
+                                  <span className="truncate">
+                                    {formatSalary(job)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Tags and info */}
+                              <div className="flex flex-wrap gap-2">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {job.jobType.replace("_", " ")}
+                                </span>
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  {job.experienceLevel.min}-
+                                  {job.experienceLevel.max} Years
+                                </span>
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCommissionBadgeColor(
+                                    job
+                                  )}`}
+                                >
+                                  Commission: {calculateCommission(job)}
+                                </span>
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCommissionBadgeColor(
+                                    job
+                                  )}`}
+                                >
+                                  {getCommissionTypeBadge(job)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => {
+                                  if (activeTab === "live") {
+                                    setSelectedJobForSaving(job);
+                                    setSaveJobModalOpen(true);
+                                  } else {
+                                    router.push(
+                                      `/dashboard/recruiter/jobs/${job._id}`
+                                    );
+                                  }
+                                }}
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                View Details
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/recruiter/jobs/${job._id}/apply`
+                                  )
+                                }
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <FileText className="mr-1.5 h-3 w-3" />
+                                Upload Resume
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions`
+                                  )
+                                }
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <QuestionMarkCircleIcon className="mr-1.5 h-3 w-3" />
+                                Screening Questions
+                              </button>
+                              <button
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/recruiter/jobs/${job._id}/resumes`
+                                  )
+                                }
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                View Submissions
+                              </button>
+
+
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <DataTable columns={columns} data={filteredJobs || []} />
+                <div className="text-center py-12">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    No jobs found
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {jobs && jobs.length > 0
+                      ? "No jobs match your current filters. Try adjusting your search criteria."
+                      : "There are no active jobs available at the moment."}
+                  </p>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 bg-white"></div>
               )}
             </div>
           </div>

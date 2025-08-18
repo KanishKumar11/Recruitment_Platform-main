@@ -3,13 +3,13 @@
 
 import React from "react";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
-import { 
-  UserCheck, 
-  FileEdit, 
-  MessageSquare, 
-  Check, 
+import {
+  UserCheck,
+  FileEdit,
+  MessageSquare,
+  Check,
   X,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/app/lib/utils";
@@ -64,10 +64,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const getNotificationLink = () => {
     // Ensure jobId is a string, handle cases where it might be an object
-    const jobIdString = typeof jobId === 'object' && jobId !== null 
-      ? (jobId as any)._id || (jobId as any).id || String(jobId)
-      : String(jobId || '');
-    
+    const jobIdString =
+      typeof jobId === "object" && jobId !== null
+        ? (jobId as any)._id || (jobId as any).id || String(jobId)
+        : String(jobId || "");
+
     if (resumeId && jobIdString) {
       return `/dashboard/recruiter/jobs/${jobIdString}/resumes`;
     }
@@ -79,10 +80,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const formatTime = (date: string | Date) => {
     try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      const dateObj = typeof date === "string" ? new Date(date) : date;
       return formatDistanceToNow(dateObj, { addSuffix: true });
     } catch {
-      return 'Unknown time';
+      return "Unknown time";
     }
   };
 
@@ -113,80 +114,67 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       )}
     >
       {/* Icon */}
-      <div className="flex-shrink-0 mt-1">
-        {getNotificationIcon()}
-      </div>
+      <div className="flex-shrink-0 mt-1">{getNotificationIcon()}</div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <h4 className={cn(
-              "text-sm font-medium text-gray-900 mb-1",
-              !isRead && "font-semibold"
-            )}>
+            <h4
+              className={cn(
+                "text-sm font-medium text-gray-900 mb-1",
+                !isRead && "font-semibold"
+              )}
+            >
               {title}
             </h4>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {message}
-            </p>
-            
+            <p className="text-sm text-gray-600 leading-relaxed">{message}</p>
+
             {/* Additional info */}
-            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-              <span>{formatTime(createdAt)}</span>
-              {candidateName && (
-                <span className="flex items-center gap-1">
-                  <UserCheck className="h-3 w-3" />
-                  {candidateName}
-                </span>
+          </div>
+          <div className="flex flex-col">
+            {/* Actions */}
+            <div className="flex items-center gap-1 ml-2">
+              {notificationLink && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-600"
+                  asChild
+                >
+                  <Link href={notificationLink}>
+                    <ExternalLink className="h-4 w-4" />
+                  </Link>
+                </Button>
               )}
-              {jobTitle && (
-                <span className="flex items-center gap-1">
-                  <FileEdit className="h-3 w-3" />
-                  {jobTitle}
-                </span>
+
+              {!isRead && onMarkAsRead && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-400 hover:text-green-600"
+                  onClick={handleMarkAsRead}
+                  title="Mark as read"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+              )}
+
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-400 hover:text-red-600"
+                  onClick={handleDelete}
+                  title="Delete notification"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               )}
             </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1 ml-2">
-            {notificationLink && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-gray-600"
-                asChild
-              >
-                <Link href={notificationLink}>
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
-              </Button>
-            )}
-            
-            {!isRead && onMarkAsRead && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-green-600"
-                onClick={handleMarkAsRead}
-                title="Mark as read"
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-            )}
-            
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-red-600"
-                onClick={handleDelete}
-                title="Delete notification"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+              <span>{formatTime(createdAt)}</span>
+            </div>
           </div>
         </div>
       </div>

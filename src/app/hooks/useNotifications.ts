@@ -123,25 +123,27 @@ export const useNotifications = ({
         throw new Error('Failed to mark notification as read');
       }
 
-      // Update local state
-      setNotifications(prev =>
-        prev.map(notification =>
+      // Update local state and unread count atomically
+      setNotifications(prev => {
+        const updatedNotifications = prev.map(notification =>
           notification._id === notificationId
             ? { ...notification, isRead: true }
             : notification
-        )
-      );
-      
-      // Update unread count
-      setUnreadCount(prev => {
-        const notification = notifications.find(n => n._id === notificationId);
-        return notification && !notification.isRead ? Math.max(0, prev - 1) : prev;
+        );
+        
+        // Update unread count based on the change
+        const wasUnread = prev.find(n => n._id === notificationId && !n.isRead);
+        if (wasUnread) {
+          setUnreadCount(currentCount => Math.max(0, currentCount - 1));
+        }
+        
+        return updatedNotifications;
       });
     } catch (err) {
       console.error('Error marking notification as read:', err);
       throw err;
     }
-  }, [notifications, getAuthHeaders]);
+  }, [getAuthHeaders]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
@@ -181,19 +183,23 @@ export const useNotifications = ({
         throw new Error('Failed to delete notification');
       }
 
-      // Update local state
-      const deletedNotification = notifications.find(n => n._id === notificationId);
-      setNotifications(prev => prev.filter(notification => notification._id !== notificationId));
-      
-      // Update unread count if deleted notification was unread
-      if (deletedNotification && !deletedNotification.isRead) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      // Update local state and unread count atomically
+      setNotifications(prev => {
+        const deletedNotification = prev.find(n => n._id === notificationId);
+        const updatedNotifications = prev.filter(notification => notification._id !== notificationId);
+        
+        // Update unread count if deleted notification was unread
+        if (deletedNotification && !deletedNotification.isRead) {
+          setUnreadCount(currentCount => Math.max(0, currentCount - 1));
+        }
+        
+        return updatedNotifications;
+      });
     } catch (err) {
       console.error('Error deleting notification:', err);
       throw err;
     }
-  }, [notifications, getAuthHeaders]);
+  }, [getAuthHeaders]);
 
   // Delete all notifications
   const deleteAllNotifications = useCallback(async () => {

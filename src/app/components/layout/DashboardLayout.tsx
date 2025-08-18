@@ -8,6 +8,7 @@ import LogoutButton from "../LogoutButton";
 import Link from "next/link";
 import NotificationBell from "../notifications/NotificationBell";
 import NotificationDropdown from "../notifications/NotificationDropdown";
+import { useNotifications } from "@/app/hooks/useNotifications";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -23,6 +24,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user } = useSelector((state: RootState) => state.auth);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  
+  // Get notifications data for recruiters
+  const notificationsHook = useNotifications({
+    autoRefresh: user?.role === 'RECRUITER',
+    refreshInterval: 30000, // 30 seconds
+  });
+  const { unreadCount } = notificationsHook;
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
@@ -52,11 +60,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     {user.role === 'RECRUITER' && (
                       <div className="relative">
                         <NotificationBell
+                          unreadCount={unreadCount}
                           onNotificationClick={() => setIsNotificationOpen(!isNotificationOpen)}
                         />
                         <NotificationDropdown 
                           isOpen={isNotificationOpen}
                           onClose={() => setIsNotificationOpen(false)}
+                          notificationsHook={notificationsHook}
                         />
                       </div>
                     )}
