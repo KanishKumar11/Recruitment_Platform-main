@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { RootState } from '@/app/store/index';
@@ -19,6 +19,11 @@ export default function ProtectedLayout({
 }: ProtectedLayoutProps) {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     // If not authenticated, redirect to login
@@ -48,6 +53,17 @@ export default function ProtectedLayout({
       }
     }
   }, [isAuthenticated, user, router, allowedRoles]);
+
+  // Prevent hydration mismatch by only rendering after client-side hydration
+  if (!isClient) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading while checking authentication
   if (!isAuthenticated || !user) {

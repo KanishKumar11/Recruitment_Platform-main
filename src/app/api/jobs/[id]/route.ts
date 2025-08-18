@@ -14,6 +14,7 @@ import {
 import { UserRole } from "./../../../models/User";
 import mongoose from "mongoose";
 import { transformJobForUser } from "@/app/lib/jobUtils";
+import { NotificationService } from "@/app/lib/notificationService";
 
 // Helper function to validate commission data
 function validateCommissionData(commission: any) {
@@ -323,6 +324,28 @@ export async function PUT(
       updatedJob.screeningQuestions.length > 0
     ) {
       await updatedJob.populate("screeningQuestions");
+    }
+
+    // Create notification for job modification
+    try {
+      // Find all recruiters who might be interested in this job
+      const recruiters = await User.find({ role: UserRole.RECRUITER }).select('_id');
+      
+      if (recruiters.length > 0 && updatedJob) {
+        const recruiterIds = recruiters.map(r => r._id.toString());
+        // Create notifications for each recruiter
+        for (const recruiterId of recruiterIds) {
+          await NotificationService.createJobModificationNotification(
+            recruiterId,
+            updatedJob.title,
+            ['job'], // modifiedFields - we'll use a generic field for now
+            (updatedJob._id as mongoose.Types.ObjectId).toString()
+          );
+        }
+      }
+    } catch (notificationError) {
+      console.error('Failed to create job modification notification:', notificationError);
+      // Continue with the response even if notification fails
     }
 
     // Transform the updated job for the response based on user role

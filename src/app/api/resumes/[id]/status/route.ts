@@ -5,6 +5,8 @@ import Resume, { ResumeStatus } from './../../../../models/Resume';
 import Job from './../../../../models/Job';
 import User, { UserRole } from './../../../../models/User';
 import { authenticateRequest, authorizeRoles, unauthorized, forbidden } from './../../../../lib/auth';
+import { NotificationService } from './../../../../lib/notificationService';
+import mongoose from 'mongoose';
 
 export async function PUT(
   req: NextRequest,
@@ -84,6 +86,15 @@ export async function PUT(
     const updateFields: any = {
       status: status as ResumeStatus
     };
+
+    // Get recruiter information for notification (if resume was submitted by a recruiter)
+    let recruiterToNotify = null;
+    if (resume.submittedBy) {
+      const submitter = await User.findById(resume.submittedBy);
+      if (submitter && submitter.role === UserRole.RECRUITER) {
+        recruiterToNotify = submitter;
+      }
+    }
     
     // Update corresponding timestamp based on the new status
     const now = new Date();
@@ -142,6 +153,24 @@ export async function PUT(
         { error: 'Failed to update resume status' },
         { status: 500 }
       );
+    }
+
+    // Create notification for recruiter if status changed and recruiter exists
+    if (oldStatus !== status && recruiterToNotify) {
+      try {
+        await NotificationService.createCandidateStatusChangeNotification(
+          recruiterToNotify._id,
+          updatedResume.candidateName || 'Unknown Candidate',
+          job.title || 'Unknown Job',
+          oldStatus,
+          status as ResumeStatus,
+          job._id,
+          (updatedResume._id as mongoose.Types.ObjectId).toString()
+        );
+      } catch (notificationError) {
+        console.error('Failed to create notification:', notificationError);
+        // Don't fail the status update if notification creation fails
+      }
     }
 
     return NextResponse.json({

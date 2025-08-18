@@ -6,6 +6,8 @@ import { RootState } from "@/app/store/index";
 import Sidebar from "./Sidebar";
 import LogoutButton from "../LogoutButton";
 import Link from "next/link";
+import NotificationBell from "../notifications/NotificationBell";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,6 +22,7 @@ const SidebarContext = createContext<{
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user } = useSelector((state: RootState) => state.auth);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
@@ -45,6 +48,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="flex items-center space-x-4">
                 {user && (
                   <>
+                    {/* Notification Bell - Only for Recruiters */}
+                    {user.role === 'RECRUITER' && (
+                      <div className="relative">
+                        <NotificationBell
+                          onNotificationClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                        />
+                        <NotificationDropdown 
+                          isOpen={isNotificationOpen}
+                          onClose={() => setIsNotificationOpen(false)}
+                        />
+                      </div>
+                    )}
+                    
                     <Link
                       href={`/dashboard/profile`}
                       className="text-gray-700 hover:text-gray-900"

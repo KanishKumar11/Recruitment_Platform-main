@@ -9,6 +9,7 @@ import {
   unauthorized,
   forbidden,
 } from "./../../../../lib/auth";
+import { NotificationService } from "./../../../../lib/notificationService";
 
 export async function POST(
   req: NextRequest,
@@ -59,6 +60,24 @@ export async function POST(
     resume.updatedAt = new Date();
 
     await resume.save();
+
+    // Create notification for new note
+    try {
+      // Find the recruiter who submitted this resume to notify them
+      if (resume.submittedBy && resume.submittedBy.toString() !== userData.userId) {
+        await NotificationService.createNewNoteNotification(
+          resume.submittedBy.toString(),
+          resume.candidateName,
+          "Job Application", // jobTitle - we'll use a default since we don't have job info here
+          note.substring(0, 100), // notePreview
+          "", // jobId - empty string since we don't have job info
+          (resume._id as mongoose.Types.ObjectId).toString() // resumeId
+        );
+      }
+    } catch (notificationError) {
+      console.error('Failed to create new note notification:', notificationError);
+      // Continue with the response even if notification fails
+    }
 
     // Return the updated resume with populated user names
     const updatedResume = await Resume.findById(id)

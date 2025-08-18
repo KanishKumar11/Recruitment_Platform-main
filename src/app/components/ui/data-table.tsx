@@ -65,8 +65,11 @@ export function DataTable<TData, TValue>({
   pageSizeOptions = [10, 20, 30, 40, 50],
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
@@ -96,41 +99,6 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 gap-4">
-        {searchKey && (
-          <Input
-            placeholder={searchPlaceholder}
-            value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(searchKey)?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-        )}
-        
-        {filterOptions.map((filter) => (
-          <Select
-            key={filter.key}
-            value={(table.getColumn(filter.key)?.getFilterValue() as string) ?? ""}
-            onValueChange={(value) =>
-              table.getColumn(filter.key)?.setFilterValue(value === "all" ? "" : value)
-            }
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={filter.label} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All {filter.label}</SelectItem>
-              {filter.options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ))}
-      </div>
-      
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -181,58 +149,67 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      
-      <div className="flex items-center justify-between space-x-2 py-4">
 
-        
-        <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex items-center justify-between w-full px-10  space-x-2 py-4">
+        <div className="flex items-center justify-between w-full space-x-6 lg:space-x-8">
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
           </div>
-          
+
           <Pagination>
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => table.previousPage()}
-                  className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  className={
+                    !table.getCanPreviousPage()
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
                 />
               </PaginationItem>
-              
+
               {/* Page numbers */}
-              {Array.from({ length: Math.min(5, table.getPageCount()) }, (_, i) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const totalPages = table.getPageCount();
-                let pageNumber;
-                
-                if (totalPages <= 5) {
-                  pageNumber = i;
-                } else if (pageIndex < 3) {
-                  pageNumber = i;
-                } else if (pageIndex > totalPages - 4) {
-                  pageNumber = totalPages - 5 + i;
-                } else {
-                  pageNumber = pageIndex - 2 + i;
+              {Array.from(
+                { length: Math.min(5, table.getPageCount()) },
+                (_, i) => {
+                  const pageIndex = table.getState().pagination.pageIndex;
+                  const totalPages = table.getPageCount();
+                  let pageNumber;
+
+                  if (totalPages <= 5) {
+                    pageNumber = i;
+                  } else if (pageIndex < 3) {
+                    pageNumber = i;
+                  } else if (pageIndex > totalPages - 4) {
+                    pageNumber = totalPages - 5 + i;
+                  } else {
+                    pageNumber = pageIndex - 2 + i;
+                  }
+
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        onClick={() => table.setPageIndex(pageNumber)}
+                        isActive={pageNumber === pageIndex}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
                 }
-                
-                return (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      onClick={() => table.setPageIndex(pageNumber)}
-                      isActive={pageNumber === pageIndex}
-                      className="cursor-pointer"
-                    >
-                      {pageNumber + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-              
+              )}
+
               <PaginationItem>
                 <PaginationNext
                   onClick={() => table.nextPage()}
-                  className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  className={
+                    !table.getCanNextPage()
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
                 />
               </PaginationItem>
             </PaginationContent>

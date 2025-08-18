@@ -5,6 +5,7 @@ import Job from './../../../../models/Job';
 import { authenticateRequest, unauthorized, forbidden, JwtPayload } from './../../../../lib/auth';
 import User, { UserRole } from './../../../../models/User';
 import mongoose from 'mongoose';
+import { NotificationService } from './../../../../lib/notificationService';
 
 // Helper function to check if user has access to modify job questions
 async function hasAccessToModifyJobQuestions(userData: JwtPayload, jobId: string) {
@@ -93,6 +94,28 @@ export async function PUT(
       { $set: { status } },
       { new: true }
     ).populate('screeningQuestions');
+
+    // Create notification for job status change
+    try {
+      // Find all recruiters who might be interested in this job status change
+      const recruiters = await User.find({ role: UserRole.RECRUITER }).select('_id');
+      
+      if (recruiters.length > 0 && updatedJob) {
+        const recruiterIds = recruiters.map(r => r._id.toString());
+        // Create notifications for each recruiter
+        for (const recruiterId of recruiterIds) {
+          await NotificationService.createJobModificationNotification(
+            recruiterId,
+            updatedJob.title,
+            ['status'], // modifiedFields - status change
+            (updatedJob._id as mongoose.Types.ObjectId).toString()
+          );
+        }
+      }
+    } catch (notificationError) {
+      console.error('Failed to create job status change notification:', notificationError);
+      // Continue with the response even if notification fails
+    }
 
     return NextResponse.json(updatedJob);
   } catch (error) {
