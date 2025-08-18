@@ -214,7 +214,7 @@ const FlagComponent = ({ country, countryName }: FlagComponentProps) => {
   const Flag = flags[country as keyof typeof flags];
 
   return (
-    <span className="bg-foreground/20 flex h-4 w-6 overflow-hidden rounded-sm">
+    <span className=" flex h-4 overflow-hidden rounded-sm">
       {Flag && <Flag title={countryName || ""} />}
     </span>
   );
