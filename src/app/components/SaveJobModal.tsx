@@ -80,21 +80,21 @@ export default function SaveJobModal({
         )}
 
         <div className="flex gap-3">
+          <button
+            onClick={handleViewDetails}
+            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            See more Info
+          </button>
           {!isAlreadySaved && (
             <button
               onClick={handleSaveJob}
               disabled={isLoading}
-              className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
             >
               {isLoading ? "Saving..." : "Save Job"}
             </button>
           )}
-          <button
-            onClick={handleViewDetails}
-            className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          >
-            View Details
-          </button>
         </div>
       </div>
     </div>

@@ -141,6 +141,10 @@ const CountrySelect = ({
       handleSelect("IN");
     }
   }, [handleSelect, value]);
+  const selectedCountry = countriesOptions.find(
+    (option) => option.value === value
+  );
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -148,13 +152,18 @@ const CountrySelect = ({
           type="button"
           variant={"outline"}
           className={cn(
-            "flex gap-1 rounded-e-none border-b-2 border-r-2 border-[#F2F2F2] rounded-s-lg px-3",
+            "flex gap-2 rounded-e-none border-b-2 border-r-2 border-[#F2F2F2] rounded-s-lg px-3",
             "bg-[#CEEAF8] dark:bg-gray-700",
             className
           )}
           disabled={disabled}
         >
           <FlagComponent country={value} countryName={value} />
+          {selectedCountry && (
+            <span className="text-sm font-medium truncate max-w-[100px]">
+              {selectedCountry.indicatif}
+            </span>
+          )}
           <ChevronsUpDown
             className={cn(
               "-mr-2 h-4  opacity-50",

@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast";
 import { JobStatus } from "@/app/constants/jobStatus";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 import JobUpdatesModal from "@/components/JobUpdatesModal";
+import { useGetJobUpdatesQuery } from "../../../../store/services/jobUpdatesApi";
 
 export default function ViewJobPage() {
   const router = useRouter();
@@ -24,7 +25,6 @@ export default function ViewJobPage() {
     useUpdateJobStatusMutation();
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
-  const [updatesCount, setUpdatesCount] = useState(0);
 
   // Status badge colors
   const statusColors = {
@@ -39,25 +39,12 @@ export default function ViewJobPage() {
     return status.charAt(0) + status.slice(1).toLowerCase();
   };
 
-  // Fetch updates count for badge
-  const fetchUpdatesCount = async () => {
-    if (!id) return;
-    
-    try {
-      const response = await fetch(`/api/jobs/${id}/updates`);
-      if (response.ok) {
-        const data = await response.json();
-        setUpdatesCount(data.data?.length || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching updates count:', error);
-    }
-  };
+  // Use RTK Query to fetch job updates
+  const { data: jobUpdates } = useGetJobUpdatesQuery(id, {
+    skip: !id,
+  });
 
-  // Fetch updates count on component mount
-  useEffect(() => {
-    fetchUpdatesCount();
-  }, [id]);
+  const updatesCount = jobUpdates?.data?.length || 0;
 
   // Handle job status update with improved error handling
   const handleStatusChange = (status: JobStatus) => {
@@ -439,7 +426,6 @@ export default function ViewJobPage() {
           isOpen={isUpdatesModalOpen}
           onClose={() => {
             setIsUpdatesModalOpen(false);
-            fetchUpdatesCount(); // Refresh count when modal closes
           }}
           jobId={id}
         />

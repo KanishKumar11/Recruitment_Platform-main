@@ -14,17 +14,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/index";
 import { UserRole } from "@/app/constants/userRoles";
+import {
+  useGetJobUpdatesQuery,
+  useCreateJobUpdateMutation,
+  JobUpdate,
+} from "@/app/store/services/jobUpdatesApi";
 
-interface JobUpdate {
-  _id: string;
-  title: string;
-  content: string;
-  postedBy: string;
-  postedByName: string;
-  postedByRole: string;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 interface JobUpdatesModalProps {
   isOpen: boolean;
@@ -39,93 +35,62 @@ const JobUpdatesModal: React.FC<JobUpdatesModalProps> = ({
   jobId,
   onUpdatePosted,
 }) => {
-  const [updates, setUpdates] = useState<JobUpdate[]>([]);
-  const [loading, setLoading] = useState(false);
+  // 
+  // const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
   });
 
-  const { user, token } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  // RTK Query hooks
+  const {
+    data: updatesData,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useGetJobUpdatesQuery(jobId, {
+    skip: !isOpen || !jobId,
+  });
+
+  const [createJobUpdate, { isLoading: isPosting }] =
+    useCreateJobUpdateMutation();
+
+  const updates = updatesData?.data || [];
 
   // Check if user can post updates
-  const canPost = user && [
-    UserRole.ADMIN,
-    UserRole.INTERNAL,
-    UserRole.COMPANY,
-  ].includes(user.role);
+  const canPost =
+    user &&
+    [UserRole.ADMIN, UserRole.INTERNAL, UserRole.COMPANY].includes(user.role);
 
-  // Fetch job updates
-  const fetchUpdates = async () => {
-    if (!jobId) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(`/api/jobs/${jobId}/updates`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
+  // No need for manual fetch function - RTK Query handles this automatically
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch job updates");
-      }
-
-      const data = await response.json();
-      setUpdates(data.data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Post new update
+  // Post new update using RTK Query
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title.trim() || !formData.content.trim()) {
-      setError("Title and content are required");
-      return;
-    }
-
-    setPosting(true);
-    setError(null);
+    if (!formData.content.trim()) return;
 
     try {
-      const response = await fetch(`/api/jobs/${jobId}/updates`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify(formData),
-      });
+      await createJobUpdate({
+        jobId,
+        title: formData.title.trim() || undefined,
+        content: formData.content.trim(),
+      }).unwrap();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to post update");
-      }
-
-      // Reset form and refresh updates
+      // Reset form and close form
       setFormData({ title: "", content: "" });
       setShowForm(false);
-      await fetchUpdates();
-      
-      // Call the callback to refresh parent component
+
+      // Call the callback if provided
       if (onUpdatePosted) {
         onUpdatePosted();
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setPosting(false);
+    } catch (err: any) {
+      console.error("Failed to post update:", err);
     }
   };
 
@@ -154,12 +119,7 @@ const JobUpdatesModal: React.FC<JobUpdatesModalProps> = ({
     }
   };
 
-  // Fetch updates when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchUpdates();
-    }
-  }, [isOpen, jobId]);
+  // RTK Query automatically handles fetching when the query parameters change
 
   // Reset form when modal closes
   useEffect(() => {
@@ -184,10 +144,7 @@ const JobUpdatesModal: React.FC<JobUpdatesModalProps> = ({
           {canPost && (
             <div className="border-b pb-4">
               {!showForm ? (
-                <Button
-                  onClick={() => setShowForm(true)}
-                  className="w-full"
-                >
+                <Button onClick={() => setShowForm(true)} className="w-full">
                   Post New Update
                 </Button>
               ) : (
@@ -204,7 +161,6 @@ const JobUpdatesModal: React.FC<JobUpdatesModalProps> = ({
                       }
                       placeholder="Enter update title..."
                       maxLength={200}
-                      required
                     />
                   </div>
                   <div>
@@ -223,8 +179,8 @@ const JobUpdatesModal: React.FC<JobUpdatesModalProps> = ({
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" disabled={posting}>
-                      {posting ? "Posting..." : "Post Update"}
+                    <Button type="submit" disabled={isPosting}>
+                      {isPosting ? "Posting..." : "Post Update"}
                     </Button>
                     <Button
                       type="button"
@@ -242,7 +198,7 @@ const JobUpdatesModal: React.FC<JobUpdatesModalProps> = ({
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
+              {typeof error === "string" ? error : "An error occurred"}
             </div>
           )}
 
@@ -275,9 +231,9 @@ const JobUpdatesModal: React.FC<JobUpdatesModalProps> = ({
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-lg">{update.title}</h3>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          getRoleBadgeColor(update.postedByRole)
-                        }`}
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(
+                          update.postedByRole
+                        )}`}
                       >
                         {update.postedByRole}
                       </span>

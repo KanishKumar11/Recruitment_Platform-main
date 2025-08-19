@@ -459,18 +459,18 @@ export default function InternalJobsPage() {
                           </TableCell>
                           <TableCell className="align-top">
                             <div className="py-2">
-                              <div className="text-sm text-green-600">
+                              <div className="text-sm text-blue-600 text-center">
                                 {isLoadingCounts ? (
-                                  <span className="text-green-400">
+                                  <span className="text-blue-600">
                                     Loading...
                                   </span>
                                 ) : (
-                                  <span className="font-medium">
+                                  <span className="font-bold">
                                     {resumeCounts?.[job._id as string] || 0}
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-green-600">
+                              <div className="text-sm text-blue-600 text-center">
                                 {(resumeCounts?.[job._id as string] || 0) === 1
                                   ? "resume"
                                   : "resumes"}

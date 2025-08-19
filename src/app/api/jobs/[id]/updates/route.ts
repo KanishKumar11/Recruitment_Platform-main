@@ -168,15 +168,18 @@ export async function POST(
     const { title, content } = body;
 
     // Validate required fields
-    if (!title || !content) {
+    if (!content) {
       return NextResponse.json(
-        { error: "Title and content are required" },
+        { error: "Content is required" },
         { status: 400 }
       );
     }
 
+    // Use default title if not provided
+    const updateTitle = title && title.trim() ? title.trim() : "Job Update";
+
     // Validate field lengths
-    if (title.length > 200) {
+    if (updateTitle.length > 200) {
       return NextResponse.json(
         { error: "Title must be 200 characters or less" },
         { status: 400 }
@@ -202,7 +205,7 @@ export async function POST(
     // Create job update
     const jobUpdate = new JobUpdate({
       jobId: id,
-      title: title.trim(),
+      title: updateTitle,
       content: content.trim(),
       postedBy: userData.userId,
       postedByName: user.name,
@@ -215,7 +218,7 @@ export async function POST(
     try {
       await JobUpdateNotificationService.sendJobUpdateNotifications(
         id,
-        title.trim(),
+        updateTitle,
         content.trim(),
         user.name
       );

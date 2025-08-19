@@ -107,15 +107,23 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     }
   };
 
+  const handleNotificationClick = () => {
+    // Auto mark as read when notification is clicked
+    if (!isRead && onMarkAsRead) {
+      onMarkAsRead(id);
+    }
+  };
+
   const notificationLink = getNotificationLink();
 
   const NotificationContent = () => (
     <div
       className={cn(
-        "flex items-start gap-3 p-4 border-b border-gray-100 transition-all duration-200 hover:bg-gray-50",
+        "flex items-start gap-3 p-4 border-b border-gray-100 transition-all duration-200 hover:bg-gray-50 cursor-pointer",
         !isRead && "bg-blue-50 border-l-4 border-l-blue-500",
         className
       )}
+      onClick={handleNotificationClick}
     >
       {/* Icon */}
       <div className="flex-shrink-0 mt-1">{getNotificationIcon()}</div>
@@ -192,10 +200,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     </div>
   );
 
-  // If there's a link, wrap in Link component
+  // If there's a link, wrap in Link component and auto mark as read
   if (notificationLink) {
     return (
-      <Link href={notificationLink} className="block">
+      <Link href={notificationLink} className="block" onClick={handleNotificationClick}>
         <NotificationContent />
       </Link>
     );

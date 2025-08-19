@@ -153,6 +153,20 @@ export const jobsApi = createApi({
       query: () => "/resume-counts",
       providesTags: ["Job"],
     }),
+    getJobRecruiters: builder.query<{
+      recruiters: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        type: string;
+        companyName: string;
+        savedAt: string;
+      }[];
+    }, string>({
+      query: (jobId) => `/${jobId}/recruiters`,
+      providesTags: ["Job"],
+    }),
   }),
 });
 
@@ -167,6 +181,7 @@ export const {
   useDeleteScreeningQuestionMutation,
   useUpdateJobStatusMutation,
   useGetResumeCountsQuery,
+  useGetJobRecruitersQuery,
 } = jobsApi;
 
 // Separate API for recruiter jobs

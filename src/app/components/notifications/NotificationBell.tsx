@@ -46,24 +46,26 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
           className
         )}
         onClick={handleBellClick}
-        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+        aria-label={`Notifications${
+          unreadCount > 0 ? ` (${unreadCount} unread)` : ""
+        }`}
       >
         {unreadCount > 0 ? (
           <BellRing className="h-5 w-5 text-indigo-600" />
         ) : (
           <Bell className="h-5 w-5 text-gray-600" />
         )}
-        
+
         {/* Unread count badge */}
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white animate-in fade-in zoom-in duration-200">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
-        
+
         {/* Pulse animation for new notifications */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 animate-ping opacity-75" />
+          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500  opacity-75" />
         )}
       </Button>
 

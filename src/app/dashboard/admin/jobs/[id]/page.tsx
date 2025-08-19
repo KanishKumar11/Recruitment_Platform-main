@@ -17,7 +17,9 @@ import { UserRole } from "@/app/constants/userRoles";
 import { JobStatus } from "@/app/constants/jobStatus";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 import JobUpdatesModal from "@/components/JobUpdatesModal";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Users } from "lucide-react";
+import { useGetJobUpdatesQuery } from "../../../../store/services/jobUpdatesApi";
+import ShowRecruitersModal from "@/components/ShowRecruitersModal";
 
 export default function AdminJobDetailPage() {
   const router = useRouter();
@@ -29,7 +31,9 @@ export default function AdminJobDetailPage() {
   const { data: job, isLoading, error, refetch } = useGetJobByIdQuery(id);
   const [updateJobStatus] = useUpdateJobStatusMutation();
   const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
-  const [updatesCount, setUpdatesCount] = useState(0);
+  const [isRecruitersModalOpen, setIsRecruitersModalOpen] = useState(false);
+  const { data: updatesData } = useGetJobUpdatesQuery(id, { skip: !id });
+  const updatesCount = updatesData?.data?.length || 0;
 
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -41,26 +45,6 @@ export default function AdminJobDetailPage() {
       router.push(`/dashboard/${user.role.toLowerCase()}`);
     }
   }, [user, router]);
-
-  // Fetch updates count for badge
-  const fetchUpdatesCount = async () => {
-    if (!id) return;
-    
-    try {
-      const response = await fetch(`/api/jobs/${id}/updates`);
-      if (response.ok) {
-        const data = await response.json();
-        setUpdatesCount(data.data?.length || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching updates count:', error);
-    }
-  };
-
-  // Fetch updates count on component mount
-  useEffect(() => {
-    fetchUpdatesCount();
-  }, [id]);
 
   // Handle job status change
   const handleStatusChange = (newStatus: JobStatus) => {
@@ -114,7 +98,6 @@ export default function AdminJobDetailPage() {
   }
 
   return (
-    <>
     <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
       <DashboardLayout>
         <div className="py-6">
@@ -159,11 +142,18 @@ export default function AdminJobDetailPage() {
                           Job Updates
                         </button>
                         {updatesCount > 0 && (
-                          <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-green-500 rounded-full">
+                          <span className="absolute top-0 right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-green-500 rounded-full">
                             {updatesCount}
                           </span>
                         )}
                       </div>
+                      <button
+                        onClick={() => setIsRecruitersModalOpen(true)}
+                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        Show Recruiters
+                      </button>
                       <Link
                         href={`/dashboard/admin/jobs/${id}/resumes`}
                         className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
@@ -192,7 +182,7 @@ export default function AdminJobDetailPage() {
                     {job.title}
                   </h3>
                   <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                    Job Code: {job.jobCode.replace(/^job-/i, '')}
+                    Job Code: {job.jobCode.replace(/^job-/i, "")}
                   </p>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -242,7 +232,9 @@ export default function AdminJobDetailPage() {
                     <p className="text-sm font-medium text-gray-900">
                       Job Code
                     </p>
-                    <p className="text-sm text-gray-500">{job.jobCode.replace(/^job-/i, '')}</p>
+                    <p className="text-sm text-gray-500">
+                      {job.jobCode.replace(/^job-/i, "")}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -299,11 +291,12 @@ export default function AdminJobDetailPage() {
                     </dt>
                     <dd className="mt-1 text-sm font-medium text-gray-900">
                       {job.salary.currency} {job.salary.min.toLocaleString()} -{" "}
-                      {job.salary.max.toLocaleString()} {
-                        job.compensationType === "HOURLY" ? "per hour" :
-                        job.compensationType === "MONTHLY" ? "per month" :
-                        "per year"
-                      }
+                      {job.salary.max.toLocaleString()}{" "}
+                      {job.compensationType === "HOURLY"
+                        ? "per hour"
+                        : job.compensationType === "MONTHLY"
+                        ? "per month"
+                        : "per year"}
                     </dd>
                   </div>
 
@@ -341,20 +334,22 @@ export default function AdminJobDetailPage() {
                           } (Fixed)`
                         : job.commission?.type === "percentage"
                         ? `${job.commission.originalPercentage}% of ${
-                            job.compensationType === "HOURLY" ? "hourly" :
-                            job.compensationType === "MONTHLY" ? "monthly" :
-                            "annual"
-                          } salary (${
-                            job.salary.currency
-                          } ${
+                            job.compensationType === "HOURLY"
+                              ? "hourly"
+                              : job.compensationType === "MONTHLY"
+                              ? "monthly"
+                              : "annual"
+                          } salary (${job.salary.currency} ${
                             job.commission.originalAmount?.toLocaleString() ||
                             job.commissionAmount.toLocaleString()
                           })`
                         : job.commissionPercentage > 0
                         ? `${job.commissionPercentage}% of ${
-                            job.compensationType === "HOURLY" ? "hourly" :
-                            job.compensationType === "MONTHLY" ? "monthly" :
-                            "annual"
+                            job.compensationType === "HOURLY"
+                              ? "hourly"
+                              : job.compensationType === "MONTHLY"
+                              ? "monthly"
+                              : "annual"
                           } salary (${
                             job.salary.currency
                           } ${job.commissionAmount.toLocaleString()})`
@@ -500,17 +495,21 @@ export default function AdminJobDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Job Updates Modal */}
+        <JobUpdatesModal
+          isOpen={isUpdatesModalOpen}
+          onClose={() => setIsUpdatesModalOpen(false)}
+          jobId={id}
+        />
+        
+        <ShowRecruitersModal
+          isOpen={isRecruitersModalOpen}
+          onClose={() => setIsRecruitersModalOpen(false)}
+          jobId={id}
+          jobTitle={job?.title || ""}
+        />
       </DashboardLayout>
     </ProtectedLayout>
-    
-    <JobUpdatesModal
-      isOpen={isUpdatesModalOpen}
-      onClose={() => setIsUpdatesModalOpen(false)}
-      jobId={id as string}
-      onUpdatePosted={() => {
-        fetchUpdatesCount();
-      }}
-    />
-    </>
   );
 }

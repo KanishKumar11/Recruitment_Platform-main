@@ -20,16 +20,23 @@ import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 const formatSalary = (job: IJob) => {
   if (job.salary?.min && job.salary?.max) {
     if (job.salary.min === job.salary.max) {
-      return `${job.salary.currency || '$'}${job.salary.min.toLocaleString()}`;
+      return `${job.salary.currency || "$"}${job.salary.min.toLocaleString()}`;
     } else {
-      return `${job.salary.currency || '$'}${job.salary.min.toLocaleString()} - ${job.salary.currency || '$'}${job.salary.max.toLocaleString()}`;
+      return `${
+        job.salary.currency || "$"
+      }${job.salary.min.toLocaleString()} - ${
+        job.salary.currency || "$"
+      }${job.salary.max.toLocaleString()}`;
     }
   }
   return "Not specified";
 };
 
 const formatExperience = (job: IJob) => {
-  if (job.experienceLevel?.min !== undefined && job.experienceLevel?.max !== undefined) {
+  if (
+    job.experienceLevel?.min !== undefined &&
+    job.experienceLevel?.max !== undefined
+  ) {
     if (job.experienceLevel.min === job.experienceLevel.max) {
       return `${job.experienceLevel.min} years`;
     } else {
@@ -44,13 +51,16 @@ const formatCommission = (job: IJob) => {
   if (job.commission) {
     if (job.commission.type === "fixed" && job.commission.fixedAmount) {
       return `$${job.commission.fixedAmount.toLocaleString()}`;
-    } else if (job.commission.type === "percentage" && job.commission.originalPercentage) {
+    } else if (
+      job.commission.type === "percentage" &&
+      job.commission.originalPercentage
+    ) {
       return `${job.commission.originalPercentage}%`;
     } else if (job.commission.type === "hourly" && job.commission.hourlyRate) {
       return `$${job.commission.hourlyRate}/hr`;
     }
   }
-  
+
   // Legacy fallback for backward compatibility
   if (job.commissionPercentage) {
     return `${job.commissionPercentage}%`;
@@ -58,7 +68,7 @@ const formatCommission = (job: IJob) => {
   if (job.commissionAmount) {
     return `$${job.commissionAmount.toLocaleString()}`;
   }
-  
+
   return "Not specified";
 };
 
@@ -80,7 +90,7 @@ export const createJobColumns = ({
     header: "Actions",
     cell: ({ row }) => {
       const job = row.original;
-      
+
       return (
         <div className="flex flex-col gap-2 py-2">
           <div className="flex flex-wrap gap-1">
@@ -175,7 +185,9 @@ export const createJobColumns = ({
           <div className="text-sm text-gray-900">
             {(job as any).postedByName || "Unknown"}
           </div>
-          <div className="text-sm text-gray-500">Positions: {job.positions}</div>
+          <div className="text-sm text-gray-500">
+            Positions: {job.positions}
+          </div>
         </div>
       );
     },
@@ -186,17 +198,17 @@ export const createJobColumns = ({
     cell: ({ row }) => {
       const job = row.original;
       const count = resumeCounts?.[job._id as string] || 0;
-      
+
       return (
         <div className="py-2">
-          <div className="text-sm text-green-600">
+          <div className="text-sm text-blue-600 font-bold text-center ">
             {isLoadingCounts ? (
               <span className="text-gray-400">Loading...</span>
             ) : (
-              <span className="font-medium">{count}</span>
+              <span className="font-bold">{count}</span>
             )}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-blue-600 text-center">
             {count === 1 ? "resume" : "resumes"}
           </div>
         </div>
@@ -239,7 +251,9 @@ export const createJobColumns = ({
       return (
         <div className="py-2">
           <div className="text-sm text-gray-900">{formatSalary(job)}</div>
-          <div className="text-sm text-gray-500">Exp: {formatExperience(job)}</div>
+          <div className="text-sm text-gray-500">
+            Exp: {formatExperience(job)}
+          </div>
           <div className="text-sm text-gray-500">
             Commission: {formatCommission(job)}
           </div>

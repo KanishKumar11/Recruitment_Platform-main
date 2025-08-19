@@ -17,7 +17,8 @@ import { UserRole } from "@/app/constants/userRoles";
 import { JobStatus } from "@/app/constants/jobStatus";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 import JobUpdatesModal from "@/components/JobUpdatesModal";
-import { MessageSquare } from "lucide-react";
+import ShowRecruitersModal from "@/components/ShowRecruitersModal";
+import { MessageSquare, Users } from "lucide-react";
 
 // Helper function to get currency symbol from currency code
 const getCurrencySymbol = (currencyCode: string): string => {
@@ -136,6 +137,9 @@ export default function AdminJobDetailPage() {
   // Job updates modal state
   const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
   const [updatesCount, setUpdatesCount] = useState(0);
+  
+  // Show recruiters modal state
+  const [isRecruitersModalOpen, setIsRecruitersModalOpen] = useState(false);
   
   // Fetch updates count
   const fetchUpdatesCount = async () => {
@@ -270,6 +274,13 @@ export default function AdminJobDetailPage() {
                       </span>
                     )}
                   </div>
+                  <button
+                    onClick={() => setIsRecruitersModalOpen(true)}
+                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    Show Recruiters
+                  </button>
                   <Link
                     href="/dashboard/internal/jobs"
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
@@ -635,6 +646,13 @@ export default function AdminJobDetailPage() {
       onUpdatePosted={() => {
         fetchUpdatesCount();
       }}
+    />
+    
+    <ShowRecruitersModal
+      isOpen={isRecruitersModalOpen}
+      onClose={() => setIsRecruitersModalOpen(false)}
+      jobId={id as string}
+      jobTitle={job?.title || ""}
     />
     </>
   );

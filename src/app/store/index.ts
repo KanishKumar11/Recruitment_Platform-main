@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { authApi } from "./services/authApi";
 import { jobsApi, recruiterJobsApi } from "./services/jobsApi";
+import { jobUpdatesApi } from "./services/jobUpdatesApi";
 import { usersApi } from "./services/usersApi";
 import { resumesApi } from "./services/resumesApi";
 import { adminApi } from "./services/adminApi";
@@ -19,6 +20,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [jobsApi.reducerPath]: jobsApi.reducer,
     [recruiterJobsApi.reducerPath]: recruiterJobsApi.reducer,
+    [jobUpdatesApi.reducerPath]: jobUpdatesApi.reducer,
     [usersApi.reducerPath]: usersApi.reducer,
     [resumesApi.reducerPath]: resumesApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
@@ -32,6 +34,7 @@ export const store = configureStore({
       authApi.middleware,
       jobsApi.middleware,
       recruiterJobsApi.middleware,
+      jobUpdatesApi.middleware,
       usersApi.middleware,
       resumesApi.middleware,
       adminApi.middleware,
