@@ -1,110 +1,139 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
+import { useSelector } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+
+import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
+import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import RichTextEditor from "@/app/components/RichTextEditor";
+
+import { RootState } from "../../../../../store/index";
 import {
   useGetJobByIdQuery,
   useUpdateJobMutation,
 } from "../../../../../store/services/jobsApi";
-import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
-import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { Loader2, ArrowLeft, Save } from "lucide-react";
-import { toast } from "react-hot-toast";
-import { JobType } from "../../../../../models/Job";
-import RichTextEditor from "@/app/components/RichTextEditor";
-import { useSelector } from "react-redux";
 
-export default function EditJobPage() {
+import { UserRole } from "@/app/constants/userRoles";
+import { JobType } from "@/app/constants/jobType";
+import { JobStatus } from "@/app/constants/jobStatus";
+import { toast } from "react-hot-toast";
+
+// Commission configuration constants
+const COMMISSION_CONFIG = {
+  DEFAULT_REDUCTION_PERCENTAGE: 50,
+  MIN_REDUCTION_PERCENTAGE: 0,
+  MAX_REDUCTION_PERCENTAGE: 80,
+  MIN_COMMISSION_PERCENTAGE: 1,
+  MAX_COMMISSION_PERCENTAGE: 50,
+};
+
+export default function CompanyJobEditPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
 
-  const { data: job, isLoading } = useGetJobByIdQuery(id);
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  const {
+    data: job,
+    isLoading: isJobLoading,
+    error: jobError,
+  } = useGetJobByIdQuery(id);
   const [updateJob, { isLoading: isUpdating }] = useUpdateJobMutation();
 
-  // Track if data has been loaded to prevent premature rich text editor initialization
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-
-  // Get user data for company name
-  const user = useSelector((state: any) => state.auth?.user);
-
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     title: "",
     companyName: "",
     country: "",
     location: "",
+    jobType: JobType.FULL_TIME,
+    positions: 1,
     salary: {
       min: 0,
       max: 0,
       currency: "USD",
     },
-    paymentTerms: "",
-    positions: 1,
-    jobType: "FULL_TIME" as JobType,
     experienceLevel: {
       min: 0,
       max: 0,
     },
-    compensationDetails: "",
-    replacementTerms: "",
-    // Legacy fields for backward compatibility
-    commissionPercentage: 0,
-    commissionAmount: 0,
-    // New commission structure
+    // Enhanced commission structure
     commission: {
       type: "percentage" as "percentage" | "fixed" | "hourly",
       originalPercentage: 0,
       recruiterPercentage: 0,
       platformFeePercentage: 0,
-      reductionPercentage: 0,
+      reductionPercentage: COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
       originalAmount: 0,
       recruiterAmount: 0,
       fixedAmount: 0,
       hourlyRate: 0,
     },
+    // Legacy fields for backward compatibility
+    commissionPercentage: 0,
+    commissionAmount: 0,
     description: "",
     companyDescription: "",
     sourcingGuidelines: "",
+    paymentTerms: "",
+    replacementTerms: "",
+    status: JobStatus.DRAFT,
   });
+
+  // Redirect to appropriate dashboard based on role
+  useEffect(() => {
+    if (user && user.role !== UserRole.COMPANY) {
+      router.push(`/dashboard/${user.role.toLowerCase()}`);
+    }
+  }, [user, router]);
 
   // Populate form with job data when it loads
   useEffect(() => {
-    if (job && !isDataLoaded) {
-      console.log("Loading job data:", job); // Debug log
-
-      const newFormData = {
+    if (job) {
+      setFormData({
         title: job.title || "",
         companyName: job.companyName || user?.companyName || user?.name || "",
         country: job.country || "",
         location: job.location || "",
+        jobType: job.jobType || JobType.FULL_TIME,
+        positions: job.positions || 1,
         salary: {
           min: job.salary?.min || 0,
           max: job.salary?.max || 0,
           currency: job.salary?.currency || "USD",
         },
-        paymentTerms: job.paymentTerms || "",
-        positions: job.positions || 1,
-        jobType: job.jobType || "FULL_TIME",
         experienceLevel: {
           min: job.experienceLevel?.min || 0,
           max: job.experienceLevel?.max || 0,
         },
-        compensationDetails: job.compensationDetails || "",
-        replacementTerms: job.replacementTerms || "",
-        // Handle legacy commission fields
-        commissionPercentage: job.commissionPercentage || 0,
-        commissionAmount: job.commissionAmount || 0,
-        // Handle new commission structure
+        // Enhanced commission structure
         commission: {
           type:
             job.commission?.type ||
             (job.commissionPercentage > 0 ? "percentage" : "fixed"),
           originalPercentage:
             job.commission?.originalPercentage || job.commissionPercentage || 0,
-          recruiterPercentage: job.commission?.recruiterPercentage || 0,
-          platformFeePercentage: job.commission?.platformFeePercentage || 0,
-          reductionPercentage: job.commission?.reductionPercentage || 0,
+          recruiterPercentage:
+            job.commission?.recruiterPercentage ||
+            calculateRecruiterPercentage(
+              job.commission?.originalPercentage || job.commissionPercentage || 0,
+              job.commission?.reductionPercentage ||
+                COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
+            ),
+          platformFeePercentage:
+            job.commission?.platformFeePercentage ||
+            calculatePlatformFeePercentage(
+              job.commission?.originalPercentage || job.commissionPercentage || 0,
+              job.commission?.reductionPercentage ||
+                COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE
+            ),
+          reductionPercentage:
+            job.commission?.reductionPercentage ||
+            COMMISSION_CONFIG.DEFAULT_REDUCTION_PERCENTAGE,
           originalAmount:
             job.commission?.originalAmount || job.commissionAmount || 0,
           recruiterAmount: job.commission?.recruiterAmount || 0,
@@ -113,16 +142,33 @@ export default function EditJobPage() {
             (job.commissionPercentage === 0 ? job.commissionAmount : 0),
           hourlyRate: job.commission?.hourlyRate || 0,
         },
+        // Legacy fields for backward compatibility
+        commissionPercentage: job.commissionPercentage || 0,
+        commissionAmount: job.commissionAmount || 0,
         description: job.description || "",
         companyDescription: job.companyDescription || "",
         sourcingGuidelines: job.sourcingGuidelines || "",
-      };
-
-      console.log("Setting form data:", newFormData); // Debug log
-      setFormData(newFormData);
-      setIsDataLoaded(true);
+        paymentTerms: job.paymentTerms || "",
+        replacementTerms: job.replacementTerms || "",
+        status: job.status || JobStatus.DRAFT,
+      });
     }
-  }, [job, isDataLoaded]);
+  }, [job, user]);
+
+  // Helper functions for commission calculations
+  const calculateRecruiterPercentage = (
+    originalPercentage: number,
+    reductionPercentage: number
+  ) => {
+    return originalPercentage * (1 - reductionPercentage / 100);
+  };
+
+  const calculatePlatformFeePercentage = (
+    originalPercentage: number,
+    reductionPercentage: number
+  ) => {
+    return originalPercentage * (reductionPercentage / 100);
+  };
 
   // Handle input changes
   const handleInputChange = (
@@ -135,64 +181,77 @@ export default function EditJobPage() {
     // Handle nested properties
     if (name.includes(".")) {
       const [parent, child] = name.split(".");
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         [parent]: {
-          ...(typeof (prev as any)[parent] === "object" &&
-          (prev as any)[parent] !== null
-            ? (prev as any)[parent]
-            : ({} as Record<string, any>)),
-          [child]: value,
+          ...prev[parent],
+          [child]: name.includes("min") || name.includes("max") || name.includes("positions")
+            ? parseInt(value) || 0
+            : value,
         },
       }));
     } else {
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         [name]: value,
       }));
     }
   };
 
-  // Handle number input changes
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    // Handle nested properties
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setFormData((prev) => ({
-        ...prev,
-        [parent]: {
-          ...(typeof (prev as any)[parent] === "object" &&
-          (prev as any)[parent] !== null
-            ? (prev as any)[parent]
-            : ({} as Record<string, any>)),
-          [child]: parseFloat(value) || 0,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: parseFloat(value) || 0,
-      }));
-    }
-  };
-
   // Handle rich text editor changes
-  const handleEditorChange = (content: string, field: string) => {
-    console.log(`Updating ${field} with content:`, content); // Debug log
-    setFormData((prev) => ({
+  const handleRichTextChange = (field: string) => (content: string) => {
+    setFormData((prev: any) => ({
       ...prev,
       [field]: content,
     }));
+  };
+
+  // Handle commission changes with automatic calculations
+  const handleCommissionChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    const numericValue = parseFloat(value) || 0;
+
+    if (name.includes("commission.")) {
+      const field = name.split(".")[1];
+      setFormData((prev: any) => {
+        const newCommission = { ...prev.commission, [field]: numericValue };
+
+        // Auto-calculate dependent values
+        if (field === "originalPercentage" || field === "reductionPercentage") {
+          const originalPercentage = field === "originalPercentage" ? numericValue : prev.commission.originalPercentage;
+          const reductionPercentage = field === "reductionPercentage" ? numericValue : prev.commission.reductionPercentage;
+          
+          newCommission.recruiterPercentage = calculateRecruiterPercentage(
+            originalPercentage,
+            reductionPercentage
+          );
+          newCommission.platformFeePercentage = calculatePlatformFeePercentage(
+            originalPercentage,
+            reductionPercentage
+          );
+        }
+
+        return {
+          ...prev,
+          commission: newCommission,
+          // Update legacy fields for backward compatibility
+          commissionPercentage: newCommission.type === "percentage" ? newCommission.originalPercentage : 0,
+          commissionAmount: newCommission.type === "fixed" ? newCommission.fixedAmount : 
+                           newCommission.type === "hourly" ? newCommission.hourlyRate : 
+                           newCommission.originalAmount,
+        };
+      });
+    }
   };
 
   // Handle commission type change
   const handleCommissionTypeChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const newType = e.target.value as "percentage" | "fixed";
-    setFormData((prev) => ({
+    const newType = e.target.value as "percentage" | "fixed" | "hourly";
+    setFormData((prev: any) => ({
       ...prev,
       commission: {
         ...prev.commission,
@@ -201,7 +260,7 @@ export default function EditJobPage() {
     }));
   };
 
-  // Calculate commission amount based on type
+  // Calculate commission amount based on salary and percentage
   useEffect(() => {
     if (
       formData.commission.type === "percentage" &&
@@ -210,73 +269,55 @@ export default function EditJobPage() {
       formData.commission.originalPercentage > 0
     ) {
       const avgSalary = (formData.salary.min + formData.salary.max) / 2;
-      const commission =
-        (avgSalary * formData.commission.originalPercentage) / 100;
+      const originalAmount = (avgSalary * formData.commission.originalPercentage) / 100;
+      const recruiterAmount = (avgSalary * formData.commission.recruiterPercentage) / 100;
 
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         commission: {
           ...prev.commission,
-          originalAmount: commission,
+          originalAmount,
+          recruiterAmount,
         },
         // Update legacy fields for backward compatibility
         commissionPercentage: prev.commission.originalPercentage,
-        commissionAmount: commission,
-      }));
-    } else if (formData.commission.type === "fixed") {
-      // For fixed commission, update legacy fields
-      setFormData((prev) => ({
-        ...prev,
-        commissionPercentage: 0,
-        commissionAmount: prev.commission.fixedAmount,
-      }));
-    } else if (formData.commission.type === "hourly") {
-      // For hourly commission, update legacy fields
-      setFormData((prev) => ({
-        ...prev,
-        commissionPercentage: 0,
-        commissionAmount: prev.commission.hourlyRate,
+        commissionAmount: originalAmount,
       }));
     }
   }, [
     formData.salary.min,
     formData.salary.max,
     formData.commission.originalPercentage,
+    formData.commission.recruiterPercentage,
     formData.commission.type,
-    formData.commission.fixedAmount,
-    formData.commission.hourlyRate,
   ]);
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     try {
-      console.log("Submitting form data:", formData); // Debug log
-
       await updateJob({
-        id: params.id as string,
+        id: id,
         job: formData,
       }).unwrap();
 
-      toast.success("Job updated successfully");
-      router.push(`/dashboard/company/jobs/${params.id}`);
-    } catch (error) {
-      toast.error("Failed to update job");
+      toast.success("Job updated successfully!");
+      router.push(`/dashboard/company/jobs/${id}`);
+    } catch (error: any) {
       console.error("Error updating job:", error);
+      toast.error(error?.data?.message || "Failed to update job");
     }
   };
 
   // Show loading while fetching job data
-  if (isLoading) {
+  if (isJobLoading) {
     return (
-      <ProtectedLayout allowedRoles={["COMPANY"]}>
+      <ProtectedLayout allowedRoles={[UserRole.COMPANY]}>
         <DashboardLayout>
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-              </div>
+              <LoadingSpinner />
             </div>
           </div>
         </DashboardLayout>
@@ -285,9 +326,9 @@ export default function EditJobPage() {
   }
 
   // Show error if job not found
-  if (!job) {
+  if (jobError || !job) {
     return (
-      <ProtectedLayout allowedRoles={["COMPANY"]}>
+      <ProtectedLayout allowedRoles={[UserRole.COMPANY]}>
         <DashboardLayout>
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -308,472 +349,538 @@ export default function EditJobPage() {
   }
 
   return (
-    <ProtectedLayout allowedRoles={["COMPANY"]}>
+    <ProtectedLayout allowedRoles={[UserRole.COMPANY]}>
       <DashboardLayout>
         <div className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-6">
-              <button
-                onClick={() =>
-                  router.push(`/dashboard/company/jobs/${params.id}`)
-                }
-                className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Edit Job: {job?.title}
+              </h1>
+              <Link
+                href={`/dashboard/company/jobs/${id}`}
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Job Details
-              </button>
+                View Job Details
+              </Link>
             </div>
 
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Edit Job
+            <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information */}
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Basic Information
                 </h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                  Update the information for this job posting.
-                </p>
-              </div>
-
-              <div className="border-t border-gray-200">
-                <form onSubmit={handleSubmit}>
-                  <div className="px-4 py-5 bg-white sm:p-6">
-                    <div className="grid grid-cols-6 gap-6">
-                      {/* Job Title */}
-                      <div className="col-span-6 sm:col-span-4">
-                        <label
-                          htmlFor="title"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Job Title*
-                        </label>
-                        <input
-                          type="text"
-                          name="title"
-                          id="title"
-                          value={formData.title}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Company Description with Rich Text Editor - Only render when data is loaded */}
-                      {isDataLoaded && (
-                        <div className="col-span-6">
-                          <RichTextEditor
-                            key={`company-${formData.companyDescription.substring(
-                              0,
-                              50
-                            )}`} // Force re-render when content changes
-                            value={formData.companyDescription}
-                            onChange={(content) =>
-                              handleEditorChange(content, "companyDescription")
-                            }
-                            label="Company Description"
-                            required={true}
-                            placeholder="Enter detailed information about the company, its culture, values, and what makes it unique..."
-                          />
-                        </div>
-                      )}
-
-                      {/* Country */}
-                      <div className="col-span-6 sm:col-span-3">
-                        <label
-                          htmlFor="country"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Country*
-                        </label>
-                        <input
-                          type="text"
-                          name="country"
-                          id="country"
-                          value={formData.country}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Location */}
-                      <div className="col-span-6 sm:col-span-3">
-                        <label
-                          htmlFor="location"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Location*
-                        </label>
-                        <input
-                          type="text"
-                          name="location"
-                          id="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Salary Min */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="salary.min"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Min Salary*
-                        </label>
-                        <input
-                          type="number"
-                          name="salary.min"
-                          id="salary.min"
-                          value={formData.salary.min}
-                          onChange={handleNumberChange}
-                          required
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Salary Max */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="salary.max"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Max Salary*
-                        </label>
-                        <input
-                          type="number"
-                          name="salary.max"
-                          id="salary.max"
-                          value={formData.salary.max}
-                          onChange={handleNumberChange}
-                          required
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Currency */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="salary.currency"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Currency*
-                        </label>
-                        <select
-                          id="salary.currency"
-                          name="salary.currency"
-                          value={formData.salary.currency}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        >
-                          <option value="USD">USD - US Dollar</option>
-                          <option value="EUR">EUR - Euro</option>
-                          <option value="GBP">GBP - British Pound</option>
-                          <option value="CAD">CAD - Canadian Dollar</option>
-                          <option value="AUD">AUD - Australian Dollar</option>
-                          <option value="SGD">SGD - Singapore Dollar</option>
-                        </select>
-                      </div>
-
-                      {/* Positions */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="positions"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Number of Positions*
-                        </label>
-                        <input
-                          type="number"
-                          name="positions"
-                          id="positions"
-                          value={formData.positions}
-                          onChange={handleNumberChange}
-                          required
-                          min="1"
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Job Type */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="jobType"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Job Type*
-                        </label>
-                        <select
-                          id="jobType"
-                          name="jobType"
-                          value={formData.jobType}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        >
-                          <option value="FULL_TIME">Full Time</option>
-                          <option value="PART_TIME">Part Time</option>
-                          <option value="CONTRACT">Contract</option>
-                          <option value="FREELANCE">Freelance</option>
-                          <option value="INTERNSHIP">Internship</option>
-                        </select>
-                      </div>
-
-                      {/* Experience Min */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="experienceLevel.min"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Min Experience (years)*
-                        </label>
-                        <input
-                          type="number"
-                          name="experienceLevel.min"
-                          id="experienceLevel.min"
-                          value={formData.experienceLevel.min}
-                          onChange={handleNumberChange}
-                          required
-                          min="0"
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Experience Max */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="experienceLevel.max"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Max Experience (years)*
-                        </label>
-                        <input
-                          type="number"
-                          name="experienceLevel.max"
-                          id="experienceLevel.max"
-                          value={formData.experienceLevel.max}
-                          onChange={handleNumberChange}
-                          required
-                          min="0"
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Commission Type */}
-                      <div className="col-span-6 sm:col-span-2">
-                        <label
-                          htmlFor="commission.type"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Commission Type*
-                        </label>
-                        <select
-                          id="commission.type"
-                          name="commission.type"
-                          value={formData.commission.type}
-                          onChange={handleCommissionTypeChange}
-                          required
-                          className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        >
-                          <option value="percentage">Percentage</option>
-                          <option value="fixed">Fixed Amount</option>
-                          <option value="hourly">Hourly Rate</option>
-                        </select>
-                      </div>
-
-                      {/* Commission Input - Conditional based on type */}
-                      {formData.commission.type === "percentage" ? (
-                        <>
-                          {/* Commission Percentage */}
-                          <div className="col-span-6 sm:col-span-2">
-                            <label
-                              htmlFor="commission.originalPercentage"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Commission Percentage*
-                            </label>
-                            <input
-                              type="number"
-                              name="commission.originalPercentage"
-                              id="commission.originalPercentage"
-                              value={formData.commission.originalPercentage}
-                              onChange={handleNumberChange}
-                              required
-                              step="0.01"
-                              min="0"
-                              className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                            />
-                          </div>
-
-                          {/* Commission Amount (Auto-calculated) */}
-                          <div className="col-span-6 sm:col-span-2">
-                            <label
-                              htmlFor="commission.originalAmount"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Commission Amount
-                            </label>
-                            <input
-                              type="number"
-                              name="commission.originalAmount"
-                              id="commission.originalAmount"
-                              value={formData.commission.originalAmount}
-                              readOnly
-                              className="mt-1 bg-gray-100 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                            />
-                          </div>
-                        </>
-                      ) : formData.commission.type === "fixed" ? (
-                        <>
-                          {/* Fixed Commission Amount */}
-                          <div className="col-span-6 sm:col-span-2">
-                            <label
-                              htmlFor="commission.fixedAmount"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Fixed Commission Amount*
-                            </label>
-                            <input
-                              type="number"
-                              name="commission.fixedAmount"
-                              id="commission.fixedAmount"
-                              value={formData.commission.fixedAmount}
-                              onChange={handleNumberChange}
-                              required
-                              min="0"
-                              className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                            />
-                          </div>
-
-                          {/* Empty column for alignment */}
-                          <div className="col-span-6 sm:col-span-2"></div>
-                        </>
-                      ) : formData.commission.type === "hourly" ? (
-                        <>
-                          {/* Hourly Rate */}
-                          <div className="col-span-6 sm:col-span-2">
-                            <label
-                              htmlFor="commission.hourlyRate"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Hourly Rate*
-                            </label>
-                            <input
-                              type="number"
-                              name="commission.hourlyRate"
-                              id="commission.hourlyRate"
-                              value={formData.commission.hourlyRate}
-                              onChange={handleNumberChange}
-                              required
-                              min="0"
-                              step="0.01"
-                              className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                            />
-                          </div>
-
-                          {/* Empty column for alignment */}
-                          <div className="col-span-6 sm:col-span-2"></div>
-                        </>
-                      ) : null}
-
-                      {/* Payment Terms */}
-                      <div className="col-span-6">
-                        <label
-                          htmlFor="paymentTerms"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Payment Terms
-                        </label>
-                        <textarea
-                          name="paymentTerms"
-                          id="paymentTerms"
-                          value={formData.paymentTerms}
-                          onChange={handleInputChange}
-                          rows={3}
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Replacement Terms */}
-                      <div className="col-span-6">
-                        <label
-                          htmlFor="replacementTerms"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Replacement Terms
-                        </label>
-                        <textarea
-                          name="replacementTerms"
-                          id="replacementTerms"
-                          value={formData.replacementTerms}
-                          onChange={handleInputChange}
-                          rows={3}
-                          className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      {/* Job Description with Rich Text Editor - Only render when data is loaded */}
-                      {isDataLoaded && (
-                        <div className="col-span-6">
-                          <RichTextEditor
-                            key={`description-${formData.description.substring(
-                              0,
-                              50
-                            )}`} // Force re-render when content changes
-                            value={formData.description}
-                            onChange={(content) =>
-                              handleEditorChange(content, "description")
-                            }
-                            label="Job Description"
-                            required={true}
-                            placeholder="Enter the job description with all requirements, responsibilities, and details..."
-                          />
-                        </div>
-                      )}
-
-                      {/* Sourcing Guidelines with Rich Text Editor - Only render when data is loaded */}
-                      {isDataLoaded && (
-                        <div className="col-span-6">
-                          <RichTextEditor
-                            key={`sourcing-${formData.sourcingGuidelines.substring(
-                              0,
-                              50
-                            )}`} // Force re-render when content changes
-                            value={formData.sourcingGuidelines}
-                            onChange={(content) =>
-                              handleEditorChange(content, "sourcingGuidelines")
-                            }
-                            label="Sourcing Guidelines"
-                            placeholder="Provide specific guidelines for recruiters on how to source candidates for this role..."
-                          />
-                        </div>
-                      )}
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  {/* Job Title */}
+                  <div className="sm:col-span-4">
+                    <label
+                      htmlFor="title"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Job Title *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="title"
+                        id="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        required
+                      />
                     </div>
                   </div>
-                  <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
-                    <button
-                      type="submit"
-                      disabled={isUpdating}
-                      className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+
+                  {/* Job Type */}
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="jobType"
+                      className="block text-sm font-medium text-gray-700"
                     >
-                      {isUpdating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Changes
-                        </>
-                      )}
-                    </button>
+                      Job Type *
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        id="jobType"
+                        name="jobType"
+                        value={formData.jobType}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        required
+                      >
+                        <option value={JobType.FULL_TIME}>Full Time</option>
+                        <option value={JobType.PART_TIME}>Part Time</option>
+                        <option value={JobType.CONTRACT}>Contract</option>
+                        <option value={JobType.FREELANCE}>Freelance</option>
+                        <option value={JobType.INTERNSHIP}>Internship</option>
+                      </select>
+                    </div>
                   </div>
-                </form>
+
+                  {/* Country */}
+                  <div className="sm:col-span-3">
+                    <label
+                      htmlFor="country"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Country *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="country"
+                        id="country"
+                        value={formData.country}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="sm:col-span-3">
+                    <label
+                      htmlFor="location"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Location *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="location"
+                        id="location"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Number of Positions */}
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="positions"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Number of Positions *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="number"
+                        name="positions"
+                        id="positions"
+                        value={formData.positions}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        min="1"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Company Description */}
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <RichTextEditor
+                  label="Company Description"
+                  value={formData.companyDescription}
+                  onChange={handleRichTextChange("companyDescription")}
+                  placeholder="Describe your company..."
+                />
+              </div>
+            </div>
+
+            {/* Salary and Experience */}
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Salary and Experience
+                </h3>
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  {/* Salary Range */}
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="salary.min"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Minimum Salary *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="number"
+                        name="salary.min"
+                        id="salary.min"
+                        value={formData.salary.min}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="salary.max"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Maximum Salary *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="number"
+                        name="salary.max"
+                        id="salary.max"
+                        value={formData.salary.max}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="salary.currency"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Currency *
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        name="salary.currency"
+                        id="salary.currency"
+                        value={formData.salary.currency}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      >
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="CAD">CAD</option>
+                        <option value="AUD">AUD</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Experience Level */}
+                  <div className="sm:col-span-3">
+                    <label
+                      htmlFor="experienceLevel.min"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Minimum Experience (years) *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="number"
+                        name="experienceLevel.min"
+                        id="experienceLevel.min"
+                        value={formData.experienceLevel.min}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label
+                      htmlFor="experienceLevel.max"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Maximum Experience (years) *
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="number"
+                        name="experienceLevel.max"
+                        id="experienceLevel.max"
+                        value={formData.experienceLevel.max}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Commission Structure */}
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Commission Structure
+                </h3>
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  {/* Commission Type */}
+                  <div className="sm:col-span-3">
+                    <label
+                      htmlFor="commission.type"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Commission Type *
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        name="commission.type"
+                        id="commission.type"
+                        value={formData.commission.type}
+                        onChange={handleCommissionTypeChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        required
+                      >
+                        <option value="percentage">Percentage</option>
+                        <option value="fixed">Fixed Amount</option>
+                        <option value="hourly">Hourly Rate</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Conditional Commission Fields */}
+                  {formData.commission.type === "percentage" && (
+                    <>
+                      <div className="sm:col-span-3">
+                        <label
+                          htmlFor="commission.originalPercentage"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Commission Percentage *
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="number"
+                            name="commission.originalPercentage"
+                            id="commission.originalPercentage"
+                            value={formData.commission.originalPercentage}
+                            onChange={handleCommissionChange}
+                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                            min={COMMISSION_CONFIG.MIN_COMMISSION_PERCENTAGE}
+                            max={COMMISSION_CONFIG.MAX_COMMISSION_PERCENTAGE}
+                            step="0.1"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <label
+                          htmlFor="commission.reductionPercentage"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Platform Fee Percentage *
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="number"
+                            name="commission.reductionPercentage"
+                            id="commission.reductionPercentage"
+                            value={formData.commission.reductionPercentage}
+                            onChange={handleCommissionChange}
+                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                            min={COMMISSION_CONFIG.MIN_REDUCTION_PERCENTAGE}
+                            max={COMMISSION_CONFIG.MAX_REDUCTION_PERCENTAGE}
+                            step="0.1"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Recruiter Percentage
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="number"
+                            value={formData.commission.recruiterPercentage.toFixed(2)}
+                            className="shadow-sm bg-gray-50 block w-full sm:text-sm border-gray-300 rounded-md"
+                            disabled
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {formData.commission.type === "fixed" && (
+                    <div className="sm:col-span-3">
+                      <label
+                        htmlFor="commission.fixedAmount"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Fixed Commission Amount *
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="number"
+                          name="commission.fixedAmount"
+                          id="commission.fixedAmount"
+                          value={formData.commission.fixedAmount}
+                          onChange={handleCommissionChange}
+                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          min="0"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.commission.type === "hourly" && (
+                    <div className="sm:col-span-3">
+                      <label
+                        htmlFor="commission.hourlyRate"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Hourly Commission Rate *
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="number"
+                          name="commission.hourlyRate"
+                          id="commission.hourlyRate"
+                          value={formData.commission.hourlyRate}
+                          onChange={handleCommissionChange}
+                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          min="0"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Terms */}
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Payment Terms
+                </h3>
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  <div className="sm:col-span-6">
+                    <label
+                      htmlFor="paymentTerms"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Payment Terms *
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        name="paymentTerms"
+                        id="paymentTerms"
+                        rows={4}
+                        value={formData.paymentTerms}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        placeholder="Describe the payment terms for this position..."
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Replacement Terms */}
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Replacement Terms
+                </h3>
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  <div className="sm:col-span-6">
+                    <label
+                      htmlFor="replacementTerms"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Replacement Terms *
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        name="replacementTerms"
+                        id="replacementTerms"
+                        rows={4}
+                        value={formData.replacementTerms}
+                        onChange={handleInputChange}
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        placeholder="Describe the replacement terms for this position..."
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Job Description */}
+             <div className="bg-white shadow sm:rounded-lg">
+               <div className="px-4 py-5 sm:p-6">
+                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                   <div className="sm:col-span-6">
+                     <RichTextEditor
+                       label="Job Description *"
+                       value={formData.description}
+                       onChange={handleRichTextChange("description")}
+                       placeholder="Enter detailed job description..."
+                       required
+                     />
+                   </div>
+                 </div>
+               </div>
+             </div>
+
+            {/* Sourcing Guidelines */}
+             <div className="bg-white shadow sm:rounded-lg">
+               <div className="px-4 py-5 sm:p-6">
+                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                   <div className="sm:col-span-6">
+                     <RichTextEditor
+                       label="Sourcing Guidelines *"
+                       value={formData.sourcingGuidelines}
+                       onChange={handleRichTextChange("sourcingGuidelines")}
+                       placeholder="Enter sourcing guidelines..."
+                       required
+                     />
+                   </div>
+                 </div>
+               </div>
+             </div>
+            {/* Save Button */}
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="flex justify-end">
+                  <button
+                     type="submit"
+                     disabled={isUpdating}
+                     className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     {isUpdating ? (
+                       <>
+                         <LoadingSpinner />
+                         <span className="ml-2">Saving...</span>
+                       </>
+                     ) : (
+                       "Save Job"
+                     )}
+                   </button>
+                 </div>
+               </div>
+             </div>
+            </form>
           </div>
         </div>
       </DashboardLayout>
