@@ -89,6 +89,11 @@ export default function Sidebar() {
         label: "Email Statistics",
         icon: "mail",
       },
+      {
+        path: "/dashboard/admin/email-settings",
+        label: "Email Settings",
+        icon: "cog",
+      },
       { path: "/dashboard/admin/faqs", label: "FAQs", icon: "question-mark" },
       {
         path: "/dashboard/admin/support",

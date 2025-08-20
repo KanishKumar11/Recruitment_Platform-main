@@ -16,11 +16,22 @@ interface QueueJob {
 }
 
 interface EmailNotificationJobData {
-  recruiterId: string;
-  recruiterName: string;
-  recruiterEmail: string;
-  jobIds: string[];
-  totalJobCount: number;
+  type?: 'job_batch' | 'end_of_day_summary';
+  recruiterId?: string;
+  recruiterName?: string;
+  recruiterEmail?: string;
+  recipientEmail?: string;
+  recipientName?: string;
+  jobIds?: string[];
+  jobs?: Array<{
+    title: string;
+    company: string;
+    location: string;
+    type: string;
+    postedAt: Date;
+  }>;
+  totalJobCount?: number;
+  notificationId?: string;
 }
 
 class JobQueue {
@@ -60,7 +71,7 @@ class JobQueue {
     return job.id;
   }
 
-  // Add email notification job
+  // Add email notification job (legacy method for backward compatibility)
   addEmailNotificationJob(
     recruiterId: string,
     recruiterName: string,
@@ -72,12 +83,23 @@ class JobQueue {
     return this.addJob(
       "EMAIL_NOTIFICATION",
       {
+        type: 'job_batch',
         recruiterId,
         recruiterName,
         recruiterEmail,
         jobIds,
         totalJobCount,
       },
+      "high",
+      scheduledAt
+    );
+  }
+
+  // Add generic email notification job
+  addEmailJob(data: EmailNotificationJobData, scheduledAt?: Date): string {
+    return this.addJob(
+      "EMAIL_NOTIFICATION",
+      data,
       "high",
       scheduledAt
     );
@@ -241,29 +263,60 @@ class JobQueue {
 
   // Process email notification job
   private async processEmailNotificationJob(job: QueueJob): Promise<void> {
-    const {
-      recruiterId,
-      recruiterName,
-      recruiterEmail,
-      jobIds,
-      totalJobCount,
-    } = job.data as EmailNotificationJobData;
+    const data = job.data as EmailNotificationJobData;
+    const emailType = data.type || 'job_batch';
 
     // Import here to avoid circular dependencies
-    const { sendRecruiterJobNotificationEmail } = await import(
+    const { sendRecruiterJobNotificationEmail, sendEndOfDayNotificationEmail } = await import(
       "./recruiterEmailService"
     );
 
-    const success = await sendRecruiterJobNotificationEmail(
-      recruiterId,
-      recruiterName,
-      recruiterEmail,
-      jobIds,
-      totalJobCount
-    );
+    let success = false;
+
+    if (emailType === 'end_of_day_summary') {
+      // Handle end-of-day summary emails
+      const {
+        recipientEmail,
+        recipientName,
+        jobs,
+        notificationId
+      } = data;
+
+      if (!recipientEmail || !recipientName || !jobs) {
+        throw new Error("Missing required data for end-of-day email");
+      }
+
+      success = await sendEndOfDayNotificationEmail(
+        recipientEmail,
+        recipientName,
+        jobs,
+        notificationId
+      );
+    } else {
+      // Handle regular job batch emails (legacy)
+      const {
+        recruiterId,
+        recruiterName,
+        recruiterEmail,
+        jobIds,
+        totalJobCount,
+      } = data;
+
+      if (!recruiterId || !recruiterName || !recruiterEmail || !jobIds || !totalJobCount) {
+        throw new Error("Missing required data for job batch email");
+      }
+
+      success = await sendRecruiterJobNotificationEmail(
+        recruiterId,
+        recruiterName,
+        recruiterEmail,
+        jobIds,
+        totalJobCount
+      );
+    }
 
     if (!success) {
-      throw new Error("Failed to send recruiter job notification email");
+      throw new Error(`Failed to send ${emailType} email`);
     }
   }
 
@@ -311,6 +364,11 @@ const jobQueueInstance = new JobQueue();
 
 export const getJobQueue = (): JobQueue => {
   return jobQueueInstance;
+};
+
+// Helper function to add end-of-day email notification jobs
+export const addEmailNotificationJob = (data: EmailNotificationJobData, scheduledAt?: Date): string => {
+  return jobQueueInstance.addEmailJob(data, scheduledAt);
 };
 
 export default jobQueueInstance;

@@ -1,18 +1,19 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IEmailNotification extends Document {
-  recruiterId: mongoose.Types.ObjectId;
-  emailType: "JOB_NOTIFICATION";
-  sentDate: Date;
-  jobCount: number;
-  jobIds: mongoose.Types.ObjectId[];
-  emailSent: boolean;
+  recruiterId?: mongoose.Types.ObjectId;
+  emailType?: "JOB_NOTIFICATION";
+  type?: "job_batch" | "end_of_day_summary";
+  sentDate?: Date;
+  jobCount?: number;
+  jobIds?: mongoose.Types.ObjectId[];
+  emailSent?: boolean;
   emailSentAt?: Date;
   sentAt?: Date; // For admin statistics compatibility
   status: "pending" | "sent" | "failed"; // For admin statistics
   recipientCount: number; // Number of recipients for this notification
   errorMessage?: string;
-  retryCount: number;
+  retryCount?: number;
   nextRetryAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -23,30 +24,36 @@ const EmailNotificationSchema = new Schema<IEmailNotification>(
     recruiterId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
     },
     emailType: {
       type: String,
       enum: ["JOB_NOTIFICATION"],
       default: "JOB_NOTIFICATION",
-      required: true,
+      required: false,
+    },
+    type: {
+      type: String,
+      enum: ["job_batch", "end_of_day_summary"],
+      required: false,
+      index: true,
     },
     sentDate: {
       type: Date,
-      required: true,
+      required: false,
       index: true,
     },
     jobCount: {
       type: Number,
-      required: true,
+      required: false,
       min: 1,
     },
     jobIds: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Job",
-        required: true,
+        required: false,
       },
     ],
     emailSent: {

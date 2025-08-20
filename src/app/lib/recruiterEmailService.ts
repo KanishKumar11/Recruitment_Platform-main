@@ -3,6 +3,12 @@ import EmailNotification from "../models/EmailNotification";
 import Job from "../models/Job";
 import User from "../models/User";
 import connectDb from "./db";
+import {
+  getJobNotificationFrequency,
+  areNotificationsEnabled,
+  areEndOfDayNotificationsEnabled,
+  getEndOfDayTime,
+} from "./emailNotificationSettings";
 
 interface JobDetails {
   title: string;
@@ -299,12 +305,18 @@ export const sendRecruiterJobNotificationEmail = async (
   }
 };
 
-// Check if recruiter should receive notification (every 5 jobs)
+// Check if recruiter should receive notification (configurable frequency)
 export const shouldSendNotification = async (
   recruiterId: string
 ): Promise<{ shouldSend: boolean; jobCount: number; jobIds: string[] }> => {
   try {
     await connectDb();
+
+    // Check if notifications are globally enabled
+    const notificationsEnabled = await areNotificationsEnabled();
+    if (!notificationsEnabled) {
+      return { shouldSend: false, jobCount: 0, jobIds: [] };
+    }
 
     // Check if email was already sent today
     const todayStart = new Date();
@@ -340,12 +352,74 @@ export const shouldSendNotification = async (
     const jobCount = todaysJobs.length;
     const jobIds = todaysJobs.map((job: any) => job._id.toString());
 
-    // Send notification every 5 jobs
-    const shouldSend = jobCount > 0 && jobCount % 5 === 0;
+    // Get configurable frequency
+    const frequency = await getJobNotificationFrequency();
+    
+    // Send notification based on configurable frequency
+    const shouldSend = jobCount > 0 && jobCount % frequency === 0;
 
     return { shouldSend, jobCount, jobIds };
   } catch (error) {
     console.error("Error checking notification criteria:", error);
+    return { shouldSend: false, jobCount: 0, jobIds: [] };
+  }
+};
+
+// Check if end-of-day notification should be sent
+export const shouldSendEndOfDayNotification = async (
+  recruiterId: string
+): Promise<{ shouldSend: boolean; jobCount: number; jobIds: string[] }> => {
+  try {
+    await connectDb();
+
+    // Check if notifications and end-of-day notifications are enabled
+    const notificationsEnabled = await areNotificationsEnabled();
+    const endOfDayEnabled = await areEndOfDayNotificationsEnabled();
+    
+    if (!notificationsEnabled || !endOfDayEnabled) {
+      return { shouldSend: false, jobCount: 0, jobIds: [] };
+    }
+
+    // Check if email was already sent today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+    const emailSentToday = await EmailNotification.findOne({
+      recruiterId,
+      emailType: "job_notification",
+      sentDate: {
+        $gte: todayStart,
+        $lt: tomorrowStart,
+      },
+      emailSent: true,
+    });
+
+    if (emailSentToday) {
+      return { shouldSend: false, jobCount: 0, jobIds: [] };
+    }
+
+    // Count active jobs posted today
+    const todaysJobs = await Job.find({
+      status: "ACTIVE",
+      createdAt: {
+        $gte: todayStart,
+        $lt: tomorrowStart,
+      },
+    })
+      .select("_id")
+      .lean();
+
+    const jobCount = todaysJobs.length;
+    const jobIds = todaysJobs.map((job: any) => job._id.toString());
+
+    // Send end-of-day notification if there are any jobs posted today
+    const shouldSend = jobCount > 0;
+
+    return { shouldSend, jobCount, jobIds };
+  } catch (error) {
+    console.error("Error checking end-of-day notification criteria:", error);
     return { shouldSend: false, jobCount: 0, jobIds: [] };
   }
 };
@@ -465,6 +539,172 @@ export const processPendingNotifications = async (): Promise<void> => {
   } catch (error) {
     console.error("Error processing pending notifications:", error);
   }
+};
+
+// Send end-of-day notification email
+export const sendEndOfDayNotificationEmail = async (
+  recipientEmail: string,
+  recipientName: string,
+  jobs: Array<{
+    title: string;
+    company: string;
+    location: string;
+    type: string;
+    postedAt: Date;
+  }>,
+  notificationId?: string
+): Promise<boolean> => {
+  try {
+    const transporter = createRecruiterTransporter();
+    const template = getEndOfDayNotificationTemplate(recipientName, jobs);
+
+    const mailOptions = {
+      from: process.env.ZOHO_EMAIL,
+      to: recipientEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`End-of-day notification sent to ${recipientEmail}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send end-of-day notification to ${recipientEmail}:`, error);
+    return false;
+  }
+};
+
+// Template for end-of-day notification emails
+const getEndOfDayNotificationTemplate = (
+  recruiterName: string,
+  jobs: Array<{
+    title: string;
+    company: string;
+    location: string;
+    type: string;
+    postedAt: Date;
+  }>
+) => {
+  const jobCount = jobs.length;
+  const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com";
+
+  return {
+    subject: `Daily Job Summary - ${jobCount} New Job${jobCount > 1 ? 's' : ''} Available`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Job Summary</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px; }
+          .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+          .header p { margin: 10px 0 0 0; font-size: 16px; opacity: 0.9; }
+          .content { padding: 0 10px; }
+          .greeting { font-size: 18px; margin-bottom: 20px; color: #2c3e50; }
+          .job-summary { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+          .job-item { background-color: #ffffff; margin: 15px 0; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          .job-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
+          .job-details { color: #6c757d; font-size: 14px; margin-bottom: 5px; }
+          .job-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+          .job-type { background-color: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+          .posted-time { color: #9e9e9e; font-size: 12px; }
+          .cta-section { text-align: center; margin: 30px 0; }
+          .cta-button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; transition: transform 0.2s; }
+          .cta-button:hover { transform: translateY(-2px); }
+          .instructions { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .instructions h3 { color: #2c3e50; margin-top: 0; }
+          .instructions ol { padding-left: 20px; }
+          .instructions li { margin-bottom: 8px; color: #495057; }
+          .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #6c757d; font-size: 12px; }
+          .footer p { margin: 5px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>📧 Daily Job Summary</h1>
+            <p>Your end-of-day job opportunities</p>
+          </div>
+          <div class="content">
+            <div class="greeting">
+              Hello ${recruiterName}! 👋
+            </div>
+            <div class="job-summary">
+              <p><strong>📊 Today's Summary:</strong> ${jobCount} new job${jobCount > 1 ? 's have' : ' has'} been posted today that you might be interested in.</p>
+            </div>
+            <div class="jobs-list">
+              ${jobs.map(job => `
+                <div class="job-item">
+                  <div class="job-title">${job.title}</div>
+                  <div class="job-details">🏢 ${job.company}</div>
+                  <div class="job-details">📍 ${job.location}</div>
+                  <div class="job-meta">
+                    <span class="job-type">${job.type}</span>
+                    <span class="posted-time">Posted: ${new Date(job.postedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="cta-section">
+              <a href="${dashboardUrl}/dashboard/recruiter" class="cta-button">
+                🚀 View All Jobs in Dashboard
+              </a>
+            </div>
+            <div class="instructions">
+              <h3>🎯 How to Get Started:</h3>
+              <ol>
+                <li>Click the button above to access your dashboard</li>
+                <li>Review the job details and requirements</li>
+                <li>Click "Accept Job" to start working on positions that match your expertise</li>
+                <li>Upload qualified candidates to earn your commission</li>
+                <li>Track your progress and earnings in real-time</li>
+              </ol>
+            </div>
+          </div>
+          <div class="footer">
+            <p>This is an automated daily summary from SourcingScreen.</p>
+            <p><strong>Please do not reply to this email.</strong></p>
+            <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      Hello ${recruiterName}!
+      
+      DAILY JOB SUMMARY
+      
+      ${jobCount} new job${jobCount > 1 ? 's have' : ' has'} been posted today:
+      
+      ${jobs.map(job => `
+      • ${job.title}
+        Company: ${job.company}
+        Location: ${job.location}
+        Type: ${job.type}
+        Posted: ${new Date(job.postedAt).toLocaleDateString()}
+      `).join('\n')}
+      
+      HOW TO GET STARTED:
+      1. Log in to your account using your username and password
+      2. Navigate to your dashboard and click on "Live Jobs"
+      3. Review the job details and requirements
+      4. Click on "Accept Job" to start working on the position
+      5. Upload qualified candidates to earn your commission
+      
+      Dashboard URL: ${dashboardUrl}/dashboard/recruiter
+      
+      This is an automated daily summary from SourcingScreen.
+      Please do not reply to this email.
+      
+      © ${new Date().getFullYear()} SourcingScreen. All rights reserved.
+    `
+  };
 };
 
 // Create transporter function (re-export from emailService)

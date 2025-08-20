@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useGetJobsQuery,
   useGetRecruiterJobsQuery,
@@ -56,7 +56,8 @@ const getCountryName = (countryCode: string): string => {
 
 export default function RecruiterJobs() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"live" | "saved">("saved");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<"live" | "saved">("live");
   const { data: allJobs, isLoading: isLoadingAllJobs } = useGetJobsQuery();
   const { data: recruiterJobs, isLoading: isLoadingRecruiterJobs } =
     useGetRecruiterJobsQuery();
@@ -132,6 +133,14 @@ export default function RecruiterJobs() {
     setValue(value);
     setCurrentPage(1);
   };
+
+  // Handle URL parameters to set active tab
+  useEffect(() => {
+    const activeParam = searchParams.get('active');
+    if (activeParam === 'saved') {
+      setActiveTab('saved');
+    }
+  }, [searchParams]);
 
   // Extract unique values for filters
   useEffect(() => {
@@ -555,17 +564,23 @@ export default function RecruiterJobs() {
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
-                      
+
                       {/* First page */}
                       {currentPage > 3 && (
                         <>
                           <PaginationItem>
-                            <PaginationLink 
+                            <PaginationLink
                               onClick={() => setCurrentPage(1)}
                               className="cursor-pointer"
                             >
@@ -579,35 +594,38 @@ export default function RecruiterJobs() {
                           )}
                         </>
                       )}
-                      
+
                       {/* Page numbers around current page */}
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+
+                          if (pageNum < 1 || pageNum > totalPages) return null;
+
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNum)}
+                                isActive={currentPage === pageNum}
+                                className="cursor-pointer"
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
                         }
-                        
-                        if (pageNum < 1 || pageNum > totalPages) return null;
-                        
-                        return (
-                          <PaginationItem key={pageNum}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(pageNum)}
-                              isActive={currentPage === pageNum}
-                              className="cursor-pointer"
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      
+                      )}
+
                       {/* Last page */}
                       {currentPage < totalPages - 2 && (
                         <>
@@ -617,7 +635,7 @@ export default function RecruiterJobs() {
                             </PaginationItem>
                           )}
                           <PaginationItem>
-                            <PaginationLink 
+                            <PaginationLink
                               onClick={() => setCurrentPage(totalPages)}
                               className="cursor-pointer"
                             >
@@ -626,11 +644,19 @@ export default function RecruiterJobs() {
                           </PaginationItem>
                         </>
                       )}
-                      
+
                       <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        <PaginationNext
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages, currentPage + 1)
+                            )
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>

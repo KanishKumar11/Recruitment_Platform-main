@@ -60,7 +60,7 @@ export const adminApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['AdminUsers', 'AdminStats'],
+  tagTypes: ['AdminUsers', 'AdminStats', 'EmailSettings'],
   endpoints: (builder) => ({
     getUsers: builder.query<UsersResponse, { 
       role?: UserRole; 
@@ -137,6 +137,18 @@ export const adminApi = createApi({
       query: () => '/stats',
       providesTags: ['AdminStats'],
     }),
+    getEmailSettings: builder.query<{ settings: Record<string, any> }, void>({
+      query: () => '/email-settings',
+      providesTags: ['EmailSettings'],
+    }),
+    updateEmailSettings: builder.mutation<{ settings: Record<string, any>; message: string }, { settings: Record<string, any> }>({
+      query: ({ settings }) => ({
+        url: '/email-settings',
+        method: 'PUT',
+        body: { settings },
+      }),
+      invalidatesTags: ['EmailSettings'],
+    }),
   }),
 });
 
@@ -149,4 +161,6 @@ export const {
   useChangeUserPasswordMutation, // New hook for password change
   useToggleUserStatusMutation, // New hook for activate/deactivate
   useGetAdminStatsQuery,
+  useGetEmailSettingsQuery,
+  useUpdateEmailSettingsMutation,
 } = adminApi;

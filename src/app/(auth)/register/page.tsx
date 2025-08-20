@@ -73,7 +73,7 @@ export default function RegisterPage() {
   const [isAuthorizedRep, setIsAuthorizedRep] = useState(false);
   const [recaptchaVerified, setRecaptchaVerified] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-
+  console.log(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY);
   // UI state
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -720,7 +720,10 @@ export default function RegisterPage() {
                 <motion.div variants={itemVariants} className="space-y-3">
                   <div className="flex justify-center">
                     <ReCAPTCHA
-                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                      sitekey={
+                        process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+                        "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                      }
                       onChange={handleRecaptchaChange}
                       onExpired={handleRecaptchaExpired}
                       theme="dark"

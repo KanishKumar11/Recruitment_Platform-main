@@ -126,7 +126,9 @@ export default function RecruiterJobDetailsPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mb-6">
                 <button
-                  onClick={() => router.push("/dashboard/recruiter/jobs")}
+                  onClick={() =>
+                    router.push("/dashboard/recruiter/jobs?active=saved")
+                  }
                   className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
