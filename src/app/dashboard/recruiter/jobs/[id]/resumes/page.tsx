@@ -476,7 +476,10 @@ export default function RecruiterJobResumesPage() {
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          <h3 
+                            className="text-lg font-semibold text-gray-900 truncate cursor-pointer hover:text-indigo-600 transition-colors"
+                            onClick={() => handleViewResume(resume._id as string)}
+                          >
                             {resume.candidateName}
                           </h3>
                           <p className="text-sm text-gray-600 mb-2">
@@ -573,7 +576,7 @@ export default function RecruiterJobResumesPage() {
                       <div className="text-gray-900">
                         Total: {resume.totalExperience || "Not specified"}
                       </div>
-                      <div className="text-gray-600">
+                      <div className="text-gray-900">
                         Relevant: {resume.relevantExperience || "Not specified"}
                       </div>
                     </div>
@@ -587,7 +590,7 @@ export default function RecruiterJobResumesPage() {
                       <div className="text-gray-900">
                         Current: {resume.currentCTC || "Not specified"}
                       </div>
-                      <div className="text-gray-600">
+                      <div className="text-gray-900">
                         Expected: {resume.expectedCTC || "Not specified"}
                       </div>
                     </div>
@@ -596,10 +599,10 @@ export default function RecruiterJobResumesPage() {
                     <div>
                       <div className="flex items-center gap-1 text-gray-500 mb-1">
                         <Calendar className="h-4 w-4" />
-                        <span className="font-medium">Notice Period</span>
-                      </div>
-                      <div className="text-gray-900">
-                        {resume.noticePeriod || "Not specified"}
+                        <span className="font-medium">Notice Period: </span>
+                        <span className="text-gray-900">
+                          {resume.noticePeriod || "Not specified"}
+                        </span>
                       </div>
                     </div>
                   </div>

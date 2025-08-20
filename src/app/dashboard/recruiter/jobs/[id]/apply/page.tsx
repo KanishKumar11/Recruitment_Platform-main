@@ -36,6 +36,7 @@ import {
 import { countries } from "@/lib/countries";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CountrySelector } from "@/components/ui/country-selector";
+import { validatePhone } from "@/app/utils/formData";
 
 // Import the Country type from lib/countries
 import { Country } from "@/lib/countries";
@@ -121,9 +122,6 @@ export default function ApplyForJobPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // New state variables for requested features
-  const [phoneCountryCode, setPhoneCountryCode] = useState("+91"); // Default to India
-  const [alternativePhoneCountryCode, setAlternativePhoneCountryCode] =
-    useState("+91");
   const [selectedCountry, setSelectedCountry] = useState<string>("IN");
   const [alternativeSelectedCountry, setAlternativeSelectedCountry] =
     useState<string>("IN");
@@ -137,6 +135,9 @@ export default function ApplyForJobPage() {
     useState<ValidationResult | null>(null);
   const [validationTimeout, setValidationTimeout] =
     useState<NodeJS.Timeout | null>(null);
+  const [phoneError, setPhoneError] = useState<string>("");
+  const [alternativePhoneError, setAlternativePhoneError] =
+    useState<string>("");
   const [hasValidated, setHasValidated] = useState(false);
   const [showValidationDetails, setShowValidationDetails] = useState(false);
 
@@ -168,6 +169,11 @@ export default function ApplyForJobPage() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailValue)) {
         return; // Don't validate if email format is invalid
+      }
+
+      // Basic phone validation
+      if (!validatePhone(phoneValue)) {
+        return; // Don't validate if phone format is invalid
       }
 
       try {
@@ -215,6 +221,15 @@ export default function ApplyForJobPage() {
   // Handle phone change with validation
   const handlePhoneChange = (value: string) => {
     setPhone(value);
+
+    // Validate phone format immediately
+    if (value && !validatePhone(value)) {
+      setPhoneError(
+        "Please enter a valid phone number with country code (e.g., +919876543210)"
+      );
+    } else {
+      setPhoneError("");
+    }
 
     // Clear existing timeout
     if (validationTimeout) {
@@ -329,18 +344,24 @@ export default function ApplyForJobPage() {
       return;
     }
 
+    // Validate phone numbers before submission
+    if (phone && !validatePhone(phone)) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
+
+    if (alternativePhone && !validatePhone(alternativePhone)) {
+      toast.error("Please enter a valid alternative phone number");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("jobId", (params.id ?? "").toString());
       formData.append("candidateName", candidateName);
       formData.append("email", email);
-      formData.append("phone", `${phoneCountryCode}${phone}`); // Include country code
-      formData.append(
-        "alternativePhone",
-        alternativePhone
-          ? `${alternativePhoneCountryCode}${alternativePhone}`
-          : ""
-      );
+      formData.append("phone", phone); // PhoneInput already includes country code
+      formData.append("alternativePhone", alternativePhone || "");
       formData.append("country", country);
       formData.append("location", location);
       formData.append("currentCompany", currentCompany);
@@ -400,8 +421,8 @@ export default function ApplyForJobPage() {
       setValidationResult(null);
       setHasValidated(false);
       // Reset new fields
-      setPhoneCountryCode("+91");
-      setAlternativePhoneCountryCode("+91");
+      setPhoneError("");
+      setAlternativePhoneError("");
       setCandidateConsent(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -415,9 +436,25 @@ export default function ApplyForJobPage() {
         setSubmitSuccess(false);
         router.push("/dashboard/recruiter/jobs");
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Resume upload error:", error);
-      toast.error("Failed to upload resume. Please try again.");
+
+      // Handle specific error cases
+      if (error?.status === 409) {
+        // Duplicate candidate error
+        const errorMessage =
+          error?.data?.error ||
+          "This candidate has already applied for this job.";
+        toast.error(errorMessage);
+      } else if (error?.status === 400) {
+        // Validation error
+        const errorMessage =
+          error?.data?.error || "Please check your input and try again.";
+        toast.error(errorMessage);
+      } else {
+        // Generic error
+        toast.error("Failed to upload resume. Please try again.");
+      }
     }
   };
 
@@ -587,6 +624,11 @@ export default function ApplyForJobPage() {
                                 placeholder="Enter phone number"
                                 className="w-full"
                               />
+                              {phoneError && (
+                                <p className="mt-1 text-sm text-red-600">
+                                  {phoneError}
+                                </p>
+                              )}
                             </div>
                           </div>
 
@@ -650,12 +692,30 @@ export default function ApplyForJobPage() {
                             <div className="mt-1">
                               <PhoneInput
                                 value={alternativePhone}
-                                onChange={(phone: string | undefined) =>
-                                  setAlternativePhone(phone || "")
-                                }
+                                onChange={(phone: string | undefined) => {
+                                  const phoneValue = phone || "";
+                                  setAlternativePhone(phoneValue);
+
+                                  // Validate alternative phone format immediately
+                                  if (
+                                    phoneValue &&
+                                    !validatePhone(phoneValue)
+                                  ) {
+                                    setAlternativePhoneError(
+                                      "Please enter a valid phone number with country code (e.g., +919876543210)"
+                                    );
+                                  } else {
+                                    setAlternativePhoneError("");
+                                  }
+                                }}
                                 placeholder="Alternative phone number"
                                 className="w-full"
                               />
+                              {alternativePhoneError && (
+                                <p className="mt-1 text-sm text-red-600">
+                                  {alternativePhoneError}
+                                </p>
+                              )}
                             </div>
                           </div>
 

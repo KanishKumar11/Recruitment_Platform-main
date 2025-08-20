@@ -441,20 +441,20 @@ export default function InternalSubmissionsPage() {
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
                             <div className="flex flex-wrap gap-2">
-                              <span className="bg-orange-50 px-2 py-1 rounded text-xs">
-                                ECTC: {resume.expectedCTC || "N/A"}
-                              </span>
-                              <span className="bg-blue-50 px-2 py-1 rounded text-xs">
-                                C CTC: {resume.currentCTC || "N/A"}
-                              </span>
-                              <span className="bg-green-50 px-2 py-1 rounded text-xs">
-                                N: {resume.noticePeriod || "N/A"}
-                              </span>
                               <span className="bg-yellow-50 px-2 py-1 rounded text-xs">
                                 T Exp: {resume.totalExperience || "N/A"}
                               </span>
                               <span className="bg-purple-50 px-2 py-1 rounded text-xs">
                                 Rel Exp: {resume.relevantExperience || "N/A"}
+                              </span>
+                              <span className="bg-green-50 px-2 py-1 rounded text-xs">
+                                N: {resume.noticePeriod || "N/A"}
+                              </span>
+                              <span className="bg-blue-50 px-2 py-1 rounded text-xs">
+                                C CTC: {resume.currentCTC || "N/A"}
+                              </span>
+                              <span className="bg-orange-50 px-2 py-1 rounded text-xs">
+                                ECTC: {resume.expectedCTC || "N/A"}
                               </span>
                             </div>
                           </div>

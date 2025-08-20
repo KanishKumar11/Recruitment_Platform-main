@@ -63,6 +63,7 @@ const PhoneInput = React.forwardRef<
       flagComponent={FlagComponent}
       countrySelectComponent={WrappedCountrySelect}
       inputComponent={WrappedInputComponent}
+      defaultCountry="IN"
       /**
        * Handles the onChange event.
        *
@@ -70,9 +71,14 @@ const PhoneInput = React.forwardRef<
        * when a valid phone number is not entered. To prevent this,
        * the value is coerced to an empty string.
        *
+       * Fix for duplicate country code issue: Add smartCaret={false} to prevent
+       * automatic country code detection when users type manually.
+       *
        * @param {E164Number | undefined} value - The entered value
        */
       onChange={(value) => onChange?.(value || "")}
+      smartCaret={false}
+      addInternationalOption={false}
       {...props}
     />
   );

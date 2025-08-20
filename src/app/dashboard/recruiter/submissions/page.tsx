@@ -440,7 +440,9 @@ function RecruiterSubmissionsPageContent() {
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
-                            onClick={() => handleViewResume(resume._id as string)}
+                            onClick={() =>
+                              handleViewResume(resume._id as string)
+                            }
                             className="text-left hover:bg-gray-50 rounded p-1 -m-1 transition-colors"
                           >
                             <div className="text-sm font-medium text-gray-900 hover:text-indigo-600">
@@ -453,7 +455,9 @@ function RecruiterSubmissionsPageContent() {
                         </td>
                         <td className="px-6 py-4">
                           <button
-                            onClick={() => handleViewResume(resume._id as string)}
+                            onClick={() =>
+                              handleViewResume(resume._id as string)
+                            }
                             className="text-left hover:bg-gray-50 rounded p-1 -m-1 transition-colors w-full"
                           >
                             <div className="text-sm text-gray-900 hover:text-indigo-600 font-medium">
@@ -461,20 +465,22 @@ function RecruiterSubmissionsPageContent() {
                             </div>
                             <div className="mt-2">
                               <div className="flex flex-wrap gap-2">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                  Exp CTC: {resume.expectedCTC || "N/A"}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                  Total Experience:{" "}
+                                  {resume.totalExperience || "N/A"}
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  Cur CTC: {resume.currentCTC || "N/A"}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                  Relevant Experience:{" "}
+                                  {resume.relevantExperience || "N/A"}
                                 </span>
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                   Notice: {resume.noticePeriod || "N/A"}
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  Total Exp: {resume.totalExperience || "N/A"}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  Current CTC: {resume.currentCTC || "N/A"}
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                  Rel Exp: {resume.relevantExperience || "N/A"}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  Expected CTC: {resume.expectedCTC || "N/A"}
                                 </span>
                               </div>
                             </div>

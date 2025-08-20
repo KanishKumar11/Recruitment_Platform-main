@@ -23,6 +23,8 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
     error,
   } = useGetResumeByIdQuery(resumeId);
 
+
+
   const [previewDocument, setPreviewDocument] = useState<{
     filename: string;
     originalName: string;
@@ -99,6 +101,8 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
     }
     return "Question";
   };
+
+
 
   if (isLoading) {
     return (
@@ -201,30 +205,62 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
               {/* Career Information - Compact */}
               <div className="compact-section">
                 <h3>Career Information</h3>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className="font-medium text-gray-900">
-                      Current CTC:
+                <div className="space-y-1">
+                  <div className="flex gap-2">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Current Company:
                     </span>
-                    <p className="text-gray-600">
+                    <span className="text-gray-900 font-medium text-xs">
+                      {resume.currentCompany || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Current Designation:
+                    </span>
+                    <span className="text-gray-900 font-medium text-xs">
+                      {resume.currentDesignation || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Total Experience:
+                    </span>
+                    <span className="text-gray-900 font-medium text-xs">
+                      {resume.totalExperience ? `${resume.totalExperience} years` : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Relevant Experience:
+                    </span>
+                    <span className="text-gray-900 font-medium text-xs">
+                      {resume.relevantExperience ? `${resume.relevantExperience} years` : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Current Salary:
+                    </span>
+                    <span className="text-gray-900 font-medium text-xs">
                       {resume.currentCTC || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-900">
-                      Expected CTC:
                     </span>
-                    <p className="text-gray-600">
-                      {resume.expectedCTC || "N/A"}
-                    </p>
                   </div>
-                  <div>
-                    <span className="font-medium text-gray-900">
+                  <div className="flex gap-2">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
+                      Expected Salary:
+                    </span>
+                    <span className="text-gray-900 font-medium text-xs">
+                      {resume.expectedCTC || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-gray-500 text-xs w-36 flex-shrink-0">
                       Education:
                     </span>
-                    <p className="text-gray-600">
+                    <span className="text-gray-900 font-medium text-xs">
                       {resume.qualification || "N/A"}
-                    </p>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -323,7 +359,7 @@ const RecruiterResumeDetailModal: React.FC<RecruiterResumeDetailModalProps> = ({
                   </div>
                 )}
 
-              {/* Notes History (Read-only) */}
+              {/* Notes History */}
               {resume.notes && resume.notes.length > 0 && (
                 <div className="compact-section flex-1 flex flex-col">
                   <h3>Notes History</h3>

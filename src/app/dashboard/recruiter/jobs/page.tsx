@@ -56,7 +56,7 @@ const getCountryName = (countryCode: string): string => {
 
 export default function RecruiterJobs() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"live" | "saved">("live");
+  const [activeTab, setActiveTab] = useState<"live" | "saved">("saved");
   const { data: allJobs, isLoading: isLoadingAllJobs } = useGetJobsQuery();
   const { data: recruiterJobs, isLoading: isLoadingRecruiterJobs } =
     useGetRecruiterJobsQuery();
@@ -378,7 +378,9 @@ export default function RecruiterJobs() {
                                                   "Job removed from saved jobs!"
                                                 );
                                               } catch (error) {
-                                                toast.error("Failed to remove job");
+                                                toast.error(
+                                                  "Failed to remove job"
+                                                );
                                               }
                                             }}
                                             className="text-yellow-500 hover:text-yellow-600 transition-colors"
@@ -513,8 +515,6 @@ export default function RecruiterJobs() {
                               >
                                 View Submissions
                               </button>
-
-
                             </div>
                           </div>
                         </div>
@@ -551,7 +551,91 @@ export default function RecruiterJobs() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200 bg-white"></div>
+                <div className="px-6 py-4 border-t border-gray-200 bg-white">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {/* First page */}
+                      {currentPage > 3 && (
+                        <>
+                          <PaginationItem>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(1)}
+                              className="cursor-pointer"
+                            >
+                              1
+                            </PaginationLink>
+                          </PaginationItem>
+                          {currentPage > 4 && (
+                            <PaginationItem>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Page numbers around current page */}
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        if (pageNum < 1 || pageNum > totalPages) return null;
+                        
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(pageNum)}
+                              isActive={currentPage === pageNum}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {/* Last page */}
+                      {currentPage < totalPages - 2 && (
+                        <>
+                          {currentPage < totalPages - 3 && (
+                            <PaginationItem>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          )}
+                          <PaginationItem>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(totalPages)}
+                              className="cursor-pointer"
+                            >
+                              {totalPages}
+                            </PaginationLink>
+                          </PaginationItem>
+                        </>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
               )}
             </div>
           </div>

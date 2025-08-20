@@ -284,9 +284,20 @@ const LEGACY_COUNTRIES_LIST = [
 
 // Validation utilities
 export const validatePhone = (phone: string): boolean => {
-  // Basic phone validation - should contain only numbers, spaces, hyphens, parentheses, and plus
+  if (!phone || phone.trim() === "") return false;
+  
+  // E.164 format validation: +[country code][number] (7-15 digits total)
+  const e164Regex = /^\+[1-9]\d{6,14}$/;
+  
+  // If it's in E.164 format, validate it
+  if (e164Regex.test(phone)) {
+    return true;
+  }
+  
+  // Fallback: Basic phone validation for other formats
   const phoneRegex = /^[\d\s\-\(\)\+]+$/;
-  return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 7;
+  const digitsOnly = phone.replace(/\D/g, "");
+  return phoneRegex.test(phone) && digitsOnly.length >= 7 && digitsOnly.length <= 15;
 };
 
 export const validateEmail = (email: string): boolean => {

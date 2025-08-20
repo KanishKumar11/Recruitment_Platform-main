@@ -502,7 +502,7 @@ export default function AdminJobDetailPage() {
           onClose={() => setIsUpdatesModalOpen(false)}
           jobId={id}
         />
-        
+
         <ShowRecruitersModal
           isOpen={isRecruitersModalOpen}
           onClose={() => setIsRecruitersModalOpen(false)}

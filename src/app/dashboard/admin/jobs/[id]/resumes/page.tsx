@@ -165,10 +165,7 @@ const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
                       Current Role
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Experience
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      CTC
+                      Experience & CTC
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Notice Period
@@ -222,9 +219,7 @@ const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
                           Relevant:{" "}
                           {resume.relevantExperience || "Not specified"}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-gray-900 mt-2">
                           Current: {resume.currentCTC}
                         </div>
                         <div className="text-sm text-gray-500">
