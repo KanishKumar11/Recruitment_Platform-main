@@ -1,7 +1,7 @@
 //src/app/dashboard/recruiter/jobs/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   useGetJobsQuery,
@@ -54,7 +54,7 @@ const getCountryName = (countryCode: string): string => {
   return country?.name || countryCode; // Fallback to countryCode if not found
 };
 
-export default function RecruiterJobs() {
+function RecruiterJobsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"live" | "saved">("live");
@@ -693,5 +693,13 @@ export default function RecruiterJobs() {
         />
       </DashboardLayout>
     </ProtectedLayout>
+  );
+}
+
+export default function RecruiterJobs() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div></div>}>
+      <RecruiterJobsContent />
+    </Suspense>
   );
 }
