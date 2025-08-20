@@ -106,7 +106,7 @@ export default function RecruiterDashboard() {
                   <div className="bg-gray-50 px-5 py-3">
                     <div className="text-sm">
                       <a
-                        href="#"
+                        href="/dashboard/recruiter/jobs"
                         className="font-medium text-indigo-600 hover:text-indigo-500"
                       >
                         View all jobs
@@ -139,7 +139,7 @@ export default function RecruiterDashboard() {
                   <div className="bg-gray-50 px-5 py-3">
                     <div className="text-sm">
                       <a
-                        href="#"
+                        href="/dashboard/recruiter/submissions"
                         className="font-medium text-indigo-600 hover:text-indigo-500"
                       >
                         View all submissions

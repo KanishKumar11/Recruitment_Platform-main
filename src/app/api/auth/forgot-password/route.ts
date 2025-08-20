@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     await user.save();
 
     // Create reset URL
-    const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.NEXTAUTH_URL || 'https://sourcingscreen.com'}/reset-password?token=${resetToken}`;
 
     // Send password reset email using the existing email service
     try {

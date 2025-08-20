@@ -65,7 +65,6 @@ export default function JobsListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [jobTypeFilter, setJobTypeFilter] = useState("all");
-  const [companyFilter, setCompanyFilter] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -127,14 +126,7 @@ export default function JobsListPage() {
       const matchesType =
         jobTypeFilter === "all" || job.jobType === jobTypeFilter;
 
-      // Note: We would need to add company name to the job object when fetching from API
-      const matchesCompany =
-        companyFilter === "" ||
-        (job as any).companyName
-          ?.toLowerCase()
-          .includes(companyFilter.toLowerCase());
-
-      return matchesSearch && matchesStatus && matchesType && matchesCompany;
+      return matchesSearch && matchesStatus && matchesType;
     }) || [];
 
   // Calculate pagination
@@ -157,11 +149,6 @@ export default function JobsListPage() {
 
   const handleTypeFilterChange = (value: string) => {
     setJobTypeFilter(value);
-    setCurrentPage(1);
-  };
-
-  const handleCompanyFilterChange = (value: string) => {
-    setCompanyFilter(value);
     setCurrentPage(1);
   };
 
@@ -199,7 +186,7 @@ export default function JobsListPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
             {/* Search and Filters */}
             <div className="bg-white shadow rounded-lg p-4 mb-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label
                     htmlFor="search"
@@ -265,22 +252,6 @@ export default function JobsListPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <label
-                    htmlFor="company"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Company
-                  </label>
-                  <Input
-                    type="text"
-                    id="company"
-                    placeholder="Company name"
-                    value={companyFilter}
-                    onChange={(e) => handleCompanyFilterChange(e.target.value)}
-                  />
-                </div>
               </div>
             </div>
 
@@ -311,7 +282,6 @@ export default function JobsListPage() {
                     <TableRow>
                       <TableHead className="w-[200px]">Actions</TableHead>
                       <TableHead>Job Info</TableHead>
-                      <TableHead>Company</TableHead>
                       <TableHead>Resumes</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Salary & Experience</TableHead>
@@ -373,13 +343,6 @@ export default function JobsListPage() {
                               <div className="text-sm text-gray-500">
                                 Posted:{" "}
                                 {new Date(job.postedDate).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div className="py-2">
-                              <div className="text-sm text-gray-900">
-                                {(job as any).postedByName || "Unknown"}
                               </div>
                               <div className="text-sm text-gray-500">
                                 Positions: {job.positions}
