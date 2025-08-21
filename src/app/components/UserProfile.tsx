@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/app/store/index";
 import { setCredentials } from "@/app/store/slices/authSlice";
+import { showSuccessToast, showErrorToast } from "@/app/lib/toast";
 
 interface UpdateProfileFormData {
   name: string;
@@ -319,6 +320,8 @@ export default function UserProfile() {
   const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false);
   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [profilePictureError, setProfilePictureError] = useState("");
+  const [resumeError, setResumeError] = useState("");
 
   // Fetch user profile data
   useEffect(() => {
@@ -369,6 +372,7 @@ export default function UserProfile() {
                 userData.companyEstablishmentYears || 0,
               companyProfile: userData.companyProfile || "",
               resumeFile: null,
+              resumeFileUrl: userData.resumeFileUrl || "",
             }),
           });
 
@@ -393,9 +397,10 @@ export default function UserProfile() {
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      setProfilePictureError(""); // Clear previous errors
       if (file.size > 500 * 1024) {
         // 500KB limit
-        setError("Profile picture must be less than 500KB");
+        setProfilePictureError("Profile picture must be less than 500KB");
         return;
       }
 
@@ -416,14 +421,50 @@ export default function UserProfile() {
         if (response.ok) {
           const result = await response.json();
           setProfilePicturePreview(result.fileUrl);
-          setProfileData({ ...profileData, profilePicture: result.fileUrl });
+          const updatedProfileData = {
+            ...profileData,
+            profilePicture: result.fileUrl,
+          };
+          setProfileData(updatedProfileData);
+
+          // Automatically update the profile in the database
+          try {
+            const updateResponse = await fetch("/api/user/profile", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(updatedProfileData),
+            });
+
+            if (updateResponse.ok) {
+              showSuccessToast(
+                "Profile picture uploaded and saved successfully!"
+              );
+            } else {
+              showErrorToast(
+                "Profile picture uploaded but failed to save to profile"
+              );
+            }
+          } catch (updateError) {
+            console.error("Profile update error:", updateError);
+            showErrorToast(
+              "Profile picture uploaded but failed to save to profile"
+            );
+          }
         } else {
           const error = await response.json();
-          setError(error.error || "Failed to upload profile picture");
+          const errorMessage =
+            error.error || "Failed to upload profile picture";
+          setProfilePictureError(errorMessage);
+          showErrorToast(errorMessage);
         }
       } catch (error) {
         console.error("Profile picture upload error:", error);
-        setError("Failed to upload profile picture");
+        const errorMessage = "Failed to upload profile picture";
+        setProfilePictureError(errorMessage);
+        showErrorToast(errorMessage);
       }
     }
   };
@@ -434,9 +475,10 @@ export default function UserProfile() {
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      setResumeError(""); // Clear previous errors
       if (file.size > 500 * 1024) {
         // 500KB limit
-        setError("Resume file must be less than 500KB");
+        setResumeError("Resume file must be less than 500KB");
         return;
       }
 
@@ -456,15 +498,44 @@ export default function UserProfile() {
 
         if (response.ok) {
           const result = await response.json();
-          setProfileData({ ...profileData, resumeFileUrl: result.fileUrl });
-          setProfileUpdateSuccess(true);
+          const updatedProfileData = {
+            ...profileData,
+            resumeFileUrl: result.fileUrl,
+          };
+          setProfileData(updatedProfileData);
+
+          // Automatically update the profile in the database
+          try {
+            const updateResponse = await fetch("/api/user/profile", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(updatedProfileData),
+            });
+
+            if (updateResponse.ok) {
+              setProfileUpdateSuccess(true);
+              showSuccessToast("Resume uploaded and saved successfully!");
+            } else {
+              showErrorToast("Resume uploaded but failed to save to profile");
+            }
+          } catch (updateError) {
+            console.error("Profile update error:", updateError);
+            showErrorToast("Resume uploaded but failed to save to profile");
+          }
         } else {
           const error = await response.json();
-          setError(error.error || "Failed to upload resume");
+          const errorMessage = error.error || "Failed to upload resume";
+          setResumeError(errorMessage);
+          showErrorToast(errorMessage);
         }
       } catch (error) {
         console.error("Resume upload error:", error);
-        setError("Failed to upload resume");
+        const errorMessage = "Failed to upload resume";
+        setResumeError(errorMessage);
+        showErrorToast(errorMessage);
       }
     }
   };
@@ -485,6 +556,8 @@ export default function UserProfile() {
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setProfilePictureError("");
+    setResumeError("");
     setProfileUpdateSuccess(false);
     setIsUpdating(true);
 
@@ -500,6 +573,56 @@ export default function UserProfile() {
 
       if (response.ok) {
         const updatedUserData = await response.json();
+
+        // Update local profileData state with the response
+        setProfileData({
+          name: updatedUserData.name,
+          email: updatedUserData.email,
+          phone: updatedUserData.phone || "",
+          // Include company fields if user is COMPANY role
+          ...(updatedUserData.role === "COMPANY" && {
+            companyName: updatedUserData.companyName || "",
+            companySize: updatedUserData.companySize || "",
+            designation: updatedUserData.designation || "",
+          }),
+          // Include recruiter fields if user is RECRUITER role
+          ...(updatedUserData.role === "RECRUITER" && {
+            recruitmentFirmName: updatedUserData.recruitmentFirmName || "",
+            profilePicture: updatedUserData.profilePicture || "",
+            mobileNumber: updatedUserData.mobileNumber || "",
+            whatsappNumber: updatedUserData.whatsappNumber || "",
+            otherContactInfo: updatedUserData.otherContactInfo || "",
+            country: updatedUserData.country || "",
+            state: updatedUserData.state || "",
+            city: updatedUserData.city || "",
+            totalWorkExperience: updatedUserData.totalWorkExperience || 0,
+            recruitmentExperience: updatedUserData.recruitmentExperience || 0,
+            rolesClosedLastYear: updatedUserData.rolesClosedLastYear || 0,
+            countriesWorkedIn: updatedUserData.countriesWorkedIn || [],
+            bio: updatedUserData.bio || "",
+            linkedinUrl: updatedUserData.linkedinUrl || "",
+            facebookUrl: updatedUserData.facebookUrl || "",
+            otherSocialUrl: updatedUserData.otherSocialUrl || "",
+            geographiesCanHireIn: updatedUserData.geographiesCanHireIn || [],
+            recruiterType: updatedUserData.recruiterType || "individual",
+            recruiterCompanyName: updatedUserData.recruiterCompanyName || "",
+            recruiterDesignation: updatedUserData.recruiterDesignation || "",
+            recruiterCompanySize: updatedUserData.recruiterCompanySize || "",
+            companyEstablishmentYears:
+              updatedUserData.companyEstablishmentYears || 0,
+            companyProfile: updatedUserData.companyProfile || "",
+            resumeFile: null,
+            resumeFileUrl: updatedUserData.resumeFileUrl || "",
+          }),
+        });
+
+        // Update profile picture preview if exists
+        if (
+          updatedUserData.role === "RECRUITER" &&
+          updatedUserData.profilePicture
+        ) {
+          setProfilePicturePreview(updatedUserData.profilePicture);
+        }
 
         // Update Redux state with new user data
         if (user && token) {
@@ -595,9 +718,17 @@ export default function UserProfile() {
       <div className="bg-indigo-600 text-white p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           <div className="bg-white rounded-full p-1 shadow-md">
-            <div className="bg-gradient-to-br from-indigo-400 to-purple-500 text-white rounded-full w-24 h-24 flex items-center justify-center text-4xl font-bold">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
+            {profilePicturePreview ? (
+              <img
+                className="h-24 w-24 object-cover rounded-full"
+                src={profilePicturePreview}
+                alt="Profile picture"
+              />
+            ) : (
+              <div className="bg-gradient-to-br from-indigo-400 to-purple-500 text-white rounded-full w-24 h-24 flex items-center justify-center text-4xl font-bold">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
           <div className="text-center sm:text-left">
             <h1 className="text-3xl font-bold">{user.name}</h1>
@@ -1051,6 +1182,22 @@ export default function UserProfile() {
                             <p className="text-xs text-gray-500 mt-1">
                               Max file size: 500KB
                             </p>
+                            {profilePictureError && (
+                              <p className="text-xs text-red-600 mt-1 flex items-center">
+                                <svg
+                                  className="w-4 h-4 mr-1 flex-shrink-0"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                {profilePictureError}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1555,10 +1702,59 @@ export default function UserProfile() {
                         <p className="text-xs text-gray-500">
                           Max file size: 500KB. Accepted formats: PDF, DOC, DOCX
                         </p>
+                        {resumeError && (
+                          <p className="text-xs text-red-600 mt-1 flex items-center">
+                            <svg
+                              className="w-4 h-4 mr-1 flex-shrink-0"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            {resumeError}
+                          </p>
+                        )}
                         {profileData.resumeFile && (
                           <p className="text-sm text-green-600">
                             Selected: {profileData.resumeFile.name}
                           </p>
+                        )}
+                        {profileData.resumeFileUrl && (
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-700 mb-2">
+                              Current Resume/Profile:
+                            </p>
+                            <div className="flex items-center space-x-3">
+                              <a
+                                href={profileData.resumeFileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <svg
+                                  className="w-4 h-4 mr-2"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                  />
+                                </svg>
+                                View File
+                              </a>
+                              <span className="text-xs text-gray-500">
+                                {profileData.resumeFileUrl.split("/").pop()}
+                              </span>
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

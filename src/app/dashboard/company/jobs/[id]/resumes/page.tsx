@@ -1,42 +1,56 @@
-// app/dashboard/company/jobs/[jobId]/resumes/page.tsx
 "use client";
 
-import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import {
-  useGetResumesByJobIdQuery,
-  useUpdateResumeStatusMutation,
-} from "../../../../../store/services/resumesApi";
+import { useState, useEffect } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useGetResumesByJobIdQuery } from "../../../../../store/services/resumesApi";
+import { IResume } from "@/app/models/Resume";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
 import ResumeStatusBadge from "@/app/components/company/ResumeStatusBadge";
 import ResumeDetailModal from "@/app/components/company/ResumeDetailModal";
 import {
   Loader2,
   ArrowLeft,
-  Edit,
   FileQuestion,
-  ChevronDown,
   Download,
   FileText,
   FileSpreadsheet,
+  Eye,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  Clock,
+  DollarSign,
+  Calendar,
+  Filter,
+  Search,
 } from "lucide-react";
 import ErrorAlert from "@/app/components/ui/ErrorAlert";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import * as XLSX from "xlsx";
 
-export default function JobResumesPage() {
+export default function CompanyJobResumesPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const jobId = params.id as string;
+
+  // State management
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(
-    null
-  );
   const [downloadDropdownOpen, setDownloadDropdownOpen] = useState<
     string | null
   >(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
 
+  // Get job title and poster from URL params
+  const jobTitle = searchParams.get("title");
+  const jobPostedBy = searchParams.get("postedBy");
+
+  // Fetch resumes data
   const {
     data: resumesData,
     isLoading,
@@ -44,25 +58,59 @@ export default function JobResumesPage() {
     error,
   } = useGetResumesByJobIdQuery(jobId);
 
-  const [updateResumeStatus, { isLoading: isUpdatingStatus }] =
-    useUpdateResumeStatusMutation();
-
   // Explicitly type the resumesData to match the expected API response
   type ResumesResponse =
-    | { resumes: Array<any>; jobPostedBy?: string }
-    | Array<any>;
+    | { resumes: IResume[]; jobPostedBy?: string; jobTitle?: string }
+    | IResume[];
   const typedResumesData = resumesData as ResumesResponse;
 
   // Handle both data formats - array or object with resumes property
   const resumes = Array.isArray(typedResumesData)
     ? typedResumesData
     : typedResumesData?.resumes;
-  const jobPostedBy = !Array.isArray(typedResumesData)
+  const jobPostedByFromApi = !Array.isArray(typedResumesData)
     ? typedResumesData?.jobPostedBy
     : null;
+  const jobTitleFromApi = !Array.isArray(typedResumesData)
+    ? typedResumesData?.jobTitle
+    : null;
 
+  // Filter and sort resumes
+  const filteredAndSortedResumes = resumes
+    ?.filter((resume: IResume) => {
+      const matchesSearch =
+        searchTerm === "" ||
+        resume.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resume.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resume.currentCompany?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resume.remarks?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus =
+        statusFilter === "all" || resume.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    })
+    ?.sort((a: IResume, b: IResume) => {
+      switch (sortBy) {
+        case "name":
+          return a.candidateName.localeCompare(b.candidateName);
+        case "status":
+          return a.status.localeCompare(b.status);
+        case "experience":
+          const aExp = parseInt(a.totalExperience || "0");
+          const bExp = parseInt(b.totalExperience || "0");
+          return bExp - aExp;
+        case "date":
+        default:
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+      }
+    });
+
+  // Navigation handlers
   const handleBack = () => {
-    router.back();
+    router.push("/dashboard/company/jobs");
   };
 
   const handleViewResume = (resumeId: string) => {
@@ -73,23 +121,7 @@ export default function JobResumesPage() {
     setSelectedResumeId(null);
   };
 
-  const handleStatusUpdate = async (
-    resumeId: string,
-    newStatus: ResumeStatus
-  ) => {
-    try {
-      await updateResumeStatus({ id: resumeId, status: newStatus }).unwrap();
-      setStatusDropdownOpen(null);
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      // You might want to show a toast notification here
-    }
-  };
-
-  const toggleStatusDropdown = (resumeId: string) => {
-    setStatusDropdownOpen(statusDropdownOpen === resumeId ? null : resumeId);
-  };
-
+  // Download dropdown handlers
   const toggleDownloadDropdown = (resumeId: string) => {
     setDownloadDropdownOpen(
       downloadDropdownOpen === resumeId ? null : resumeId
@@ -99,29 +131,23 @@ export default function JobResumesPage() {
   // Function to prepare candidate data for download
   const prepareCandidateDataForDownload = (resume: any) => {
     return {
-      "Candidate Name": resume.candidateName || "",
-      Email: resume.email || "",
-      Phone: resume.phone || "",
-      Qualification: resume.qualification || "",
+      "Candidate Name": resume.candidateName,
+      Email: resume.email,
+      Phone: resume.phone,
+      Qualification: resume.qualification,
       "Current Designation": resume.currentDesignation || "Not specified",
       "Current Company": resume.currentCompany || "Not specified",
       "Total Experience": resume.totalExperience || "Not specified",
       "Relevant Experience": resume.relevantExperience || "Not specified",
-      "Current CTC": resume.currentCTC || "",
-      "Expected CTC": resume.expectedCTC || "",
-      "Notice Period": resume.noticePeriod || "",
-      Status: resume.status || "",
+      "Current CTC": resume.currentCTC || "Not specified",
+      "Expected CTC": resume.expectedCTC || "Not specified",
+      "Notice Period": resume.noticePeriod || "Not specified",
+      Skills: Array.isArray(resume.skills)
+        ? resume.skills.join(", ")
+        : resume.skills || "Not specified",
+      Status: resume.status,
       "Submitted By": resume.submitterName || "Unknown Recruiter",
       "Submitted On": new Date(resume.createdAt).toLocaleDateString(),
-      Skills: resume.skills
-        ? Array.isArray(resume.skills)
-          ? resume.skills.join(", ")
-          : resume.skills
-        : "",
-      Location: resume.location || "",
-      "Preferred Location": resume.preferredLocation || "",
-      "Job Code": resume.jobCode || "",
-      "Additional Notes": resume.notes || "",
     };
   };
 
@@ -129,16 +155,16 @@ export default function JobResumesPage() {
   const downloadAsCSV = (resume: any) => {
     const candidateData = prepareCandidateDataForDownload(resume);
 
-    // Convert object to CSV format
     const headers = Object.keys(candidateData);
     const values = Object.values(candidateData);
 
     const csvContent = [
       headers.join(","),
-      values.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
+      values
+        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+        .join(","),
     ].join("\n");
 
-    // Create and download file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -197,7 +223,7 @@ export default function JobResumesPage() {
   const downloadAllCandidatesAsExcel = () => {
     if (!resumes || resumes.length === 0) return;
 
-    const allCandidatesData = resumes.map((resume) =>
+    const allCandidatesData = resumes.map((resume: IResume) =>
       prepareCandidateDataForDownload(resume)
     );
 
@@ -229,7 +255,7 @@ export default function JobResumesPage() {
     const headers = Object.keys(allCandidatesData[0]);
     const csvContent = [
       headers.join(","),
-      ...allCandidatesData.map((candidate) =>
+      ...allCandidatesData.map((candidate: any) =>
         Object.values(candidate)
           .map((value) => `"${String(value).replace(/"/g, '""')}"`)
           .join(",")
@@ -250,125 +276,103 @@ export default function JobResumesPage() {
     document.body.removeChild(link);
   };
 
-  // Status options for dropdown
-  const statusOptions = [
-    {
-      value: ResumeStatus.SUBMITTED,
-      label: "Submitted",
-      color: "text-blue-600",
-    },
-    {
-      value: ResumeStatus.REVIEWED,
-      label: "Reviewed",
-      color: "text-indigo-600",
-    },
-    {
-      value: ResumeStatus.SHORTLISTED,
-      label: "Shortlisted",
-      color: "text-green-600",
-    },
-    { value: ResumeStatus.ONHOLD, label: "On Hold", color: "text-yellow-600" },
-    {
-      value: ResumeStatus.INTERVIEW_IN_PROCESS,
-      label: "Interview in Process",
-      color: "text-orange-600",
-    },
-    {
-      value: ResumeStatus.INTERVIEWED,
-      label: "Interviewed",
-      color: "text-purple-600",
-    },
-    {
-      value: ResumeStatus.SELECTED_IN_FINAL_INTERVIEW,
-      label: "Selected in Final Interview",
-      color: "text-teal-600",
-    },
-    { value: ResumeStatus.OFFERED, label: "Offered", color: "text-cyan-600" },
-    {
-      value: ResumeStatus.OFFER_DECLINED,
-      label: "Offer Declined",
-      color: "text-rose-600",
-    },
-    { value: ResumeStatus.HIRED, label: "Hired", color: "text-emerald-600" },
-    { value: ResumeStatus.REJECTED, label: "Rejected", color: "text-red-600" },
-    {
-      value: ResumeStatus.DUPLICATE,
-      label: "Duplicate",
-      color: "text-gray-600",
-    },
-  ];
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-        <span className="ml-2">Loading resumes...</span>
-      </div>
+      <ProtectedLayout allowedRoles={["COMPANY"]}>
+        <DashboardLayout>
+          <div className="flex items-center justify-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <span className="ml-2">Loading resumes...</span>
+          </div>
+        </DashboardLayout>
+      </ProtectedLayout>
     );
   }
 
   if (isError) {
     return (
-      <ErrorAlert
-        message={(error as any)?.data?.error || "Failed to load resumes"}
-      />
+      <ProtectedLayout allowedRoles={["COMPANY"]}>
+        <DashboardLayout>
+          <ErrorAlert
+            message={(error as any)?.data?.error || "Failed to load resumes"}
+          />
+        </DashboardLayout>
+      </ProtectedLayout>
     );
   }
 
   if (!resumes || resumes.length === 0) {
     return (
-      <div className="p-6">
-        <button
-          onClick={handleBack}
-          className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Jobs
-        </button>
-        <div className="text-center py-10">
-          <FileQuestion className="mx-auto h-12 w-12 text-gray-400" />
-          <h2 className="text-2xl font-semibold mb-2">No Resumes Yet</h2>
-          <p className="text-gray-600">
-            No resumes have been submitted for this job posting yet.
-          </p>
-        </div>
-      </div>
+      <ProtectedLayout allowedRoles={["COMPANY"]}>
+        <DashboardLayout>
+          <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+            <button
+              onClick={handleBack}
+              className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900 mb-6"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Jobs
+            </button>
+            <div className="text-center py-12">
+              <FileQuestion className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h2 className="text-2xl font-semibold mb-2 text-gray-900">
+                No Resumes Yet
+              </h2>
+              <p className="text-gray-600 max-w-md mx-auto">
+                No resumes have been submitted for this job posting yet. Check
+                back later as applications come in.
+              </p>
+            </div>
+          </div>
+        </DashboardLayout>
+      </ProtectedLayout>
     );
   }
 
   return (
     <ProtectedLayout allowedRoles={["COMPANY"]}>
       <DashboardLayout>
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+          {/* Header Section */}
+          <div className="mb-6">
             <button
               onClick={handleBack}
-              className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
+              className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900 mb-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Job
+              Back to Jobs
             </button>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              {jobPostedBy && (
-                <div className="text-sm text-gray-500">
-                  Job posted by:{" "}
-                  <span className="font-medium">{jobPostedBy}</span>
-                </div>
-              )}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                  Resume Applications
+                </h1>
+                {jobTitle && (
+                  <div className="text-lg font-medium text-gray-700 mb-1">
+                    {jobTitle}
+                  </div>
+                )}
+                {jobPostedBy && (
+                  <div className="text-sm text-gray-500">
+                    Job posted by:{" "}
+                    <span className="font-medium">{jobPostedBy}</span>
+                  </div>
+                )}
+              </div>
 
               {/* Bulk Download Options */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={downloadAllCandidatesAsCSV}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   <FileText className="mr-2 h-4 w-4" />
                   Download All (CSV)
                 </button>
                 <button
                   onClick={downloadAllCandidatesAsExcel}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   <FileSpreadsheet className="mr-2 h-4 w-4" />
                   Download All (Excel)
@@ -377,194 +381,249 @@ export default function JobResumesPage() {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold mb-6">
-            Resumes ({resumes.length})
-          </h1>
+          {/* Filters and Search */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Search */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search candidates, email, company, skills..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+              </div>
 
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Candidate
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact Info
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Current Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Experience & CTC
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Notice Period
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Submitted By
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Submitted On
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {resumes.map((resume) => (
-                    <tr key={resume._id as string} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {resume.candidateName}
+              {/* Status Filter */}
+              <div className="sm:w-48">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value="SUBMITTED">Submitted</option>
+                  <option value="SHORTLISTED">Shortlisted</option>
+                  <option value="INTERVIEWED">Interviewed</option>
+                  <option value="SELECTED">Selected</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+
+              {/* Sort */}
+              <div className="sm:w-48">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="name">Sort by Name</option>
+                  <option value="status">Sort by Status</option>
+                  <option value="experience">Sort by Experience</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm text-gray-600">
+              Showing {filteredAndSortedResumes?.length || 0} of{" "}
+              {resumes.length} candidates
+            </div>
+          </div>
+
+          {/* Resume Cards */}
+          <div className="space-y-4">
+            {filteredAndSortedResumes?.map((resume: IResume) => (
+              <div
+                key={resume._id as string}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
+              >
+                <div className="p-6">
+                  {/* Header Row */}
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <User className="h-6 w-6 text-indigo-600" />
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {resume.qualification}
+                        <div className="flex-1 min-w-0">
+                          <h3 
+                            className="text-lg font-semibold text-gray-900 truncate cursor-pointer hover:text-indigo-600 transition-colors"
+                            onClick={() => handleViewResume(resume._id as string)}
+                          >
+                            {resume.candidateName}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {resume.qualification}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Mail className="h-4 w-4" />
+                              <span className="truncate">{resume.email}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-4 w-4" />
+                              <span>{resume.phone}</span>
+                            </div>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {resume.email}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {resume.phone}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {resume.currentDesignation || "Not specified"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {resume.currentCompany || "Not specified"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          Total: {resume.totalExperience || "Not specified"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Relevant:{" "}
-                          {resume.relevantExperience || "Not specified"}
-                        </div>
-                        <div className="text-sm text-gray-900 mt-2">
-                          Current: {resume.currentCTC}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Expected: {resume.expectedCTC}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {resume.noticePeriod}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {resume.submitterName || "Unknown Recruiter"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <ResumeStatusBadge
+                        status={resume.status as ResumeStatus}
+                      />
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleViewResume(resume._id as string)}
+                          className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+
+                        {/* Individual Download Dropdown */}
                         <div className="relative">
                           <button
                             onClick={() =>
-                              toggleStatusDropdown(resume._id as string)
+                              toggleDownloadDropdown(resume._id as string)
                             }
-                            className="inline-flex items-center space-x-1 hover:bg-gray-100 rounded-md p-1"
-                            disabled={isUpdatingStatus}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
+                            title="Export"
                           >
-                            <ResumeStatusBadge
-                              status={resume.status as ResumeStatus}
-                            />
-                            <ChevronDown className="h-3 w-3 text-gray-400" />
+                            <Download className="h-4 w-4" />
                           </button>
 
-                          {statusDropdownOpen === resume._id && (
-                            <div className="absolute top-full left-0 z-10 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
-                              <div className="py-1 max-h-64 overflow-y-auto">
-                                {statusOptions.map((option) => (
-                                  <button
-                                    key={option.value}
-                                    onClick={() =>
-                                      handleStatusUpdate(
-                                        resume._id as string,
-                                        option.value
-                                      )
-                                    }
-                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                                      resume.status === option.value
-                                        ? "bg-gray-50 font-medium"
-                                        : ""
-                                    } ${option.color}`}
-                                    disabled={isUpdatingStatus}
-                                  >
-                                    {option.label}
-                                    {resume.status === option.value && (
-                                      <span className="ml-2 text-gray-400">
-                                        ✓
-                                      </span>
-                                    )}
-                                  </button>
-                                ))}
+                          {downloadDropdownOpen === resume._id && (
+                            <div className="absolute top-full right-0 z-10 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => downloadAsCSV(resume)}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                >
+                                  <FileText className="mr-2 h-4 w-4" />
+                                  CSV
+                                </button>
+                                <button
+                                  onClick={() => downloadAsExcel(resume)}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                >
+                                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                  Excel
+                                </button>
                               </div>
                             </div>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(resume.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() =>
-                              handleViewResume(resume._id as string)
-                            }
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            View Details
-                          </button>
+                      </div>
+                    </div>
+                  </div>
 
-                          {/* Individual Download Dropdown */}
-                          <div className="relative">
-                            <button
-                              onClick={() =>
-                                toggleDownloadDropdown(resume._id as string)
-                              }
-                              className="p-1 text-gray-400 hover:text-gray-600"
-                              title="Export"
-                            >
-                              <Download className="h-4 w-4" />
-                            </button>
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    {/* Current Role */}
+                    <div>
+                      <div className="flex items-center gap-1 text-gray-500 mb-1">
+                        <Briefcase className="h-4 w-4" />
+                        <span className="font-medium">Current Role</span>
+                      </div>
+                      <div className="text-gray-900 font-medium">
+                        {resume.currentDesignation || "Not specified"}
+                      </div>
+                      <div className="text-gray-600">
+                        {resume.currentCompany || "Not specified"}
+                      </div>
+                    </div>
 
-                            {downloadDropdownOpen === resume._id && (
-                              <div className="absolute top-full right-0 z-10 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg">
-                                <div className="py-1">
-                                  <button
-                                    onClick={() => downloadAsCSV(resume)}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                                  >
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    CSV
-                                  </button>
-                                  <button
-                                    onClick={() => downloadAsExcel(resume)}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                                  >
-                                    <FileSpreadsheet className="mr-2 h-4 w-4" />
-                                    Excel
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    {/* Experience */}
+                    <div>
+                      <div className="flex items-center gap-1 text-gray-500 mb-1">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-medium">Experience</span>
+                      </div>
+                      <div className="text-gray-900">
+                        Total: {resume.totalExperience || "Not specified"}
+                      </div>
+                      <div className="text-gray-900">
+                        Relevant: {resume.relevantExperience || "Not specified"}
+                      </div>
+                    </div>
+
+                    {/* CTC */}
+                    <div>
+                      <div className="flex items-center gap-1 text-gray-500 mb-1">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="font-medium">CTC</span>
+                      </div>
+                      <div className="text-gray-900">
+                        Current: {resume.currentCTC || "Not specified"}
+                      </div>
+                      <div className="text-gray-900">
+                        Expected: {resume.expectedCTC || "Not specified"}
+                      </div>
+                    </div>
+
+                    {/* Notice Period */}
+                    <div>
+                      <div className="flex items-center gap-1 text-gray-500 mb-1">
+                        <Calendar className="h-4 w-4" />
+                        <span className="font-medium">Notice Period: </span>
+                        <span className="text-gray-900">
+                          {resume.noticePeriod || "Not specified"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <div className="text-sm text-gray-500">
+                      Submitted by{" "}
+                      <span className="font-medium text-gray-700">
+                        {resume.submittedByName || "Unknown Recruiter"}
+                      </span>{" "}
+                      on {new Date(resume.createdAt).toLocaleDateString()}
+                    </div>
+
+                    {resume.remarks && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <span className="font-medium">Remarks:</span>
+                        <span className="ml-2">
+                          {resume.remarks}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
+
+          {/* No Results */}
+          {filteredAndSortedResumes?.length === 0 && (
+            <div className="text-center py-12">
+              <Search className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No matching candidates
+              </h3>
+              <p className="text-gray-600">
+                Try adjusting your search or filter criteria to find more
+                candidates.
+              </p>
+            </div>
+          )}
 
           {selectedResumeId && (
             <ResumeDetailModal

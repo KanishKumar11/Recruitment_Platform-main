@@ -2,88 +2,98 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, PencilIcon, QuestionMarkCircleIcon, DocumentTextIcon, UserGroupIcon, BriefcaseIcon } from '@heroicons/react/24/outline';
-import { useGetJobByIdQuery, useUpdateJobStatusMutation } from '@/app/store/services/jobsApi';
-import { useGetJobUpdatesQuery } from '@/app/store/services/jobUpdatesApi';
-import { JobStatus } from '@/app/constants/jobStatus';
-import { getCountryNameFromCode } from '@/app/utils/countryUtils';
-import { IJob } from '@/app/models/Job';
+import {
+  ArrowLeftIcon,
+  PencilIcon,
+  QuestionMarkCircleIcon,
+  DocumentTextIcon,
+  UserGroupIcon,
+  BriefcaseIcon,
+} from "@heroicons/react/24/outline";
+import {
+  useGetJobByIdQuery,
+  useUpdateJobStatusMutation,
+} from "@/app/store/services/jobsApi";
+import { useGetJobUpdatesQuery } from "@/app/store/services/jobUpdatesApi";
+import { JobStatus } from "@/app/constants/jobStatus";
+import { getCountryNameFromCode } from "@/app/utils/countryUtils";
+import { IJob } from "@/app/models/Job";
 
-import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import ProtectedLayout from '@/app/components/layout/ProtectedLayout';
-import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
-import JobUpdatesModal from '@/components/JobUpdatesModal';
-import Link from 'next/link';
+import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
+import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import JobUpdatesModal from "@/components/JobUpdatesModal";
+import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 
 // Helper function to get currency symbol
 const getCurrencySymbol = (currencyCode: string): string => {
   const currencySymbols: { [key: string]: string } = {
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    JPY: '¥',
-    AUD: 'A$',
-    CAD: 'C$',
-    CHF: 'CHF',
-    CNY: '¥',
-    SEK: 'kr',
-    NZD: 'NZ$',
-    MXN: '$',
-    SGD: 'S$',
-    HKD: 'HK$',
-    NOK: 'kr',
-    TRY: '₺',
-    RUB: '₽',
-    INR: '₹',
-    BRL: 'R$',
-    ZAR: 'R',
-    KRW: '₩',
-    PLN: 'zł',
-    THB: '฿',
-    IDR: 'Rp',
-    MYR: 'RM',
-    PHP: '₱',
-    VND: '₫',
-    EGP: 'E£',
-    CLP: '$',
-    COP: '$',
-    PEN: 'S/',
-    ARS: '$',
-    UYU: '$U',
-    BOB: 'Bs',
-    PYG: '₲',
-    DOP: 'RD$',
-    GTQ: 'Q',
-    HNL: 'L',
-    NIO: 'C$',
-    CRC: '₡',
-    PAB: 'B/.',
-    JMD: 'J$',
-    TTD: 'TT$',
-    BBD: 'Bds$',
-    BZD: 'BZ$',
-    GYD: 'G$',
-    SRD: 'Sr$',
-    FKP: '£',
-    SHP: '£',
-    GIP: '£',
-    JEP: '£',
-    GGP: '£',
-    IMP: '£',
-    TVD: '$',
-    NRU: '$',
-    KID: '$',
-    CKD: '$',
-    WST: 'WS$',
-    FJD: 'FJ$',
-    SBD: 'SI$',
-    TOP: 'T$',
-    VUV: 'VT',
-    PGK: 'K',
-    NCR: '₣',
-    XPF: '₣'
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    JPY: "¥",
+    AUD: "A$",
+    CAD: "C$",
+    CHF: "CHF",
+    CNY: "¥",
+    SEK: "kr",
+    NZD: "NZ$",
+    MXN: "$",
+    SGD: "S$",
+    HKD: "HK$",
+    NOK: "kr",
+    TRY: "₺",
+    RUB: "₽",
+    INR: "₹",
+    BRL: "R$",
+    ZAR: "R",
+    KRW: "₩",
+    PLN: "zł",
+    THB: "฿",
+    IDR: "Rp",
+    MYR: "RM",
+    PHP: "₱",
+    VND: "₫",
+    EGP: "E£",
+    CLP: "$",
+    COP: "$",
+    PEN: "S/",
+    ARS: "$",
+    UYU: "$U",
+    BOB: "Bs",
+    PYG: "₲",
+    DOP: "RD$",
+    GTQ: "Q",
+    HNL: "L",
+    NIO: "C$",
+    CRC: "₡",
+    PAB: "B/.",
+    JMD: "J$",
+    TTD: "TT$",
+    BBD: "Bds$",
+    BZD: "BZ$",
+    GYD: "G$",
+    SRD: "Sr$",
+    FKP: "£",
+    SHP: "£",
+    GIP: "£",
+    JEP: "£",
+    GGP: "£",
+    IMP: "£",
+    TVD: "$",
+    NRU: "$",
+    KID: "$",
+    CKD: "$",
+    WST: "WS$",
+    FJD: "FJ$",
+    SBD: "SI$",
+    TOP: "T$",
+    VUV: "VT",
+    PGK: "K",
+    NCR: "₣",
+    XPF: "₣",
   };
   return currencySymbols[currencyCode] || currencyCode;
 };
@@ -269,7 +279,10 @@ function CompanyJobDetailPage() {
                             }`}
                           >
                             {Object.values(JobStatus).map((status) => (
-                              <option key={status as string} value={status as string}>
+                              <option
+                                key={status as string}
+                                value={status as string}
+                              >
                                 {formatStatus(status as string)}
                               </option>
                             ))}
@@ -324,7 +337,8 @@ function CompanyJobDetailPage() {
                             Location
                           </dt>
                           <dd className="mt-1 text-sm font-medium text-gray-900">
-                            {job.location}, {getCountryNameFromCode(job.country)}
+                            {job.location},{" "}
+                            {getCountryNameFromCode(job.country)}
                           </dd>
                         </div>
 
@@ -356,8 +370,8 @@ function CompanyJobDetailPage() {
                           <dd className="mt-1 text-sm font-medium text-gray-900">
                             {getCurrencySymbol(job.salary.currency)}{" "}
                             {job.salary.min.toLocaleString()} -{" "}
-                            {job.salary.max.toLocaleString()} ({job.salary.currency})
-                            {" "}
+                            {job.salary.max.toLocaleString()} (
+                            {job.salary.currency}){" "}
                             {job.compensationType === "HOURLY"
                               ? "per hour"
                               : job.compensationType === "MONTHLY"
@@ -372,8 +386,8 @@ function CompanyJobDetailPage() {
                             Experience Required
                           </dt>
                           <dd className="mt-1 text-sm font-medium text-gray-900">
-                            {job.experienceLevel.min} - {job.experienceLevel.max}{" "}
-                            years
+                            {job.experienceLevel.min} -{" "}
+                            {job.experienceLevel.max} years
                           </dd>
                         </div>
 
@@ -515,83 +529,87 @@ function CompanyJobDetailPage() {
                   )}
 
                   {/* Screening Questions */}
-                  {job.screeningQuestions && job.screeningQuestions.length > 0 && (
-                    <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-                      <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900">
-                          Screening Questions
-                        </h3>
-                        <Link
-                          href={`/dashboard/company/jobs/${id}/questions`}
-                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                        >
-                          Manage Questions
-                        </Link>
-                      </div>
-                      <div className="border-t border-gray-200">
-                        <ul className="divide-y divide-gray-200">
-                          {job.screeningQuestions.map(
-                            (question: any, index: number) => (
-                              <li key={question._id || index} className="px-4 py-4">
-                                <div className="flex justify-between">
-                                  <div>
-                                    <p className="text-sm font-medium text-gray-900">
-                                      {question.question}
-                                    </p>
-                                    <div className="flex mt-1">
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                                        {question.questionType}
-                                      </span>
-                                      {question.required && (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                          Required
+                  {job.screeningQuestions &&
+                    job.screeningQuestions.length > 0 && (
+                      <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                          <h3 className="text-lg leading-6 font-medium text-gray-900">
+                            Screening Questions
+                          </h3>
+                          <Link
+                            href={`/dashboard/company/jobs/${id}/questions`}
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                          >
+                            Manage Questions
+                          </Link>
+                        </div>
+                        <div className="border-t border-gray-200">
+                          <ul className="divide-y divide-gray-200">
+                            {job.screeningQuestions.map(
+                              (question: any, index: number) => (
+                                <li
+                                  key={question._id || index}
+                                  className="px-4 py-4"
+                                >
+                                  <div className="flex justify-between">
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-900">
+                                        {question.question}
+                                      </p>
+                                      <div className="flex mt-1">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                          {question.questionType}
                                         </span>
-                                      )}
+                                        {question.required && (
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Required
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="mt-2">
-                                  {question.options &&
-                                    question.options.length > 0 && (
-                                      <ul className="list-disc pl-5">
-                                        {question.options.map(
-                                          (option: string, idx: number) => (
-                                            <li
-                                              key={idx}
-                                              className="text-sm text-gray-700"
-                                            >
-                                              {option}
-                                            </li>
-                                          )
-                                        )}
-                                      </ul>
+                                  <div className="mt-2">
+                                    {question.options &&
+                                      question.options.length > 0 && (
+                                        <ul className="list-disc pl-5">
+                                          {question.options.map(
+                                            (option: string, idx: number) => (
+                                              <li
+                                                key={idx}
+                                                className="text-sm text-gray-700"
+                                              >
+                                                {option}
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      )}
+                                    {question.answer && (
+                                      <p className="text-sm text-gray-700 mt-2">
+                                        Answer: {question.answer}
+                                      </p>
                                     )}
-                                  {question.answer && (
-                                    <p className="text-sm text-gray-700 mt-2">
-                                      Answer: {question.answer}
-                                    </p>
-                                  )}
-                                </div>
-                              </li>
-                            )
-                          )}
-                        </ul>
+                                  </div>
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                 </>
-               ) : (
-                 <div className="text-center py-10">
-                   <p className="text-gray-500">Job not found</p>
-                 </div>
-               )}
-             </div>
-           </div>
-           <JobUpdatesModal
-              isOpen={isUpdatesModalOpen}
-              onClose={() => setIsUpdatesModalOpen(false)}
-              jobId={id}
-            />
+                    )}
+                </>
+              ) : (
+                <div className="text-center py-10">
+                  <p className="text-gray-500">Job not found</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <JobUpdatesModal
+            isOpen={isUpdatesModalOpen}
+            onClose={() => setIsUpdatesModalOpen(false)}
+            jobId={id}
+          />
         </DashboardLayout>
       </ProtectedLayout>
     </>

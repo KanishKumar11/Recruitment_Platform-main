@@ -299,8 +299,8 @@ export default function RecruiterJobDetailsPage() {
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  {Math.round(
-                                    job.commission.recruiterPercentage
+                                  {job.commission.recruiterPercentage.toFixed(
+                                    2
                                   )}
                                   % of{" "}
                                   {job.compensationType === "HOURLY"

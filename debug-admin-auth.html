@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin Auth Debug</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ccc;
+      }
+      .error {
+        color: red;
+      }
+      .success {
+        color: green;
+      }
+      button {
+        padding: 10px 15px;
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Admin Authentication Debug</h1>
+
+    <div class="section">
+      <h3>Current Auth State:</h3>
+      <div id="auth-info"></div>
+    </div>
+
+    <div class="section">
+      <h3>Test Admin API:</h3>
+      <button onclick="testAdminAPI()">Test Admin Users API</button>
+      <button onclick="testSpecificUser()">Test Specific User API</button>
+      <div id="api-results"></div>
+    </div>
+
+    <div class="section">
+      <h3>Actions:</h3>
+      <button onclick="clearAuth()">Clear Auth Data</button>
+      <button onclick="location.href='/login'">Go to Login</button>
+    </div>
+
+    <script>
+      function displayAuthInfo() {
+        const authData = localStorage.getItem("auth");
+        const authInfo = document.getElementById("auth-info");
+
+        if (authData) {
+          try {
+            const parsed = JSON.parse(authData);
+            authInfo.innerHTML = `
+                        <p><strong>User:</strong> ${parsed.user?.name} (${
+              parsed.user?.email
+            })</p>
+                        <p><strong>Role:</strong> ${parsed.user?.role}</p>
+                        <p><strong>Token:</strong> ${
+                          parsed.token ? "Present" : "Missing"
+                        }</p>
+                        <p><strong>Authenticated:</strong> ${
+                          parsed.isAuthenticated
+                        }</p>
+                    `;
+          } catch (e) {
+            authInfo.innerHTML =
+              '<p class="error">Error parsing auth data: ' + e.message + "</p>";
+          }
+        } else {
+          authInfo.innerHTML = '<p class="error">No auth data found</p>';
+        }
+      }
+
+      async function testAdminAPI() {
+        const resultsDiv = document.getElementById("api-results");
+        const authData = localStorage.getItem("auth");
+
+        if (!authData) {
+          resultsDiv.innerHTML = '<p class="error">No auth data found</p>';
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(authData);
+          if (!parsed.token) {
+            resultsDiv.innerHTML = '<p class="error">No token found</p>';
+            return;
+          }
+
+          resultsDiv.innerHTML = "<p>Testing admin API...</p>";
+
+          const response = await fetch("/api/admin/users?page=1&limit=5", {
+            headers: {
+              Authorization: "Bearer " + parsed.token,
+            },
+          });
+
+          const responseText = await response.text();
+          let responseData;
+          try {
+            responseData = JSON.parse(responseText);
+          } catch {
+            responseData = responseText;
+          }
+
+          resultsDiv.innerHTML = `
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(responseData, null, 2)}</pre>
+                `;
+
+          if (response.status === 401) {
+            resultsDiv.innerHTML +=
+              '<p class="error">UNAUTHORIZED - Token may be invalid or expired</p>';
+          } else if (response.status === 403) {
+            resultsDiv.innerHTML +=
+              '<p class="error">FORBIDDEN - User may not have admin role</p>';
+          } else if (response.status === 200) {
+            resultsDiv.innerHTML +=
+              '<p class="success">SUCCESS - Admin API working</p>';
+          }
+        } catch (error) {
+          resultsDiv.innerHTML =
+            '<p class="error">Error: ' + error.message + "</p>";
+        }
+      }
+
+      async function testSpecificUser() {
+        const resultsDiv = document.getElementById("api-results");
+        const authData = localStorage.getItem("auth");
+        const userId = "688bc0bba6ccf1675072b014"; // Test user ID
+
+        if (!authData) {
+          resultsDiv.innerHTML = '<p class="error">No auth data found</p>';
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(authData);
+          if (!parsed.token) {
+            resultsDiv.innerHTML = '<p class="error">No token found</p>';
+            return;
+          }
+
+          resultsDiv.innerHTML = "<p>Testing specific user API...</p>";
+
+          const response = await fetch(`/api/admin/users/${userId}`, {
+            headers: {
+              Authorization: "Bearer " + parsed.token,
+            },
+          });
+
+          const responseText = await response.text();
+          let responseData;
+          try {
+            responseData = JSON.parse(responseText);
+          } catch {
+            responseData = responseText;
+          }
+
+          resultsDiv.innerHTML = `
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>User ID:</strong> ${userId}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(responseData, null, 2)}</pre>
+                `;
+
+          if (response.status === 401) {
+            resultsDiv.innerHTML +=
+              '<p class="error">UNAUTHORIZED - Token may be invalid or expired</p>';
+          } else if (response.status === 403) {
+            resultsDiv.innerHTML +=
+              '<p class="error">FORBIDDEN - User may not have admin role</p>';
+          } else if (response.status === 200) {
+            resultsDiv.innerHTML +=
+              '<p class="success">SUCCESS - User data retrieved</p>';
+            if (responseData.profilePicture) {
+              resultsDiv.innerHTML +=
+                '<p class="success">✓ Profile picture found: ' +
+                responseData.profilePicture +
+                "</p>";
+            } else {
+              resultsDiv.innerHTML += "<p>No profile picture found</p>";
+            }
+            if (responseData.resumeFileUrl) {
+              resultsDiv.innerHTML +=
+                '<p class="success">✓ Resume file found: ' +
+                responseData.resumeFileUrl +
+                "</p>";
+            } else {
+              resultsDiv.innerHTML += "<p>No resume file found</p>";
+            }
+          }
+        } catch (error) {
+          resultsDiv.innerHTML =
+            '<p class="error">Error: ' + error.message + "</p>";
+        }
+      }
+
+      function clearAuth() {
+        localStorage.removeItem("auth");
+        displayAuthInfo();
+        document.getElementById("api-results").innerHTML = "";
+      }
+
+      // Display auth info on page load
+      displayAuthInfo();
+    </script>
+  </body>
+</html>

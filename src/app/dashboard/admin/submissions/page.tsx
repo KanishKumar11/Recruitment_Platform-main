@@ -547,6 +547,9 @@ export default function AdminSubmissionsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -621,6 +624,21 @@ export default function AdminSubmissionsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <ResumeStatusBadge status={resume.status} />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(
+                                resume._id as string,
+                                resume.candidateName
+                              );
+                            }}
+                            className="text-red-600 hover:text-red-900 inline-flex items-center"
+                            title="Delete Resume"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </td>
                       </tr>
                     ))}

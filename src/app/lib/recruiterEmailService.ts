@@ -254,6 +254,7 @@ export const sendRecruiterJobNotificationEmail = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: recruiterEmail,
+      replyTo: "partner@sourcingscreen.com",
       subject: emailTemplate.subject,
       html: emailTemplate.html,
       text: emailTemplate.text,
@@ -559,8 +560,12 @@ export const sendEndOfDayNotificationEmail = async (
     const template = getEndOfDayNotificationTemplate(recipientName, jobs);
 
     const mailOptions = {
-      from: process.env.ZOHO_EMAIL,
+      from: {
+        name: "SourcingScreen Jobs",
+        address: process.env.ZOHO_EMAIL!,
+      },
       to: recipientEmail,
+      replyTo: "partner@sourcingscreen.com",
       subject: template.subject,
       html: template.html,
       text: template.text,

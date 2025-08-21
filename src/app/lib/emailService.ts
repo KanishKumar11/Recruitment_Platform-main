@@ -250,6 +250,7 @@ export const sendOTPEmail = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: email,
+      replyTo: "partner@sourcingscreen.com",
       subject: emailTemplate.subject,
       html: emailTemplate.html,
       text: emailTemplate.text,
@@ -418,6 +419,7 @@ export const sendPasswordResetEmail = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: email,
+      replyTo: "partner@sourcingscreen.com",
       subject: emailTemplate.subject,
       html: emailTemplate.html,
       text: emailTemplate.text,
@@ -446,6 +448,7 @@ export const sendPasswordResetConfirmationEmail = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: email,
+      replyTo: "partner@sourcingscreen.com",
       subject: emailTemplate.subject,
       html: emailTemplate.html,
       text: emailTemplate.text,
@@ -473,6 +476,7 @@ export const sendWelcomeEmail = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: email,
+      replyTo: "partner@sourcingscreen.com",
       subject: "Welcome to Our Platform!",
       html: `
         <!DOCTYPE html>
@@ -544,7 +548,7 @@ export const sendContactFormEmail = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: process.env.ZOHO_EMAIL!, // Send to your own email
-      replyTo: formData.email, // Allow direct reply to the form submitter
+      replyTo: "partner@sourcingscreen.com",
       subject: emailTemplate.subject,
       html: emailTemplate.html,
       text: emailTemplate.text,
@@ -975,7 +979,7 @@ export const sendNewTicketNotification = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: toEmail,
-      replyTo: ticketData.userEmail,
+      replyTo: "partner@sourcingscreen.com",
       subject: emailTemplate.subject,
       html: emailTemplate.html,
       text: emailTemplate.text,
@@ -1009,6 +1013,7 @@ export const sendTicketResponseNotification = async (
         address: process.env.ZOHO_EMAIL!,
       },
       to: responseData.userEmail,
+      replyTo: "partner@sourcingscreen.com",
       subject: emailTemplate.subject,
       html: emailTemplate.html,
       text: emailTemplate.text,
