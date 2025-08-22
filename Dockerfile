@@ -24,7 +24,7 @@ RUN mkdir -p /app/uploads && \
 RUN npm run build
 
 # Remove dev dependencies to reduce image size
-RUN npm prune --production
+RUN npm prune --production --legacy-peer-deps
 
 # Switch to non-root user
 USER node
