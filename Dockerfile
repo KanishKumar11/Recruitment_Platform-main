@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production --legacy-peer-deps
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci --legacy-peer-deps
 
 # Copy application code
 COPY . .
@@ -22,6 +22,9 @@ RUN mkdir -p /app/uploads && \
 
 # Build the Next.js application
 RUN npm run build
+
+# Remove dev dependencies to reduce image size
+RUN npm prune --production
 
 # Switch to non-root user
 USER node
