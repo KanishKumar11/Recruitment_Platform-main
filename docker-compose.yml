@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  recruitment-platform:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+    volumes:
+      # Persistent storage for root uploads directory (job application resumes)
+      - recruitment-uploads:/app/uploads
+      # Persistent storage for public uploads directory (user profiles and resumes)
+      - recruitment-public-uploads:/app/public/uploads
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:7.0
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongodb-data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+volumes:
+  # Volume for root uploads directory (/uploads)
+  recruitment-uploads:
+    driver: local
+  # Volume for public uploads directory (/public/uploads)
+  recruitment-public-uploads:
+    driver: local
+  # Volume for MongoDB data
+  mongodb-data:
+    driver: local
+
+networks:
+  default:
+    name: recruitment-network
