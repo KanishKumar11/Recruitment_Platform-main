@@ -65,12 +65,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Hash the new password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
     // Update user password and clear reset token fields
-    user.password = hashedPassword;
+    // Note: The User model's pre-save hook will handle password hashing
+    user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     
