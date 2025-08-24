@@ -330,8 +330,8 @@ export default function WhyChooseUsPage() {
         </motion.div>
 
         {/* Footer */}
-        <PublicFooter />
       </div>
+      <PublicFooter />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import connectDb from "./../../../lib/db";
 import User, { UserRole } from "./../../../models/User";
 import OTPVerification from "./../../../models/OTPVerification";
 import { generateToken } from "./../../../lib/auth";
-import { sendWelcomeEmail } from "./../../../lib/emailService";
+import { sendWelcomeEmail, sendRecruiterWelcomeEmail } from "./../../../lib/emailService";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -187,10 +187,16 @@ export async function POST(req: NextRequest) {
 
     console.log('Final response user data:', responseUserData);
 
-    // Send welcome email (don't wait for it)
-    sendWelcomeEmail(user.email, user.name).catch((error) => {
-      console.error("Failed to send welcome email:", error);
-    });
+    // Send welcome email based on user role (don't wait for it)
+    if (user.role === UserRole.RECRUITER) {
+      sendRecruiterWelcomeEmail(user.email, user.name).catch((error) => {
+        console.error("Failed to send recruiter welcome email:", error);
+      });
+    } else {
+      sendWelcomeEmail(user.email, user.name).catch((error) => {
+        console.error("Failed to send welcome email:", error);
+      });
+    }
 
     const response = NextResponse.json({
       message: "Account created and verified successfully",

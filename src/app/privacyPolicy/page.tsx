@@ -557,7 +557,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
-                href="/contact"
+                href="/contactUs"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/30"
               >
                 <Phone className="h-4 w-4 mr-2" />

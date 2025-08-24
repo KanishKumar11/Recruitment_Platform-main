@@ -70,11 +70,11 @@ const getOTPEmailTemplate = (name: string, otp: string) => {
             
             <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
             
-            <p>Best regards,<br>The Team</p>
+            <p>Best regards,<br>Team SourcingScreen<br>partner@sourcingscreen.com<br>www.sourcingscreen.com</p>
           </div>
           <div class="footer">
             <p>This is an automated message, please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -94,7 +94,9 @@ const getOTPEmailTemplate = (name: string, otp: string) => {
       If you have any questions or need assistance, please don't hesitate to contact our support team.
       
       Best regards,
-      The Team
+      Team SourcingScreen
+      partner@sourcingscreen.com
+      www.sourcingscreen.com
       
       This is an automated message, please do not reply to this email.
     `,
@@ -268,7 +270,7 @@ export const sendOTPEmail = async (
 // Password reset email template
 const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
   return {
-    subject: "Reset Your Password - Sourcing Screen",
+    subject: "Reset Your Password - SourcingScreen",
     html: `
       <!DOCTYPE html>
       <html>
@@ -295,7 +297,7 @@ const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
           </div>
           <div class="content">
             <h2>Hello ${name}!</h2>
-            <p>We received a request to reset your password for your Sourcing Screen account. If you made this request, click the button below to reset your password:</p>
+            <p>We received a request to reset your password for your SourcingScreen account. If you made this request, click the button below to reset your password:</p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetUrl}" class="reset-button">Reset Your Password</a>
@@ -310,11 +312,11 @@ const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
             
             <p>If you continue to have problems or didn't request this reset, please contact our support team.</p>
             
-            <p>Best regards,<br>The Sourcing Screen Team</p>
+            <p>Best regards,<br>The SourcingScreen Team</p>
           </div>
           <div class="footer">
             <p>This is an automated message, please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Sourcing Screen. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -323,7 +325,7 @@ const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
     text: `
       Hello ${name}!
       
-      We received a request to reset your password for your Sourcing Screen account. If you made this request, please visit the following link to reset your password:
+      We received a request to reset your password for your SourcingScreen account. If you made this request, please visit the following link to reset your password:
       
       ${resetUrl}
       
@@ -332,7 +334,7 @@ const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
       If you continue to have problems or didn't request this reset, please contact our support team.
       
       Best regards,
-      The Sourcing Screen Team
+      The SourcingScreen Team
       
       This is an automated message, please do not reply to this email.
     `,
@@ -342,7 +344,7 @@ const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
 // Password reset confirmation email template
 const getPasswordResetConfirmationTemplate = (name: string) => {
   return {
-    subject: "Password Successfully Reset - Sourcing Screen",
+    subject: "Password Successfully Reset - SourcingScreen",
     html: `
       <!DOCTYPE html>
       <html>
@@ -369,7 +371,7 @@ const getPasswordResetConfirmationTemplate = (name: string) => {
           <div class="content">
             <div class="success-icon">✅</div>
             <h2>Hello ${name}!</h2>
-            <p>Your password has been successfully reset for your Sourcing Screen account.</p>
+            <p>Your password has been successfully reset for your SourcingScreen account.</p>
             
             <div class="warning">
               <strong>Security Notice:</strong> If you didn't make this change, please contact our support team immediately. Your account security is important to us.
@@ -377,11 +379,11 @@ const getPasswordResetConfirmationTemplate = (name: string) => {
             
             <p>You can now log in to your account using your new password.</p>
             
-            <p>Best regards,<br>The Sourcing Screen Team</p>
+            <p>Best regards,<br>The SourcingScreen Team</p>
           </div>
           <div class="footer">
             <p>This is an automated message, please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Sourcing Screen. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -390,14 +392,14 @@ const getPasswordResetConfirmationTemplate = (name: string) => {
     text: `
       Hello ${name}!
       
-      Your password has been successfully reset for your Sourcing Screen account.
+      Your password has been successfully reset for your SourcingScreen account.
       
       Security Notice: If you didn't make this change, please contact our support team immediately. Your account security is important to us.
       
       You can now log in to your account using your new password.
       
       Best regards,
-      The Sourcing Screen Team
+      The SourcingScreen Team
       
       This is an automated message, please do not reply to this email.
     `,
@@ -463,6 +465,159 @@ export const sendPasswordResetConfirmationEmail = async (
   }
 };
 
+// Welcome email for recruiters with PDF attachment
+export const sendRecruiterWelcomeEmail = async (
+  email: string,
+  name: string
+): Promise<boolean> => {
+  try {
+    const transporter = createTransporter();
+    const path = require('path');
+    const fs = require('fs');
+
+    // Path to the PDF attachment
+    const pdfPath = path.join(process.cwd(), 'public', 'SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf');
+    
+    // Check if PDF exists
+    let attachments = [];
+    if (fs.existsSync(pdfPath)) {
+      attachments.push({
+        filename: 'SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf',
+        path: pdfPath,
+        contentType: 'application/pdf'
+      });
+    }
+
+    const mailOptions = {
+      from: {
+        name: "SourcingScreen",
+        address: process.env.ZOHO_EMAIL!,
+      },
+      to: email,
+      replyTo: "partner@sourcingscreen.com",
+      subject: "Welcome to SourcingScreen – Partnership Confirmation & Next Steps",
+      attachments: attachments,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Welcome to SourcingScreen</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; line-height: 1.6; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
+            .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; }
+            .content { padding: 40px 30px; color: #333; }
+            .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+            .welcome-text { font-size: 16px; margin-bottom: 25px; }
+            .section { margin: 25px 0; }
+            .section-title { font-size: 18px; font-weight: bold; color: #667eea; margin-bottom: 15px; }
+            .attachment-info { background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; }
+            .next-steps { background-color: #e8f4fd; border-radius: 8px; padding: 20px; margin: 25px 0; }
+            .next-steps h3 { color: #667eea; margin-top: 0; }
+            .next-steps ol { margin: 10px 0; padding-left: 20px; }
+            .next-steps li { margin: 8px 0; }
+            .contact-info { background-color: #f0f8ff; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center; }
+            .footer { background-color: #f8f9fa; padding: 30px; text-align: center; font-size: 14px; color: #666; }
+            .website-link { color: #667eea; text-decoration: none; font-weight: bold; }
+            .website-link:hover { text-decoration: underline; }
+            .checkmark { color: #28a745; font-size: 18px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 Welcome to SourcingScreen!</h1>
+            </div>
+            <div class="content">
+              <div class="greeting">
+                Dear ${name},
+              </div>
+              
+              <div class="welcome-text">
+                Greetings from SourcingScreen! 🚀
+              </div>
+              
+              <p>We're delighted to welcome you as our <strong>Recruitment Partner</strong>. Thank you for registering with us — we're excited to collaborate with you in building successful hiring journeys for our clients.</p>
+              
+              <div class="section">
+                <div class="section-title">📎 Attachments:</div>
+                <div class="attachment-info">
+                  <strong>• Partner Agreement & Sourcing Guidelines</strong><br>
+                  By joining the platform, you already agree to our terms and conditions outlined in these documents.
+                </div>
+              </div>
+              
+              <div class="next-steps">
+                <h3><span class="checkmark">✅</span> Next Steps:</h3>
+                <ol>
+                  <li><strong>Review the attached Partner Agreement & Sourcing Guidelines carefully.</strong></li>
+                  <li><strong>We conduct onboarding/walkthrough calls every week or 15 days, and also schedule them on request</strong> to help partners get familiar with the platform and processes.</li>
+                </ol>
+              </div>
+              
+              <p>We're confident this partnership will be rewarding and look forward to seeing your successful candidate submissions soon.</p>
+              
+              <div class="contact-info">
+                <p>If you have any questions in the meantime, feel free to reach out to us at <strong>partner@sourcingscreen.com</strong>.</p>
+              </div>
+              
+              <p style="font-size: 18px; font-weight: bold; color: #667eea;">Welcome aboard! 🎊</p>
+              
+              <p style="margin-top: 30px;">
+                Warm regards,<br>
+                <strong>Team SourcingScreen</strong><br>
+                <a href="https://sourcingscreen.com/" class="website-link">https://sourcingscreen.com/</a>
+              </p>
+            </div>
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        Dear ${name},
+        
+        Greetings from SourcingScreen!
+        
+        We're delighted to welcome you as our Recruitment Partner. Thank you for registering with us — we're excited to collaborate with you in building successful hiring journeys for our clients.
+        
+        As part of the onboarding process, please find attached the following documents for your review and records:
+        
+        Attachments:
+        • Partner Agreement & Sourcing Guidelines
+        
+        By joining the platform, you already agree to our terms and conditions outlined in these documents.
+        
+        Next Steps:
+        1. Review the attached Partner Agreement & Sourcing Guidelines carefully.
+        2. We conduct onboarding/walkthrough calls every week or 15 days, and also schedule them on request to help partners get familiar with the platform and processes.
+        
+        We're confident this partnership will be rewarding and look forward to seeing your successful candidate submissions soon.
+        
+        If you have any questions in the meantime, feel free to reach out to us at partner@sourcingscreen.com.
+        
+        Welcome aboard!
+        
+        Warm regards,
+        Team SourcingScreen
+        https://sourcingscreen.com/
+      `,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Welcome email sent successfully:", result.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending recruiter welcome email:", error);
+    return false;
+  }
+};
+
+// General welcome email for non-recruiter users (without PDF attachment)
 export const sendWelcomeEmail = async (
   email: string,
   name: string
@@ -472,58 +627,74 @@ export const sendWelcomeEmail = async (
 
     const mailOptions = {
       from: {
-        name: "Sourcing Screen",
+        name: "SourcingScreen",
         address: process.env.ZOHO_EMAIL!,
       },
       to: email,
-      replyTo: "partner@sourcingscreen.com",
-      subject: "Welcome to Our Platform!",
+      subject: "Welcome to SourcingScreen!",
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
-          <title>Welcome</title>
+          <title>Welcome to SourcingScreen</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
-            .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
-            .content { padding: 40px 30px; }
-            .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; line-height: 1.6; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
+            .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; }
+            .content { padding: 40px 30px; color: #333; }
+            .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+            .welcome-text { font-size: 16px; margin-bottom: 25px; }
+            .footer { background-color: #f8f9fa; padding: 30px; text-align: center; font-size: 14px; color: #666; }
+            .website-link { color: #667eea; text-decoration: none; font-weight: bold; }
+            .website-link:hover { text-decoration: underline; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>Welcome to Our Platform!</h1>
+              <h1>🎉 Welcome to SourcingScreen!</h1>
             </div>
             <div class="content">
-              <h2>Hello ${name}!</h2>
-              <p>Congratulations! Your account has been successfully created and verified.</p>
-              <p>You can now access all the features of our platform. We're excited to have you on board!</p>
-              <p>If you have any questions, feel free to reach out to our support team.</p>
-              <p>Best regards,<br>The Team</p>
+              <div class="greeting">
+                Dear ${name},
+              </div>
+              
+              <div class="welcome-text">
+                Welcome to SourcingScreen! We're excited to have you on board.
+              </div>
+              
+              <p>Thank you for joining our platform. We're committed to providing you with the best experience possible.</p>
+              
+              <p>If you have any questions or need assistance, please don't hesitate to reach out to our support team.</p>
+              
+              <p style="margin-top: 30px;">
+                Best regards,<br>
+                <strong>Team SourcingScreen</strong><br>
+                <a href="https://sourcingscreen.com/" class="website-link">https://sourcingscreen.com/</a>
+              </p>
             </div>
             <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+              <p>&copy; ${new Date().getFullYear()} SourcingScreen. All rights reserved.</p>
             </div>
           </div>
         </body>
         </html>
       `,
       text: `
-        Hello ${name}!
+        Dear ${name},
         
-        Congratulations! Your account has been successfully created and verified.
+        Welcome to SourcingScreen! We're excited to have you on board.
         
-        You can now access all the features of our platform. We're excited to have you on board!
+        Thank you for joining our platform. We're committed to providing you with the best experience possible.
         
-        If you have any questions, feel free to reach out to our support team.
+        If you have any questions or need assistance, please don't hesitate to reach out to our support team.
         
         Best regards,
-        The Team
-      `,
+        Team SourcingScreen
+        https://sourcingscreen.com/
+      `
     };
 
     const result = await transporter.sendMail(mailOptions);

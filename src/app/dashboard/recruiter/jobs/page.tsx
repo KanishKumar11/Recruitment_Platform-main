@@ -307,7 +307,7 @@ function RecruiterJobsContent() {
                   <option value="">All Countries</option>
                   {countries.map((country) => (
                     <option key={country} value={country}>
-                      {country}
+                      {getCountryName(country)}
                     </option>
                   ))}
                 </select>

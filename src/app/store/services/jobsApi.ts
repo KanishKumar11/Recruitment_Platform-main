@@ -134,7 +134,7 @@ export const jobsApi = createApi({
       { jobId: string; questionId: string }
     >({
       query: ({ jobId, questionId }) => ({
-        url: `/jobs/${jobId}/questions?questionId=${questionId}`,
+        url: `/${jobId}/questions?questionId=${questionId}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, { jobId }) => [

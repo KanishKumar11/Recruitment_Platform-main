@@ -1,13 +1,14 @@
 // app/api/files/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
+import { readFile, stat } from 'fs/promises';
 import path from 'path';
 import { authenticateRequest, unauthorized } from '../../../lib/auth';
 import jwt from 'jsonwebtoken';
 
-export async function GET(
+async function handleFileRequest(
   req: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path: string[] }> },
+  isHeadRequest: boolean = false
 ) {
   try {
     // Await the params Promise
@@ -71,7 +72,88 @@ export async function GET(
     }
 
     try {
-      const fileBuffer = await readFile(resolvedPath);
+      // For HEAD requests, we only need to check if file exists
+      if (isHeadRequest) {
+        
+        // First try the original path
+        let finalResolvedPath = resolvedPath;
+        try {
+          await stat(resolvedPath);
+        } catch (error) {
+          // If original file not found, try with double extension (common issue with uploads)
+          const fileExtension = path.extname(filePath);
+          if (fileExtension) {
+            const doubleExtensionPath = resolvedPath + fileExtension;
+            try {
+              await stat(doubleExtensionPath);
+              finalResolvedPath = doubleExtensionPath;
+            } catch (doubleExtError) {
+              // Neither original nor double extension file exists
+              throw error; // Throw the original error
+            }
+          } else {
+            throw error;
+          }
+        }
+        
+        const fileName = path.basename(filePath);
+        const fileExtension = path.extname(fileName).toLowerCase();
+        
+        // Set appropriate content type based on file extension
+        let contentType = 'application/octet-stream';
+        switch (fileExtension) {
+          case '.pdf':
+            contentType = 'application/pdf';
+            break;
+          case '.doc':
+            contentType = 'application/msword';
+            break;
+          case '.docx':
+            contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            break;
+          case '.txt':
+            contentType = 'text/plain';
+            break;
+          case '.jpg':
+          case '.jpeg':
+            contentType = 'image/jpeg';
+            break;
+          case '.png':
+            contentType = 'image/png';
+            break;
+        }
+        
+        const response = new NextResponse(null, { status: 200 });
+        response.headers.set('Content-Type', contentType);
+        response.headers.set('X-Content-Type-Options', 'nosniff');
+        response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+        
+        return response;
+      }
+      
+      // For GET requests, read and return the file
+      // Use the same path resolution logic as HEAD request
+      let finalResolvedPath = resolvedPath;
+      try {
+        await stat(resolvedPath);
+      } catch (error) {
+        // If original file not found, try with double extension (common issue with uploads)
+        const fileExtension = path.extname(filePath);
+        if (fileExtension) {
+          const doubleExtensionPath = resolvedPath + fileExtension;
+          try {
+            await stat(doubleExtensionPath);
+            finalResolvedPath = doubleExtensionPath;
+          } catch (doubleExtError) {
+            // Neither original nor double extension file exists
+            throw error; // Throw the original error
+          }
+        } else {
+          throw error;
+        }
+      }
+      
+      const fileBuffer = await readFile(finalResolvedPath);
       const fileName = path.basename(filePath);
       const fileExtension = path.extname(fileName).toLowerCase();
       
@@ -136,4 +218,18 @@ export async function GET(
       { status: 500 }
     );
   }
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return handleFileRequest(req, { params }, false);
+}
+
+export async function HEAD(
+  req: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return handleFileRequest(req, { params }, true);
 }

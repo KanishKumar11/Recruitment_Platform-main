@@ -215,12 +215,21 @@ export default function RecruiterDashboard() {
                     >
                       View My Submissions
                     </button>
-                    {/* <button
+                    <button
                       type="button"
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-3 sm:mb-0"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = '/SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf';
+                        link.download = 'SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf';
+                        link.target = '_blank';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
                     >
-                      Upload Resume
-                    </button> */}
+                      📄 Partner Agreement
+                    </button>
                   </div>
                 </div>
               </div>

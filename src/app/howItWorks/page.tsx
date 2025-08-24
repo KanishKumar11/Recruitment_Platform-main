@@ -333,7 +333,7 @@ export default function HowItWorksPage() {
             </div>
             <div className="flex space-x-6">
               <Link href="/privacyPolicy" className="text-gray-400 hover:text-white text-sm">Privacy Policy</Link>
-              <Link href="/terms" className="text-gray-400 hover:text-white text-sm">Terms & Conditions</Link>
+              <Link href="/termsAndConditions" className="text-gray-400 hover:text-white text-sm">Terms & Conditions</Link>
             </div>
           </div>
         </div>

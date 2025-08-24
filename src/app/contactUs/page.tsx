@@ -501,13 +501,13 @@ export default function ContactPage() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
-                href="/privacy-policy"
+                href="/privacyPolicy"
                 className="inline-flex items-center justify-center px-6 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition-colors"
               >
                 Privacy Policy
               </Link>
               <Link
-                href="/terms"
+                href="/termsAndConditions"
                 className="inline-flex items-center justify-center px-6 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition-colors"
               >
                 Terms of Service

@@ -12,6 +12,7 @@ import {
   useGetUserByIdQuery,
   useDeleteUserMutation,
 } from "../../../../store/services/adminApi";
+import { IUser } from "../../../../models/User";
 
 export default function UserDetailPage() {
   const params = useParams();
@@ -22,6 +23,60 @@ export default function UserDetailPage() {
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState<IUser | null>(null);
+  const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  // Handle resume viewing through secure API endpoint
+  const handleResumeView = async (resumeFileUrl: string) => {
+    if (!resumeFileUrl) return;
+
+    // Clean the file path - remove leading slashes and path prefixes
+    let filePath = resumeFileUrl.replace(/^\/+/, "");
+
+    // If the path starts with 'uploads/', remove it since the API expects relative path
+    if (filePath.startsWith("uploads/")) {
+      filePath = filePath.replace("uploads/", "");
+    }
+
+    // If the path contains directory structure (like 'resumes/' or 'profiles/'),
+    // extract just the filename for the /api/files endpoint
+    if (filePath.includes("/")) {
+      filePath = filePath.split("/").pop() || filePath;
+    }
+
+    // Use the secure API endpoint for file access
+    const secureUrl = `/api/files/${filePath}`;
+
+    try {
+      // First, check if the file exists by making a HEAD request
+      const response = await fetch(secureUrl, { method: "HEAD" });
+
+      if (response.ok) {
+        // File exists, open it in a new tab
+        window.open(secureUrl, "_blank");
+      } else if (response.status === 404) {
+        // File not found, show user-friendly error
+        toast.error(
+          "Resume file not found. The file may have been moved or deleted."
+        );
+      } else if (response.status === 401) {
+        // Authentication error
+        toast.error(
+          "You are not authorized to view this file. Please log in again."
+        );
+      } else {
+        // Other errors
+        toast.error(
+          "Unable to access the resume file. Please try again later."
+        );
+      }
+    } catch (error) {
+      console.error("Error accessing resume file:", error);
+      toast.error("Network error while trying to access the resume file.");
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -261,19 +316,35 @@ export default function UserDetailPage() {
                             </dt>
                             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                               <div className="flex items-center space-x-3">
-                                <a
-                                  href={user.resumeFileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                <button
+                                  onClick={() =>
+                                    handleResumeView(user.resumeFileUrl!)
+                                  }
                                   className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                 >
-                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  <svg
+                                    className="w-4 h-4 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
                                   </svg>
                                   View Resume/Profile
-                                </a>
+                                </button>
                                 <span className="text-xs text-gray-500">
-                                  {user.resumeFileUrl.split('/').pop()}
+                                  {user.resumeFileUrl.split("/").pop()}
                                 </span>
                               </div>
                             </dd>
