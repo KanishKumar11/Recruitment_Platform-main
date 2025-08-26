@@ -34,13 +34,12 @@ export class JobUpdateNotificationService {
         .populate({
           path: "recruiterId",
           select: "name email role",
-          match: { role: UserRole.RECRUITER },
         })
         .lean();
 
-      // Filter out null populated recruiters and extract recruiter info
+      // Filter out null populated recruiters and only include actual recruiters
       const eligibleRecruiters = savedJobRecruiters
-        .filter((savedJob: any) => savedJob.recruiterId)
+        .filter((savedJob: any) => savedJob.recruiterId && savedJob.recruiterId.role === UserRole.RECRUITER)
         .map((savedJob: any) => ({
           recruiterId: savedJob.recruiterId._id.toString(),
           recruiterName: savedJob.recruiterId.name,

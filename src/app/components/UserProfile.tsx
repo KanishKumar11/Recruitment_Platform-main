@@ -5,6 +5,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/app/store/index";
 import { setCredentials } from "@/app/store/slices/authSlice";
 import { showSuccessToast, showErrorToast } from "@/app/lib/toast";
+import { UserRole } from "@/app/constants/userRoles";
+import PayoutSettings from "./PayoutSettings";
 
 interface UpdateProfileFormData {
   name: string;
@@ -314,7 +316,7 @@ export default function UserProfile() {
   });
 
   // UI states
-  const [activeTab, setActiveTab] = useState<"profile" | "security">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "security" | "payout">("profile");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false);
@@ -340,13 +342,13 @@ export default function UserProfile() {
             email: userData.email,
             phone: userData.phone || "",
             // Include company fields if user is COMPANY role
-            ...(userData.role === "COMPANY" && {
+            ...(userData.role === UserRole.COMPANY && {
               companyName: userData.companyName || "",
               companySize: userData.companySize || "",
               designation: userData.designation || "",
             }),
             // Include recruiter fields if user is RECRUITER role
-            ...(userData.role === "RECRUITER" && {
+            ...(userData.role === UserRole.RECRUITER && {
               recruitmentFirmName: userData.recruitmentFirmName || "",
               profilePicture: userData.profilePicture || "",
               mobileNumber: userData.mobileNumber || "",
@@ -377,7 +379,7 @@ export default function UserProfile() {
           });
 
           // Set profile picture preview if exists
-          if (userData.role === "RECRUITER" && userData.profilePicture) {
+          if (userData.role === UserRole.RECRUITER && userData.profilePicture) {
             setProfilePicturePreview(userData.profilePicture);
           }
         }
@@ -742,7 +744,7 @@ export default function UserProfile() {
             </div>
             <p className="text-indigo-100 mt-2">{profileData.email}</p>
             {/* Show company info in header if available */}
-            {user.role === "COMPANY" && profileData.companyName && (
+            {user.role === UserRole.COMPANY && profileData.companyName && (
               <div className="mt-3 text-indigo-100">
                 <p className="text-sm">
                   {profileData.designation} at {profileData.companyName}
@@ -753,7 +755,7 @@ export default function UserProfile() {
               </div>
             )}
             {/* Show recruitment firm info in header if available */}
-            {user.role === "RECRUITER" && profileData.recruitmentFirmName && (
+            {user.role === UserRole.RECRUITER && profileData.recruitmentFirmName && (
               <div className="mt-3 text-indigo-100">
                 <p className="text-sm">
                   Recruiter at {profileData.recruitmentFirmName}
@@ -814,6 +816,34 @@ export default function UserProfile() {
             Security
           </div>
         </button>
+        {/* Payout Settings Tab - Only for Recruiters */}
+        {user?.role === "RECRUITER" && (
+          <button
+            className={`flex-1 sm:flex-none px-6 py-4 font-medium text-sm sm:text-base transition-all ${
+              activeTab === "payout"
+                ? "border-b-2 border-indigo-600 text-indigo-600"
+                : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+            }`}
+            onClick={() => setActiveTab("payout")}
+          >
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                <path
+                  fillRule="evenodd"
+                  d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Payout Settings
+            </div>
+          </button>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -991,7 +1021,7 @@ export default function UserProfile() {
               </div>
 
               {/* Company Information Section - Only for COMPANY role */}
-              {user.role === "COMPANY" && (
+              {user.role === UserRole.COMPANY && (
                 <>
                   <div className="pt-6 border-t border-gray-200">
                     <div className="bg-indigo-50 p-5 rounded-lg mb-6">
@@ -1130,7 +1160,7 @@ export default function UserProfile() {
               )}
 
               {/* Recruiter Information Section - Only for RECRUITER role */}
-              {user.role === "RECRUITER" && (
+              {user.role === UserRole.RECRUITER && (
                 <>
                   <div className="pt-6 border-t border-gray-200">
                     <div className="bg-green-50 p-5 rounded-lg mb-6">
@@ -2005,6 +2035,13 @@ export default function UserProfile() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* Payout Settings Tab - Only for Recruiters */}
+        {activeTab === "payout" && user?.role === UserRole.RECRUITER && (
+          <div>
+            <PayoutSettings />
           </div>
         )}
       </div>

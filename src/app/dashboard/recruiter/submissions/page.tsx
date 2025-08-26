@@ -473,8 +473,10 @@ function RecruiterSubmissionsPageContent() {
                                   Relevant Experience:{" "}
                                   {resume.relevantExperience || "N/A"}
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  Notice: {resume.noticePeriod || "N/A"}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800" title={resume.noticePeriod || "N/A"}>
+                                  Notice: {resume.noticePeriod && resume.noticePeriod.length > 25 
+                                    ? `${resume.noticePeriod.substring(0, 25)}...` 
+                                    : resume.noticePeriod || "N/A"}
                                 </span>
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                   Current CTC: {resume.currentCTC || "N/A"}

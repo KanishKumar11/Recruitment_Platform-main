@@ -580,8 +580,10 @@ export default function CompanyJobResumesPage() {
                       <div className="flex items-center gap-1 text-gray-500 mb-1">
                         <Calendar className="h-4 w-4" />
                         <span className="font-medium">Notice Period: </span>
-                        <span className="text-gray-900">
-                          {resume.noticePeriod || "Not specified"}
+                        <span className="text-gray-900" title={resume.noticePeriod || "Not specified"}>
+                          {resume.noticePeriod && resume.noticePeriod.length > 25 
+                            ? `${resume.noticePeriod.substring(0, 25)}...` 
+                            : resume.noticePeriod || "Not specified"}
                         </span>
                       </div>
                     </div>

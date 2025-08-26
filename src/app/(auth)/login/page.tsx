@@ -7,7 +7,7 @@ import { useLoginMutation } from "../../store/services/authApi";
 import { setCredentials } from "../../store/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "./../../store/index";
-import { UserRole } from "@/app/models/User";
+import { UserRole } from "@/app/constants/userRoles";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, User, Lock, ArrowRight, Home } from "lucide-react";
 import { Suspense } from "react";

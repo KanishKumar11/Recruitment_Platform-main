@@ -94,6 +94,11 @@ export default function Sidebar() {
         label: "Email Settings",
         icon: "cog",
       },
+      {
+        path: "/dashboard/admin/payout-settings",
+        label: "Payout Settings",
+        icon: "credit-card",
+      },
       { path: "/dashboard/admin/faqs", label: "FAQs", icon: "question-mark" },
       {
         path: "/dashboard/admin/support",

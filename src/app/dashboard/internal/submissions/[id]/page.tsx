@@ -356,8 +356,10 @@ export default function AdminResumeView() {
                               <Clock className="h-4 w-4 mr-2" />
                               Notice Period:
                             </dt>
-                            <dd className="text-sm text-gray-900 font-medium">
-                              {resume.noticePeriod} days
+                            <dd className="text-sm text-gray-900 font-medium" title={`${resume.noticePeriod} days`}>
+                              {resume.noticePeriod && resume.noticePeriod.toString().length > 22 
+                                ? `${resume.noticePeriod.toString().substring(0, 22)}...` 
+                                : resume.noticePeriod} days
                             </dd>
                           </div>
                           {resume.remarks && (

@@ -299,7 +299,7 @@ const getPasswordResetEmailTemplate = (name: string, resetUrl: string) => {
             <h2>Hello ${name}!</h2>
             <p>We received a request to reset your password for your SourcingScreen account. If you made this request, click the button below to reset your password:</p>
             
-            <div style="text-align: center; margin: 30px 0;">
+            <div style="text-align: center; margin: 30px 0; color: #ffffff;">
               <a href="${resetUrl}" class="reset-button">Reset Your Password</a>
             </div>
             
@@ -457,7 +457,10 @@ export const sendPasswordResetConfirmationEmail = async (
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log("Password reset confirmation email sent successfully:", result.messageId);
+    console.log(
+      "Password reset confirmation email sent successfully:",
+      result.messageId
+    );
     return true;
   } catch (error) {
     console.error("Error sending password reset confirmation email:", error);
@@ -472,19 +475,24 @@ export const sendRecruiterWelcomeEmail = async (
 ): Promise<boolean> => {
   try {
     const transporter = createTransporter();
-    const path = require('path');
-    const fs = require('fs');
+    const path = require("path");
+    const fs = require("fs");
 
     // Path to the PDF attachment
-    const pdfPath = path.join(process.cwd(), 'public', 'SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf');
-    
+    const pdfPath = path.join(
+      process.cwd(),
+      "public",
+      "SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf"
+    );
+
     // Check if PDF exists
     let attachments = [];
     if (fs.existsSync(pdfPath)) {
       attachments.push({
-        filename: 'SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf',
+        filename:
+          "SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf",
         path: pdfPath,
-        contentType: 'application/pdf'
+        contentType: "application/pdf",
       });
     }
 
@@ -495,7 +503,8 @@ export const sendRecruiterWelcomeEmail = async (
       },
       to: email,
       replyTo: "partner@sourcingscreen.com",
-      subject: "Welcome to SourcingScreen – Partnership Confirmation & Next Steps",
+      subject:
+        "Welcome to SourcingScreen – Partnership Confirmation & Next Steps",
       attachments: attachments,
       html: `
         <!DOCTYPE html>
@@ -694,7 +703,7 @@ export const sendWelcomeEmail = async (
         Best regards,
         Team SourcingScreen
         https://sourcingscreen.com/
-      `
+      `,
     };
 
     const result = await transporter.sendMail(mailOptions);

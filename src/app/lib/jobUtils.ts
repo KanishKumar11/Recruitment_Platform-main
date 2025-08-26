@@ -1,4 +1,4 @@
-import { UserRole } from "@/app/models/User";
+import { UserRole } from "@/app/constants/userRoles";
 import { IJob } from "@/app/models/Job";
 
 // Commission configuration - should match frontend config

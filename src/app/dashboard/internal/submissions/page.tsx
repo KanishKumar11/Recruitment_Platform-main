@@ -447,8 +447,10 @@ export default function InternalSubmissionsPage() {
                               <span className="bg-purple-50 px-2 py-1 rounded text-xs">
                                 Rel Exp: {resume.relevantExperience || "N/A"}
                               </span>
-                              <span className="bg-green-50 px-2 py-1 rounded text-xs">
-                                N: {resume.noticePeriod || "N/A"}
+                              <span className="bg-green-50 px-2 py-1 rounded text-xs" title={resume.noticePeriod || "N/A"}>
+                                N: {resume.noticePeriod && resume.noticePeriod.length > 25 
+                                  ? `${resume.noticePeriod.substring(0, 25)}...` 
+                                  : resume.noticePeriod || "N/A"}
                               </span>
                               <span className="bg-blue-50 px-2 py-1 rounded text-xs">
                                 C CTC: {resume.currentCTC || "N/A"}
