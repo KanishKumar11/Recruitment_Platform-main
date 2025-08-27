@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, FormEvent, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useGetJobByIdQuery } from "../../../../../store/services/jobsApi";
 import {
   useUploadResumeMutation,
@@ -89,9 +89,11 @@ interface ValidationResult {
   warnings: ValidationWarning[];
 }
 
-export default function ApplyForJobPage() {
+export default function RecruiterJobApplyPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const fromTab = searchParams.get('from') || 'saved';
   const id = params?.id as string;
 
   const { data: job, isLoading } = useGetJobByIdQuery(id);
@@ -511,7 +513,7 @@ export default function ApplyForJobPage() {
             <div className="mb-6">
               <button
                 onClick={() =>
-                  router.push(`/dashboard/recruiter/jobs/${params.id}`)
+                  router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`)
                 }
                 className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
               >

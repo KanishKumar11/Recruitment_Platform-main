@@ -218,14 +218,26 @@ export default function RecruiterDashboard() {
                     <button
                       type="button"
                       className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-3 sm:mb-0"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = '/SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf';
-                        link.download = 'SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf';
-                        link.target = '_blank';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/partner-agreement?download=true');
+                          if (!response.ok) {
+                            throw new Error('Failed to download partner agreement');
+                          }
+                          
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = 'SourcingScreen – Partner Agreement & Sourcing Guidelines.pdf';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          window.URL.revokeObjectURL(url);
+                        } catch (error) {
+                          console.error('Partner agreement download failed:', error);
+                          alert('Failed to download partner agreement. Please try again.');
+                        }
                       }}
                     >
                       📄 Partner Agreement

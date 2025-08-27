@@ -120,8 +120,10 @@ export default function RecruiterJobResumesPage() {
       }
     });
 
+  const fromTab = searchParams.get('from') || 'saved';
+
   const handleBack = () => {
-    router.back();
+    router.push(`/dashboard/recruiter/jobs?active=${fromTab}`);
   };
 
   const handleViewResume = (resumeId: string) => {

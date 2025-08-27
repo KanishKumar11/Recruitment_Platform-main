@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGetRecruiterSubmissionsQuery } from "../../../store/services/resumesApi";
 import ResumeStatusBadge from "@/app/components/company/ResumeStatusBadge";
-import RecruiterResumeDetailModal from "@/app/components/recruiter/RecruiterResumeDetailModal";
+import ResumeDetailModal from "@/app/components/company/ResumeDetailModal";
 import {
   Loader2,
   Filter,
@@ -591,7 +591,7 @@ function RecruiterSubmissionsPageContent() {
 
           {/* Resume View Modal */}
           {selectedResumeId && isModalOpen && (
-            <RecruiterResumeDetailModal
+            <ResumeDetailModal
               resumeId={selectedResumeId}
               onClose={handleCloseModal}
             />

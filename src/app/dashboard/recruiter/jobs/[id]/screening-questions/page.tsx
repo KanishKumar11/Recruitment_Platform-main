@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useGetJobByIdQuery } from "../../../../../store/services/jobsApi";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
@@ -11,7 +11,9 @@ import { toast } from "react-hot-toast";
 export default function ScreeningQuestionsPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params?.id as string;
+  const fromTab = searchParams.get('from') || 'saved';
 
   // const { user } = useSelector((state: RootState) => state.auth);
   const { data: job, isLoading } = useGetJobByIdQuery(id);
@@ -60,7 +62,7 @@ export default function ScreeningQuestionsPage() {
 
     if (isViewOnlyMode) {
       // In view-only mode, just navigate back without saving
-      router.push(`/dashboard/recruiter/jobs/${params.id}`);
+      router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`);
       return;
     }
 
@@ -72,7 +74,7 @@ export default function ScreeningQuestionsPage() {
 
     // Navigate back to the job details page
     toast.success("Screening questions saved");
-    router.push(`/dashboard/recruiter/jobs/${params.id}`);
+    router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`);
   };
 
   return (
@@ -83,7 +85,7 @@ export default function ScreeningQuestionsPage() {
             <div className="mb-6">
               <button
                 onClick={() =>
-                  router.push(`/dashboard/recruiter/jobs/${params.id}`)
+                  router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`)
                 }
                 className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
               >
@@ -204,8 +206,8 @@ export default function ScreeningQuestionsPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          router.push(`/dashboard/recruiter/jobs/${params.id}`)
-                        }
+                      router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`)
+                    }
                         className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
                         {isViewOnlyMode ? "Back to Job Details" : "Cancel"}

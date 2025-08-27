@@ -417,7 +417,7 @@ function RecruiterJobsContent() {
                                   <button
                                     onClick={() =>
                                       router.push(
-                                        `/dashboard/recruiter/jobs/${job._id}`
+                                        `/dashboard/recruiter/jobs/${job._id}?from=${activeTab}`
                                       )
                                     }
                                     className="text-lg font-semibold text-gray-900 hover:text-indigo-600 truncate text-left transition-colors duration-200 overflow-hidden text-ellipsis whitespace-nowrap"
@@ -482,7 +482,7 @@ function RecruiterJobsContent() {
                                     setSaveJobModalOpen(true);
                                   } else {
                                     router.push(
-                                      `/dashboard/recruiter/jobs/${job._id}`
+                                      `/dashboard/recruiter/jobs/${job._id}?from=${activeTab}`
                                     );
                                   }
                                 }}
@@ -494,7 +494,7 @@ function RecruiterJobsContent() {
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/apply`
+                                    `/dashboard/recruiter/jobs/${job._id}/apply?from=${activeTab}`
                                   )
                                 }
                                 className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -506,21 +506,21 @@ function RecruiterJobsContent() {
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions`
+                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions?from=${activeTab}`
                                   )
                                 }
                                 className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                               >
                                 <QuestionMarkCircleIcon className="mr-1.5 h-3 w-3" />
                                 Screening Questions
-                              </button>
+              </button>
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/resumes`
+                                    `/dashboard/recruiter/jobs/${job._id}/resumes?from=${activeTab}`
                                   )
                                 }
-                                className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                               >
                                 View Submissions
                               </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useGetJobByIdQuery } from "../../../../store/services/jobsApi";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
@@ -27,7 +27,9 @@ import { useGetJobUpdatesQuery } from "../../../../store/services/jobUpdatesApi"
 export default function RecruiterJobDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params?.id as string;
+  const fromTab = searchParams.get('from') || 'saved';
 
   // const { user } = useSelector((state: RootState) => state.auth);
   const { data: job, isLoading } = useGetJobByIdQuery(id);
@@ -127,7 +129,7 @@ export default function RecruiterJobDetailsPage() {
               <div className="mb-6">
                 <button
                   onClick={() =>
-                    router.push("/dashboard/recruiter/jobs?active=saved")
+                    router.push(`/dashboard/recruiter/jobs?active=${fromTab}`)
                   }
                   className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
                 >
@@ -161,7 +163,7 @@ export default function RecruiterJobDetailsPage() {
                           <button
                             onClick={() =>
                               router.push(
-                                `/dashboard/recruiter/jobs/${params.id}/resumes`
+                                `/dashboard/recruiter/jobs/${params.id}/resumes?from=${fromTab}`
                               )
                             }
                             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -187,7 +189,7 @@ export default function RecruiterJobDetailsPage() {
                           <button
                             onClick={() =>
                               router.push(
-                                `/dashboard/recruiter/jobs/${params.id}/apply`
+                                `/dashboard/recruiter/jobs/${params.id}/apply?from=${fromTab}`
                               )
                             }
                             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
