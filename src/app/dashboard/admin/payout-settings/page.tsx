@@ -46,7 +46,7 @@ interface PayoutSettings {
 }
 
 export default function AdminPayoutSettingsPage() {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, token } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
   const [payoutSettings, setPayoutSettings] = useState<PayoutSettings[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,6 +71,7 @@ export default function AdminPayoutSettingsPage() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` }),
           },
         });
 
