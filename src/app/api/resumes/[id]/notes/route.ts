@@ -1,7 +1,7 @@
 // src/app/api/resumes/[id]/notes/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "./../../../../lib/db";
-import Resume from "./../../../../models/Resume";
+import ResumeModel from "./../../../../models/Resume";
 import Job from "./../../../../models/Job";
 import User, { UserRole } from "./../../../../models/User";
 import mongoose from "mongoose";
@@ -44,7 +44,7 @@ export async function POST(
     await connectDb();
 
     // Find the resume
-    const resume = await Resume.findById(id);
+    const resume = await ResumeModel.findById(id);
     if (!resume) {
       return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }
@@ -91,7 +91,7 @@ export async function POST(
     }
 
     // Return the updated resume with populated user names
-    const updatedResume = await Resume.findById(id)
+    const updatedResume = await ResumeModel.findById(id)
       .populate({
         path: "notes.userId",
         model: "User",

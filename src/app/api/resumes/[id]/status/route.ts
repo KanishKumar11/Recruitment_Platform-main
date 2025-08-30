@@ -1,7 +1,7 @@
 // src/app/api/resumes/[id]/status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import connectDb from './../../../../lib/db';
-import Resume, { ResumeStatus } from './../../../../models/Resume';
+import ResumeModel, { ResumeStatus } from './../../../../models/Resume';
 import Job from './../../../../models/Job';
 import User, { UserRole } from './../../../../models/User';
 import { authenticateRequest, authorizeRoles, unauthorized, forbidden } from './../../../../lib/auth';
@@ -41,7 +41,7 @@ export async function PUT(
     }
 
     // Find the resume
-    const resume = await Resume.findById(resolvedParams.id);
+    const resume = await ResumeModel.findById(resolvedParams.id);
     if (!resume) {
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
@@ -139,7 +139,7 @@ export async function PUT(
     }
 
     // Use findByIdAndUpdate to avoid validation on existing fields
-    const updatedResume = await Resume.findByIdAndUpdate(
+    const updatedResume = await ResumeModel.findByIdAndUpdate(
       resolvedParams.id,
       { $set: updateFields },
       { 

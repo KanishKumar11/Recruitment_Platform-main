@@ -1,7 +1,7 @@
 // src/app/api/jobs/resume-counts/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "../../../lib/db";
-import Resume from "../../../models/Resume";
+import ResumeModel from "../../../models/Resume";
 import Job from "../../../models/Job";
 import { authenticateRequest, unauthorized } from "../../../lib/auth";
 import { UserRole } from "../../../models/User";
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     const jobIds = jobs.map(job => job._id);
 
     // Aggregate resume counts by job ID
-    const resumeCounts = await Resume.aggregate([
+    const resumeCounts = await ResumeModel.aggregate([
       {
         $match: {
           jobId: { $in: jobIds }

@@ -1,7 +1,7 @@
 // src/app/api/validation/candidate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "../../../lib/db";
-import Resume from "../../../models/Resume";
+import ResumeModel from "../../../models/Resume";
 import { authenticateRequest, unauthorized } from "../../../lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -23,25 +23,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for existing candidate with same email for this specific job
-    const existingByEmail = await Resume.findOne({
+    const existingByEmail = await ResumeModel.findOne({
       email: email.toLowerCase().trim(),
       jobId: jobId,
     }).select("candidateName email submittedBy createdAt");
 
     // Check for existing candidate with same phone for this specific job
-    const existingByPhone = await Resume.findOne({
+    const existingByPhone = await ResumeModel.findOne({
       phone: phone.trim(),
       jobId: jobId,
     }).select("candidateName phone submittedBy createdAt");
 
     // Check for existing candidate with same email across all jobs (for warnings)
-    const existingEmailGlobal = await Resume.countDocuments({
+    const existingEmailGlobal = await ResumeModel.countDocuments({
       email: email.toLowerCase().trim(),
       jobId: { $ne: jobId },
     });
 
     // Check for existing candidate with same phone across all jobs (for warnings)
-    const existingPhoneGlobal = await Resume.countDocuments({
+    const existingPhoneGlobal = await ResumeModel.countDocuments({
       phone: phone.trim(),
       jobId: { $ne: jobId },
     });

@@ -7,6 +7,7 @@ import { setCredentials } from "@/app/store/slices/authSlice";
 import { showSuccessToast, showErrorToast } from "@/app/lib/toast";
 import { UserRole } from "@/app/constants/userRoles";
 import PayoutSettings from "./PayoutSettings";
+import { validateProfilePicture, validateCompanyProfile, formatFileSize } from "@/app/lib/fileValidation";
 
 interface UpdateProfileFormData {
   name: string;
@@ -400,9 +401,10 @@ export default function UserProfile() {
     const file = e.target.files?.[0];
     if (file) {
       setProfilePictureError(""); // Clear previous errors
-      if (file.size > 500 * 1024) {
-        // 500KB limit
-        setProfilePictureError("Profile picture must be less than 500KB");
+      
+      const validation = validateProfilePicture(file);
+      if (!validation.isValid) {
+        setProfilePictureError(validation.error!);
         return;
       }
 
@@ -478,9 +480,10 @@ export default function UserProfile() {
     const file = e.target.files?.[0];
     if (file) {
       setResumeError(""); // Clear previous errors
-      if (file.size > 500 * 1024) {
-        // 500KB limit
-        setResumeError("Resume file must be less than 500KB");
+      
+      const validation = validateCompanyProfile(file);
+      if (!validation.isValid) {
+        setResumeError(validation.error!);
         return;
       }
 
@@ -1210,7 +1213,7 @@ export default function UserProfile() {
                               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                              Max file size: 500KB
+                              Max file size: {formatFileSize(500 * 1024)}
                             </p>
                             {profilePictureError && (
                               <p className="text-xs text-red-600 mt-1 flex items-center">
@@ -1730,7 +1733,7 @@ export default function UserProfile() {
                           className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                         />
                         <p className="text-xs text-gray-500">
-                          Max file size: 500KB. Accepted formats: PDF, DOC, DOCX
+                          Max file size: {formatFileSize(2 * 1024 * 1024)}. Accepted formats: PDF, DOC, DOCX
                         </p>
                         {resumeError && (
                           <p className="text-xs text-red-600 mt-1 flex items-center">

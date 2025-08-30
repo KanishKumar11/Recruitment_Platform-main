@@ -203,3 +203,43 @@ export function getTicketStatuses(): { value: TicketStatus; label: string }[] {
     label: status,
   }));
 }
+
+/**
+ * Check if user can access a specific ticket
+ */
+export function canUserAccessTicket(ticket: any, user: any): boolean {
+  // Ticket owner can always access their own tickets
+  if (ticket.submittedBy === user._id || ticket.submittedBy.toString() === user._id) {
+    return true;
+  }
+
+  // Admin users can access all tickets
+  if (user.role === "ADMIN") {
+    return true;
+  }
+
+  // Internal users can access all tickets
+  if (user.role === "INTERNAL") {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Check if user can modify a specific ticket
+ */
+export function canUserModifyTicket(ticket: any, user: any): boolean {
+  // Admin users can modify all tickets
+  if (user.role === "ADMIN") {
+    return true;
+  }
+
+  // Internal users can modify all tickets
+  if (user.role === "INTERNAL") {
+    return true;
+  }
+
+  // Regular users cannot modify tickets
+  return false;
+}

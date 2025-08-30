@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDb from './../../../lib/db';
-import Resume from './../../../models/Resume';
+import ResumeModel from './../../../models/Resume';
 import Job from './../../../models/Job';
 import User from './../../../models/User';
 import { authenticateRequest, unauthorized, forbidden } from './../../../lib/auth';
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find resumes based on the determined query
-    const resumes = await Resume.find(resumeQuery).sort({ updatedAt: -1 }).lean();
+    const resumes = await ResumeModel.find(resumeQuery).sort({ updatedAt: -1 }).lean();
 
     // Get unique job IDs from the resumes
     const jobIds = [...new Set(resumes.map(resume => resume.jobId))];

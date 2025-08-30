@@ -1,7 +1,7 @@
 //api/resumes/job/[jobId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import connectDb from './../../../../lib/db';
-import Resume from './../../../../models/Resume';
+import ResumeModel from './../../../../models/Resume';
 import Job from './../../../../models/Job';
 import User from './../../../../models/User';
 import { authenticateRequest, unauthorized, forbidden, JwtPayload } from './../../../../lib/auth';
@@ -88,13 +88,13 @@ export async function GET(
     
     if (userData.role === UserRole.ADMIN || userData.role === UserRole.INTERNAL) {
       // Admin and Internal users can see all resumes for the job
-      resumesQuery = Resume.find({ jobId }).sort({ createdAt: -1 });
+      resumesQuery = ResumeModel.find({ jobId }).sort({ createdAt: -1 });
     } else if (userData.role === UserRole.COMPANY) {
       // Company users can see resumes for their own jobs or their team members' jobs (if primary)
-      resumesQuery = Resume.find({ jobId }).sort({ createdAt: -1 });
+      resumesQuery = ResumeModel.find({ jobId }).sort({ createdAt: -1 });
     } else if (userData.role === UserRole.RECRUITER && accessResult === 'RECRUITER_ACCESS') {
       // Recruiters can only see their own submissions for active jobs
-      resumesQuery = Resume.find({ 
+      resumesQuery = ResumeModel.find({ 
         jobId,
         submittedBy: userData.userId 
       }).sort({ createdAt: -1 });

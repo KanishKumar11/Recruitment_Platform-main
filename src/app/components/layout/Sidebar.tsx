@@ -29,9 +29,9 @@ export default function Sidebar() {
   // Prevent hydration mismatch by not rendering mobile elements until mounted
   if (!isMounted) {
     return (
-      <div className="fixed top-0 left-0 h-full bg-gray-800 text-white z-50 transform transition-all duration-300 ease-in-out -translate-x-full md:translate-x-0 md:static md:flex-shrink-0 md:w-48 w-64">
+      <div className="fixed top-0 left-0 h-full bg-slate-800 text-white z-50 transform transition-all duration-300 ease-in-out -translate-x-full md:translate-x-0 md:static md:flex-shrink-0 md:w-48 w-64">
         {/* Header */}
-        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-600 flex items-center justify-between">
           <h2 className="text-xl font-bold truncate">
             {user.role.charAt(0) + user.role.slice(1).toLowerCase()} Portal
           </h2>
@@ -45,9 +45,9 @@ export default function Sidebar() {
         {/* Navigation placeholder */}
         <nav className="mt-5">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-700 rounded w-3/4 mx-4 mb-4"></div>
-            <div className="h-4 bg-gray-700 rounded w-1/2 mx-4 mb-4"></div>
-            <div className="h-4 bg-gray-700 rounded w-2/3 mx-4 mb-4"></div>
+            <div className="h-4 bg-slate-600 rounded w-3/4 mx-4 mb-4"></div>
+            <div className="h-4 bg-slate-600 rounded w-1/2 mx-4 mb-4"></div>
+            <div className="h-4 bg-slate-600 rounded w-2/3 mx-4 mb-4"></div>
           </div>
         </nav>
       </div>
@@ -168,13 +168,14 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full bg-gray-800 text-white z-50 transform transition-all duration-300 ease-in-out
-          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} 
-          md:translate-x-0 md:static md:flex-shrink-0
-          ${isDesktopCollapsed ? "md:w-16" : "md:w-48"} w-64`}
+        className={`fixed top-0 left-0 h-full bg-slate-800 text-white z-50 transform transition-all duration-300 ease-in-out ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 md:static md:flex-shrink-0 ${
+          isDesktopCollapsed ? "md:w-16" : "md:w-48"
+        } w-64`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-600 flex items-center justify-between">
           {!isDesktopCollapsed && (
             <h2 className="text-sm font-bold truncate">
               {user.role.charAt(0) + user.role.slice(1).toLowerCase()} Portal
@@ -205,8 +206,8 @@ export default function Sidebar() {
                   }
                 >
                   <div
-                    className={`flex items-center px-4 py-3 hover:bg-gray-700 transition-colors relative group
-                      ${pathname === link.path ? "bg-gray-700" : ""}`}
+                    className={`flex items-center px-4 py-3 hover:bg-slate-700 transition-colors relative group
+                      ${pathname === link.path ? "bg-slate-700" : ""}`}
                     title={isDesktopCollapsed ? link.label : ""}
                   >
                     <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
@@ -222,7 +223,7 @@ export default function Sidebar() {
                     {/* Tooltip for collapsed state */}
                     {isDesktopCollapsed && (
                       <div
-                        className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded 
+                        className="absolute left-full ml-2 px-2 py-1 bg-slate-900 text-white text-sm rounded 
                                     opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 
                                     whitespace-nowrap z-50"
                       >
@@ -239,7 +240,7 @@ export default function Sidebar() {
         {/* Collapse indicator for desktop */}
         {isDesktopCollapsed && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 hidden md:block">
-            <div className="w-8 h-1 bg-gray-600 rounded"></div>
+            <div className="w-8 h-1 bg-slate-500 rounded"></div>
           </div>
         )}
       </div>

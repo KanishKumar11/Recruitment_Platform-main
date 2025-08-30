@@ -497,7 +497,7 @@ function RecruiterJobsContent() {
                                     `/dashboard/recruiter/jobs/${job._id}/apply?from=${activeTab}`
                                   )
                                 }
-                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                               >
                                 <FileText className="mr-1.5 h-3 w-3" />
                                 Upload Resume

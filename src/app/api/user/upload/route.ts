@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { authenticateRequest, unauthorized } from "../../../lib/auth";
+import { validateProfilePicture, validateCompanyProfile } from "../../../lib/fileValidation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,30 +21,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Validate file size (500KB limit)
-    const maxSize = 500 * 1024; // 500KB in bytes
-    if (file.size > maxSize) {
+    // Validate file based on type
+    let validation;
+    if (fileType === "profile") {
+      validation = validateProfilePicture(file);
+    } else if (fileType === "resume") {
+      validation = validateCompanyProfile(file);
+    } else {
       return NextResponse.json(
-        { error: "File size exceeds 500KB limit" },
+        { error: "Invalid file type specified" },
         { status: 400 }
       );
     }
 
-    // Validate file type
-    const allowedTypes = {
-      profile: ["image/jpeg", "image/jpg", "image/png", "image/gif"],
-      resume: [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ],
-    };
-
-    const validTypes =
-      fileType === "profile" ? allowedTypes.profile : allowedTypes.resume;
-    if (!validTypes.includes(file.type)) {
+    if (!validation.isValid) {
       return NextResponse.json(
-        { error: `Invalid file type. Allowed types: ${validTypes.join(", ")}` },
+        { error: validation.error },
         { status: 400 }
       );
     }

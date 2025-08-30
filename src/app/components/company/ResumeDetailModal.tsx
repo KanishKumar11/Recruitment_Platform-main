@@ -1,6 +1,6 @@
 // components/company/ResumeDetailModal.tsx
 import React, { useState, useEffect } from "react";
-import { X, Paperclip, Download, Loader2, Eye, FileText } from "lucide-react";
+import { X, Paperclip, Download, Loader2, Eye, FileText, Upload, Edit3, Trash2, RefreshCw } from "lucide-react";
 import {
   useGetResumeByIdQuery,
   useUpdateResumeStatusMutation,
@@ -11,6 +11,7 @@ import ResumeStatusHistory from "./ResumeStatusHistory";
 import { ResumeStatus } from "@/app/models/Resume";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store";
+import { validateResumeFile, validateAdditionalDocument, formatFileSize } from "@/app/lib/fileValidation";
 
 interface ResumeDetailModalProps {
   resumeId: string;
@@ -26,17 +27,23 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
     isLoading,
     isError,
     error,
+    refetch,
   } = useGetResumeByIdQuery(resumeId);
-
   const [updateStatus, { isLoading: isUpdating }] =
     useUpdateResumeStatusMutation();
   const [addNote, { isLoading: isAddingNote }] = useAddResumeNoteMutation();
+  const token = useSelector((state: RootState) => state.auth.token);
   const [newNote, setNewNote] = useState("");
   const [previewDocument, setPreviewDocument] = useState<{
     filename: string;
     originalName: string;
   } | null>(null);
   const [fileLoadError, setFileLoadError] = useState<string | null>(null);
+  const [isEditingResume, setIsEditingResume] = useState(false);
+  const [isEditingDocuments, setIsEditingDocuments] = useState(false);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [replacingDocument, setReplacingDocument] = useState<string | null>(null);
   const userRole = useSelector((state: RootState) => state.auth.user?.role);
 
   // Close modal on escape key press
@@ -191,6 +198,197 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
   // Function to determine if user can change status
   const canChangeStatus = () => {
     return ["COMPANY", "ADMIN", "INTERNAL"].includes(userRole || "");
+  };
+
+  // Function to determine if user can edit files
+  const canEditFiles = () => {
+    const allowedRoles = ["COMPANY", "ADMIN", "INTERNAL", "RECRUITER"];
+    const isAllowedRole = allowedRoles.includes(userRole || "");
+    const isEditableStatus = resume?.status === ResumeStatus.SUBMITTED;
+    return isAllowedRole && isEditableStatus;
+  };
+
+  // Handle resume file replacement
+  const handleResumeFileReplace = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !resume) return;
+
+    // Validate resume file
+    const validation = validateResumeFile(file);
+    if (!validation.isValid) {
+      alert(validation.error);
+      return;
+    }
+
+    setIsUploadingResume(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('resumeId', resumeId);
+
+      const response = await fetch('/api/resumes/update-file', {
+         method: 'POST',
+         headers: {
+           'Authorization': `Bearer ${token}`,
+         },
+         body: formData,
+       });
+
+      if (response.ok) {
+         // Refetch resume data to get updated file
+         refetch();
+         setIsEditingResume(false);
+         alert('Resume file updated successfully!');
+       } else {
+        const errorData = await response.json();
+        alert(`Failed to update resume: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Resume update failed:', error);
+      alert('Failed to update resume file. Please try again.');
+    } finally {
+      setIsUploadingResume(false);
+    }
+  };
+
+
+
+  // Handle additional document upload
+  const handleAdditionalDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !resume) return;
+
+    // Validate additional document
+    const validation = validateAdditionalDocument(file);
+    if (!validation.isValid) {
+      alert(validation.error);
+      event.target.value = "";
+      return;
+    }
+
+    setIsUploadingDocument(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('resumeId', resumeId);
+
+      const response = await fetch('/api/resumes/add-document', {
+         method: 'POST',
+         headers: {
+           'Authorization': `Bearer ${token}`,
+         },
+         body: formData,
+       });
+
+      if (response.ok) {
+         // Refetch resume data to get updated documents
+         refetch();
+         alert('Document added successfully!');
+       } else {
+        const errorData = await response.json();
+        alert(`Failed to add document: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Document upload failed:', error);
+      alert('Failed to upload document. Please try again.');
+    } finally {
+      setIsUploadingDocument(false);
+      // Reset the file input
+      event.target.value = "";
+    }
+  };
+
+  // Handle additional document removal
+  const handleRemoveDocument = async (filename: string) => {
+    if (!resume || !confirm('Are you sure you want to remove this document?')) return;
+
+    try {
+      const response = await fetch('/api/resumes/remove-document', {
+         method: 'DELETE',
+         headers: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}`,
+         },
+         body: JSON.stringify({ resumeId, filename }),
+       });
+
+      if (response.ok) {
+         // Refetch resume data to get updated documents
+         refetch();
+         alert('Document removed successfully!');
+       } else {
+        const errorData = await response.json();
+        alert(`Failed to remove document: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Document removal failed:', error);
+      alert('Failed to remove document. Please try again.');
+    }
+  };
+
+  // Handle document replacement
+  const handleReplaceDocument = async (filename: string, newFile: File) => {
+    if (!resume) return;
+
+    // Validate file
+    const validation = validateAdditionalDocument(newFile);
+    if (!validation.isValid) {
+      alert(validation.error);
+      return;
+    }
+
+    setReplacingDocument(filename);
+    try {
+      // First remove the old document
+      const removeResponse = await fetch('/api/resumes/remove-document', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ resumeId, filename }),
+      });
+
+      if (!removeResponse.ok) {
+        throw new Error('Failed to remove old document');
+      }
+
+      // Then add the new document
+      const formData = new FormData();
+      formData.append('file', newFile);
+      formData.append('resumeId', resumeId);
+
+      const addResponse = await fetch('/api/resumes/add-document', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (addResponse.ok) {
+        refetch();
+        alert('Document replaced successfully!');
+      } else {
+        const errorData = await addResponse.json();
+        alert(`Failed to replace document: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Document replacement failed:', error);
+      alert('Failed to replace document. Please try again.');
+    } finally {
+      setReplacingDocument(null);
+    }
+  };
+
+  // Handle file input for document replacement
+  const handleDocumentReplaceFileChange = (filename: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleReplaceDocument(filename, file);
+    }
+    // Reset the input
+    event.target.value = '';
   };
 
   // Function to extract question text from questionId
@@ -437,70 +635,6 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
 
               {/* Notes History */}
 
-              {/* Additional Documents Row */}
-              {resume.additionalDocuments &&
-                resume.additionalDocuments.length > 0 && (
-                  <div className="grid grid-cols-1 gap-3 mb-4">
-                    <div className="compact-section">
-                      <h3 className="flex items-center">
-                        <Paperclip className="mr-2 h-4 w-4 text-gray-500" />
-                        Additional Documents (
-                        {resume.additionalDocuments.length})
-                      </h3>
-                      <div className="grid grid-cols-1  gap-3 mt-3 bg-red-50">
-                        {resume.additionalDocuments.map((doc, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
-                          >
-                            <div className="flex items-center min-w-0 flex-1">
-                              <Paperclip className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
-                              <div className="min-w-0 flex-1">
-                                <span className="text-sm font-medium text-gray-900 truncate block">
-                                  {doc.originalName}
-                                </span>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {doc.uploadedAt
-                                    ? new Date(
-                                        doc.uploadedAt
-                                      ).toLocaleDateString()
-                                    : "Unknown"}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex space-x-2 ml-3">
-                              {canPreviewFile(doc.filename) && (
-                                <button
-                                  onClick={() =>
-                                    setPreviewDocument({
-                                      filename: doc.filename,
-                                      originalName: doc.originalName,
-                                    })
-                                  }
-                                  className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                >
-                                  <Eye className="h-3 w-3" />
-                                </button>
-                              )}
-                              <button
-                                onClick={() =>
-                                  handleDocumentDownload(
-                                    doc.filename,
-                                    doc.originalName
-                                  )
-                                }
-                                className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                              >
-                                <Download className="h-3 w-3" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
               {resume.notes && resume.notes.length > 0 && (
                 <div className="compact-section flex-1 flex flex-col">
                   <h3>Notes History</h3>
@@ -575,15 +709,56 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                 <div className="compact-section">
                   <div className="flex items-center justify-between mb-2">
                     <h3>Resume Preview</h3>
-                    {resume.resumeFile && (
-                      <button
-                        onClick={handleResumeDownload}
-                        className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      >
-                        <Download className="mr-1 h-3 w-3" />
-                        Download
-                      </button>
-                    )}
+                    <div className="flex space-x-2">
+                      {canEditFiles() && (
+                        <>
+                          {!isEditingResume ? (
+                            <button
+                              onClick={() => setIsEditingResume(true)}
+                              className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            >
+                              <Edit3 className="mr-1 h-3 w-3" />
+                              Replace
+                            </button>
+                          ) : (
+                            <div className="flex space-x-2">
+                              <label className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer">
+                                {isUploadingResume ? (
+                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Upload className="mr-1 h-3 w-3" />
+                                )}
+                                {isUploadingResume ? 'Uploading...' : 'Upload'}
+                                <input
+                                  type="file"
+                                  accept=".pdf,.doc,.docx"
+                                  onChange={handleResumeFileReplace}
+                                  className="hidden"
+                                  disabled={isUploadingResume}
+                                />
+                              </label>
+                              <button
+                                onClick={() => setIsEditingResume(false)}
+                                className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                                disabled={isUploadingResume}
+                              >
+                                <X className="mr-1 h-3 w-3" />
+                                Cancel
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {resume.resumeFile && (
+                        <button
+                          onClick={handleResumeDownload}
+                          className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        >
+                          <Download className="mr-1 h-3 w-3" />
+                          Download
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {resume.resumeFile ? (
                     <div className="relative">
@@ -626,6 +801,138 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                   )}
                 </div>
               }
+            </div>
+          </div>
+
+          {/* Additional Documents Section */}
+          <div className="grid grid-cols-1 gap-3 mb-4">
+            <div className="compact-section">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="flex items-center">
+                  <Paperclip className="mr-2 h-4 w-4 text-gray-500" />
+                  Additional Documents (
+                  {resume.additionalDocuments?.length || 0})
+                </h3>
+                {canEditFiles() && (
+                  <div className="flex space-x-2">
+                    {!isEditingDocuments ? (
+                      <button
+                        onClick={() => setIsEditingDocuments(true)}
+                        className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      >
+                        <Edit3 className="mr-1 h-3 w-3" />
+                        Manage
+                      </button>
+                    ) : (
+                      <div className="flex space-x-2">
+                        <label className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-500 cursor-pointer">
+                          {isUploadingDocument ? (
+                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                          ) : (
+                            <Upload className="mr-1 h-3 w-3" />
+                          )}
+                          {isUploadingDocument ? 'Adding...' : 'Add'}
+                          <input
+                            type="file"
+                            onChange={handleAdditionalDocumentUpload}
+                            className="hidden"
+                            disabled={isUploadingDocument}
+                          />
+                        </label>
+                        <button
+                          onClick={() => setIsEditingDocuments(false)}
+                          className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                          disabled={isUploadingDocument}
+                        >
+                          <X className="mr-1 h-3 w-3" />
+                          Done
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-1 gap-3 mt-3">
+                {resume.additionalDocuments && resume.additionalDocuments.length > 0 ? (
+                  resume.additionalDocuments.map((doc, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
+                    >
+                      <div className="flex items-center min-w-0 flex-1">
+                        <Paperclip className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <span className="text-sm font-medium text-gray-900 truncate block">
+                            {doc.originalName}
+                          </span>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {doc.uploadedAt
+                              ? new Date(
+                                  doc.uploadedAt
+                                ).toLocaleDateString()
+                              : "Unknown"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2 ml-3">
+                        {canPreviewFile(doc.filename) && (
+                          <button
+                            onClick={() =>
+                              setPreviewDocument({
+                                filename: doc.filename,
+                                originalName: doc.originalName,
+                              })
+                            }
+                            className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() =>
+                            handleDocumentDownload(
+                              doc.filename,
+                              doc.originalName
+                            )
+                          }
+                          className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        >
+                          <Download className="h-3 w-3" />
+                        </button>
+                        {canEditFiles() && isEditingDocuments && (
+                          <>
+                            <label className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-1 focus:ring-orange-500 cursor-pointer">
+                              {replacingDocument === doc.filename ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3 w-3" />
+                              )}
+                              <input
+                                type="file"
+                                onChange={(e) => handleDocumentReplaceFileChange(doc.filename, e)}
+                                className="hidden"
+                                disabled={replacingDocument === doc.filename}
+                                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                              />
+                            </label>
+                            <button
+                              onClick={() => handleRemoveDocument(doc.filename)}
+                              className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-red-500"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500 text-xs">
+                    No additional documents
+                    {canEditFiles() && " - Click 'Manage' to upload documents"}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "./../../../lib/db";
-import Resume from "./../../../models/Resume";
+import ResumeModel from "./../../../models/Resume";
 import Job from "./../../../models/Job";
 import User, { UserRole } from "./../../../models/User";
 import {
@@ -21,7 +21,7 @@ export async function GET(
 
     const { id } = await params;
 
-    const resume = await Resume.findById(id)
+    const resume = await ResumeModel.findById(id)
       .populate({
         path: "screeningAnswers.questionId",
         model: "ScreeningQuestion",
@@ -113,7 +113,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const resume = await Resume.findById(id);
+    const resume = await ResumeModel.findById(id);
     if (!resume) {
       return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }
@@ -130,7 +130,7 @@ export async function DELETE(
     // }
 
     // Delete the resume from database
-    await Resume.findByIdAndDelete(id);
+    await ResumeModel.findByIdAndDelete(id);
 
     return NextResponse.json(
       { message: "Resume deleted successfully" },

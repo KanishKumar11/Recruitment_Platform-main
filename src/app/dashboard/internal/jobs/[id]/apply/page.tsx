@@ -29,6 +29,7 @@ import {
 } from "../../../../../utils/formUtils";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CountrySelector } from "@/components/ui/country-selector";
+import { validateResumeFile, validateAdditionalDocument, formatFileSize } from "@/app/lib/fileValidation";
 
 export default function InternalApplyForJobPage() {
   const router = useRouter();
@@ -77,17 +78,15 @@ export default function InternalApplyForJobPage() {
     [key: string]: string;
   }>({});
 
-  // File size limit: 1MB (1,048,576 bytes)
-  const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
-
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
-      // Validate file size
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`Resume file size exceeds the maximum limit of 1MB. Current size: ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+      // Validate file
+      const validation = validateResumeFile(file);
+      if (!validation.isValid) {
+        toast.error(validation.error!);
         // Clear the input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -106,10 +105,11 @@ export default function InternalApplyForJobPage() {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
       
-      // Validate each file size
+      // Validate each file
       for (const file of filesArray) {
-        if (file.size > MAX_FILE_SIZE) {
-          toast.error(`File "${file.name}" exceeds the maximum limit of 1MB. Current size: ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+        const validation = validateAdditionalDocument(file);
+        if (!validation.isValid) {
+          toast.error(validation.error!);
           // Clear the input
           if (additionalFilesRef.current) {
             additionalFilesRef.current.value = '';
@@ -656,7 +656,7 @@ export default function InternalApplyForJobPage() {
                             required
                           />
                           <p className="mt-1 text-xs text-gray-500">
-                            Maximum file size: 1MB. Accepted formats: PDF, DOC, DOCX
+                            Maximum file size: {formatFileSize(2 * 1024 * 1024)}. Accepted formats: PDF, DOC, DOCX
                           </p>
                           {selectedFile && (
                             <p className="mt-2 text-sm text-gray-500">
@@ -683,7 +683,7 @@ export default function InternalApplyForJobPage() {
                           />
                           <p className="mt-1 text-xs text-gray-500">
                             Certificates, portfolio, cover letter, etc. (Optional)<br/>
-                            Maximum file size: 1MB per file
+                            Maximum file size: {formatFileSize(2 * 1024 * 1024)} per file
                           </p>
                         </div>
                       </div>
@@ -954,12 +954,12 @@ export default function InternalApplyForJobPage() {
                     <div className="mt-6">
                       <button
                         type="submit"
-                        className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                          isUploading || !candidateConsent
+                        className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          isUploading || !candidateConsent || job?.status === 'PAUSED'
                             ? "opacity-50 cursor-not-allowed"
                             : ""
                         }`}
-                        disabled={isUploading || !candidateConsent}
+                        disabled={isUploading || !candidateConsent || job?.status === 'PAUSED'}
                       >
                         {isUploading ? (
                           <>
@@ -977,6 +977,11 @@ export default function InternalApplyForJobPage() {
                         <p className="mt-2 text-sm text-red-600">
                           Please confirm candidate consent before submitting the
                           resume.
+                        </p>
+                      )}
+                      {job?.status === 'PAUSED' && (
+                        <p className="mt-2 text-sm text-red-600">
+                          This job is currently paused and not accepting new applications.
                         </p>
                       )}
                     </div>

@@ -4,14 +4,12 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import connectDb from "./../../lib/db";
-import Resume from "./../../models/Resume";
+import ResumeModel from "./../../models/Resume";
 import Job from "./../../models/Job";
 import RecruiterJob from "./../../models/RecruiterJob";
 import { authenticateRequest, unauthorized } from "./../../lib/auth";
 import { UserRole } from "./../../models/User";
-
-// File size limit: 1MB (1,048,576 bytes)
-const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
+import { validateResumeFile, validateAdditionalDocument } from "./../../lib/fileValidation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,13 +47,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate resume file size
-    if (resumeFile.size > MAX_FILE_SIZE) {
+    // Validate resume file
+    const resumeValidation = validateResumeFile(resumeFile);
+    if (!resumeValidation.isValid) {
       return NextResponse.json(
         { 
-          error: "Resume file size exceeds the maximum limit of 1MB",
-          maxSize: "1MB",
-          currentSize: `${(resumeFile.size / (1024 * 1024)).toFixed(2)}MB`
+          error: resumeValidation.error,
+          currentSize: resumeValidation.fileSize
         },
         { status: 400 }
       );
@@ -67,15 +65,17 @@ export async function POST(req: NextRequest) {
     // Validate additional document file sizes
     for (let i = 0; i < additionalFiles.length; i++) {
       const file = additionalFiles[i];
-      if (file && file.size > 0 && file.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
-          { 
-            error: `Additional document "${file.name}" exceeds the maximum file size limit of 1MB`,
-            maxSize: "1MB",
-            currentSize: `${(file.size / (1024 * 1024)).toFixed(2)}MB`
-          },
-          { status: 400 }
-        );
+      if (file && file.size > 0) {
+        const docValidation = validateAdditionalDocument(file);
+        if (!docValidation.isValid) {
+          return NextResponse.json(
+            { 
+              error: `Additional document "${file.name}": ${docValidation.error}`,
+              currentSize: docValidation.fileSize
+            },
+            { status: 400 }
+          );
+        }
       }
     }
 
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create resume record - store relative path for API serving
-    const resume = new Resume({
+    const resume = new ResumeModel({
       jobId,
       submittedBy: userData.userId,
       candidateName,

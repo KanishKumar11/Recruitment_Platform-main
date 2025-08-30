@@ -152,6 +152,22 @@ export const resumesApi = createApi({
       }),
       invalidatesTags: (_result, _error, { id }) => [{ type: 'Resume', id }],
     }),
+    updateResume: builder.mutation<
+      IResume,
+      { id: string; formData: FormData }
+    >({
+      query: ({ id, formData }) => ({
+        url: '/resumes/update',
+        method: 'PUT',
+        body: formData,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Resume', id },
+        { type: 'Resume', id: 'LIST' },
+        { type: 'Resume', id: 'ALL_SUBMISSIONS' },
+        { type: 'Resume', id: 'RECRUITER_SUBMISSIONS' }
+      ],
+    }),
   }),
 });
 
@@ -164,5 +180,6 @@ export const {
   useAddResumeNoteMutation,
   useGetAllSubmissionsQuery,
   useDeleteResumeMutation,
-  useValidateCandidateMutation // NEW: Export the validation mutation
+  useValidateCandidateMutation, // NEW: Export the validation mutation
+  useUpdateResumeMutation // NEW: Export the update resume mutation
 } = resumesApi;

@@ -1,7 +1,7 @@
 // src/app/api/resumes/all-submissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "./../../../lib/db";
-import Resume from "./../../../models/Resume";
+import ResumeModel from "./../../../models/Resume";
 import Job from "./../../../models/Job";
 import User from "./../../../models/User";
 import {
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     await connectDb();
 
     // Fetch all resumes
-    const resumes = await Resume.find().sort({ updatedAt: -1 }).lean();
+    const resumes = await ResumeModel.find().sort({ updatedAt: -1 }).lean();
 
     // Get unique job and submitter IDs
     const jobIds = [
