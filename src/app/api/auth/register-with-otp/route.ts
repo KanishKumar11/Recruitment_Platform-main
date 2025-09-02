@@ -4,6 +4,7 @@ import connectDb from './../../../lib/db';
 import User, { UserRole } from './../../../models/User';
 import OTPVerification from './../../../models/OTPVerification';
 import { sendOTPEmail } from './../../../lib/emailService';
+import { isValidPhoneNumber } from 'react-phone-number-input';
 import bcrypt from 'bcryptjs';
 
 // Generate 6-digit OTP
@@ -33,6 +34,15 @@ export async function POST(req: NextRequest) {
       console.log(`Invalid role: ${role}`);
       return NextResponse.json(
         { error: 'Invalid role' },
+        { status: 400 }
+      );
+    }
+
+    // Validate phone number format
+    if (!isValidPhoneNumber(phone)) {
+      console.log(`Invalid phone number format: ${phone}`);
+      return NextResponse.json(
+        { error: 'Please provide a valid phone number' },
         { status: 400 }
       );
     }

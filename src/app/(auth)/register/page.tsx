@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { UserRole } from "@/app/constants/userRoles";
 import { motion, AnimatePresence } from "framer-motion";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import { Country } from "@/lib/countries";
 import ReCAPTCHA from "react-google-recaptcha";
 import {
@@ -154,6 +155,16 @@ export default function RegisterPage() {
 
     if (!role) {
       setError("Please select an account type");
+      return;
+    }
+
+    if (!phone.trim()) {
+      setError("Phone number is required");
+      return;
+    }
+
+    if (!isValidPhoneNumber(phone)) {
+      setError("Please enter a valid phone number");
       return;
     }
 
@@ -595,6 +606,9 @@ export default function RegisterPage() {
                     placeholder="Phone Number"
                     className="bg-gray-700 text-white border-gray-600  placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
                   />
+                  <div className="text-xs text-gray-400 mt-1">
+                    * Valid phone number is required
+                  </div>
                 </motion.div>
 
                 <motion.div variants={itemVariants} className="relative">
