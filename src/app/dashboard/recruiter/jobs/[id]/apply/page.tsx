@@ -358,7 +358,11 @@ export default function RecruiterJobApplyPage() {
       formData.append("currentDesignation", currentDesignation);
       formData.append("totalExperience", totalExperience);
       formData.append("relevantExperience", relevantExperience);
-      formData.append("currentCTC", currentCTC);
+      
+      // For international jobs, send "0" if currentCTC is empty to satisfy API validation
+      const currentCTCSalary = (country !== "India" && !currentCTC.trim()) ? "0" : currentCTC;
+      formData.append("currentCTC", currentCTCSalary);
+      
       formData.append("expectedCTC", expectedCTC);
       formData.append("compensationType", compensationType); // Add compensation type
       formData.append("noticePeriod", noticePeriod);
@@ -571,154 +575,144 @@ export default function RecruiterJobApplyPage() {
                       </h4>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Left Column */}
-                        <div className="space-y-4">
-                          {/* Candidate Name */}
-                          <div>
-                            <label
-                              htmlFor="candidateName"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Candidate Name{" "}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="candidateName"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={candidateName}
-                              onChange={(e) => setCandidateName(e.target.value)}
-                            />
-                          </div>
+                        {/* Row 1: Candidate Name and Email */}
+                        <div>
+                          <label
+                            htmlFor="candidateName"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Candidate Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="candidateName"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={candidateName}
+                            onChange={(e) => setCandidateName(e.target.value)}
+                          />
+                        </div>
 
-                          {/* Phone with validation and country code */}
-                          <div>
-                            <label
-                              htmlFor="phone"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Phone <span className="text-red-500">*</span>
-                            </label>
-                            <div className="mt-1">
-                              <PhoneInput
-                                value={phone}
-                                onChange={handlePhoneChange}
-                                placeholder="Enter phone number"
-                                className="w-full"
-                              />
-                              {phoneError && (
-                                <p className="mt-1 text-sm text-red-600">
-                                  {phoneError}
-                                </p>
-                              )}
-                            </div>
-                          </div>
+                        <div>
+                          <label
+                            htmlFor="email"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Email <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                              hasValidated &&
+                              validationResult?.errors.some(
+                                (e) => e.field === "email"
+                              )
+                                ? "border-red-300 focus:border-red-500"
+                                : "border-gray-300 focus:border-indigo-500"
+                            }`}
+                            required
+                            value={email}
+                            onChange={(e) =>
+                              handleEmailChange(e.target.value)
+                            }
+                          />
+                          {renderValidationStatus()}
+                        </div>
 
-                          {/* Country */}
-                          <div>
-                            <label
-                              htmlFor="country"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Country <span className="text-red-500">*</span>
-                            </label>
-                            <CountrySelector
-                              value={country}
-                              onValueChange={(value: string) =>
-                                setCountry(value)
-                              }
-                              placeholder="Select a country"
-                              className="mt-1 w-full"
+                        {/* Row 2: Phone and Alternative Phone */}
+                        <div>
+                          <label
+                            htmlFor="phone"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Phone <span className="text-red-500">*</span>
+                          </label>
+                          <div className="mt-1">
+                            <PhoneInput
+                              value={phone}
+                              onChange={handlePhoneChange}
+                              placeholder="Enter phone number"
+                              className="w-full"
                             />
+                            {phoneError && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {phoneError}
+                              </p>
+                            )}
                           </div>
                         </div>
 
-                        {/* Right Column */}
-                        <div className="space-y-4">
-                          {/* Email with validation */}
-                          <div>
-                            <label
-                              htmlFor="email"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Email <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="email"
-                              id="email"
-                              className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                                hasValidated &&
-                                validationResult?.errors.some(
-                                  (e) => e.field === "email"
-                                )
-                                  ? "border-red-300 focus:border-red-500"
-                                  : "border-gray-300 focus:border-indigo-500"
-                              }`}
-                              required
-                              value={email}
-                              onChange={(e) =>
-                                handleEmailChange(e.target.value)
-                              }
+                        <div>
+                          <label
+                            htmlFor="alternativePhone"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Alternative Phone
+                          </label>
+                          <div className="mt-1">
+                            <PhoneInput
+                              value={alternativePhone}
+                              onChange={(phone: string | undefined) => {
+                                const phoneValue = phone || "";
+                                setAlternativePhone(phoneValue);
+
+                                // Validate alternative phone format immediately
+                                if (
+                                  phoneValue &&
+                                  !validatePhone(phoneValue)
+                                ) {
+                                  setAlternativePhoneError(
+                                    "Please enter a valid phone number with country code (e.g., +919876543210)"
+                                  );
+                                } else {
+                                  setAlternativePhoneError("");
+                                }
+                              }}
+                              placeholder="Alternative phone number"
+                              className="w-full"
                             />
-                            {renderValidationStatus()}
+                            {alternativePhoneError && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {alternativePhoneError}
+                              </p>
+                            )}
                           </div>
+                        </div>
 
-                          {/* Alternative Phone */}
-                          <div>
-                            <label
-                              htmlFor="alternativePhone"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Alternative Phone
-                            </label>
-                            <div className="mt-1">
-                              <PhoneInput
-                                value={alternativePhone}
-                                onChange={(phone: string | undefined) => {
-                                  const phoneValue = phone || "";
-                                  setAlternativePhone(phoneValue);
+                        {/* Row 3: Country and Location */}
+                        <div>
+                          <label
+                            htmlFor="country"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Country <span className="text-red-500">*</span>
+                          </label>
+                          <CountrySelector
+                            value={country}
+                            onValueChange={(value: string) =>
+                              setCountry(value)
+                            }
+                            placeholder="Select a country"
+                            className="mt-1 w-full"
+                          />
+                        </div>
 
-                                  // Validate alternative phone format immediately
-                                  if (
-                                    phoneValue &&
-                                    !validatePhone(phoneValue)
-                                  ) {
-                                    setAlternativePhoneError(
-                                      "Please enter a valid phone number with country code (e.g., +919876543210)"
-                                    );
-                                  } else {
-                                    setAlternativePhoneError("");
-                                  }
-                                }}
-                                placeholder="Alternative phone number"
-                                className="w-full"
-                              />
-                              {alternativePhoneError && (
-                                <p className="mt-1 text-sm text-red-600">
-                                  {alternativePhoneError}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Location */}
-                          <div>
-                            <label
-                              htmlFor="location"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Location <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="location"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={location}
-                              onChange={(e) => setLocation(e.target.value)}
-                            />
-                          </div>
+                        <div>
+                          <label
+                            htmlFor="location"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Location <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="location"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                          />
                         </div>
                       </div>
                     </div>
@@ -730,209 +724,193 @@ export default function RecruiterJobApplyPage() {
                       </h4>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Left Column */}
-                        <div className="space-y-4">
-                          {/* Current Company */}
-                          <div>
-                            <label
-                              htmlFor="currentCompany"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Current Company{" "}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="currentCompany"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={currentCompany}
-                              onChange={(e) =>
-                                setCurrentCompany(e.target.value)
-                              }
-                            />
-                          </div>
-
-                          {/* Total Experience */}
-                          <div>
-                            <label
-                              htmlFor="totalExperience"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Total Experience (Years){" "}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="number"
-                              id="totalExperience"
-                              step="0.1"
-                              min="0"
-                              max="50"
-                              placeholder="e.g., 5.5"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={totalExperience}
-                              onChange={(e) =>
-                                setTotalExperience(e.target.value)
-                              }
-                            />
-                          </div>
-
-                          {/* Current CTC with dynamic label */}
-                          <div>
-                            <label
-                              htmlFor="currentCTC"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Current Salary (
-                              {compensationType === "HOURLY"
-                                ? "Per Hour"
-                                : compensationType === "MONTHLY"
-                                ? "Per Month"
-                                : "Per Year"}
-                              ){" "}
-                              {country === "India" && (
-                                <span className="text-red-500">*</span>
-                              )}
-                            </label>
-                            <input
-                              type="number"
-                              id="currentCTC"
-                              min="0"
-                              step="1"
-                              placeholder={
-                                compensationType === "HOURLY"
-                                  ? "e.g., 25 (per hour)"
-                                  : compensationType === "MONTHLY"
-                                  ? "e.g., 50000 (per month)"
-                                  : "e.g., 600000 (per year)"
-                              }
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required={country === "India"}
-                              value={currentCTC}
-                              onChange={(e) => setCurrentCTC(e.target.value)}
-                            />
-                          </div>
-
-                          {/* Qualification */}
-                          <div>
-                            <label
-                              htmlFor="qualification"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Qualification{" "}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="qualification"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={qualification}
-                              onChange={(e) => setQualification(e.target.value)}
-                            />
-                          </div>
+                        {/* Row 1: Current Company and Current Designation */}
+                        <div>
+                          <label
+                            htmlFor="currentCompany"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Current Company <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="currentCompany"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={currentCompany}
+                            onChange={(e) =>
+                              setCurrentCompany(e.target.value)
+                            }
+                          />
                         </div>
 
-                        {/* Right Column */}
-                        <div className="space-y-4">
-                          {/* Current Designation */}
-                          <div>
-                            <label
-                              htmlFor="currentDesignation"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Current Designation{" "}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="currentDesignation"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={currentDesignation}
-                              onChange={(e) =>
-                                setCurrentDesignation(e.target.value)
-                              }
-                            />
-                          </div>
+                        <div>
+                          <label
+                            htmlFor="currentDesignation"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Current Designation <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="currentDesignation"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={currentDesignation}
+                            onChange={(e) =>
+                              setCurrentDesignation(e.target.value)
+                            }
+                          />
+                        </div>
 
-                          {/* Relevant Experience */}
-                          <div>
-                            <label
-                              htmlFor="relevantExperience"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Relevant Experience (Years){" "}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="number"
-                              id="relevantExperience"
-                              step="0.1"
-                              min="0"
-                              max="50"
-                              placeholder="e.g., 3.5"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={relevantExperience}
-                              onChange={(e) =>
-                                setRelevantExperience(e.target.value)
-                              }
-                            />
-                          </div>
+                        {/* Row 2: Total Experience and Relevant Experience */}
+                        <div>
+                          <label
+                            htmlFor="totalExperience"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Total Experience (Years) <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            id="totalExperience"
+                            step="0.1"
+                            min="0"
+                            max="50"
+                            placeholder="e.g., 5.5"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={totalExperience}
+                            onChange={(e) =>
+                              setTotalExperience(e.target.value)
+                            }
+                          />
+                        </div>
 
-                          {/* Expected CTC */}
-                          <div>
-                            <label
-                              htmlFor="expectedCTC"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Expected Salary (
-                              {compensationType === "HOURLY"
-                                ? "Per Hour"
+                        <div>
+                          <label
+                            htmlFor="relevantExperience"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Relevant Experience (Years) <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            id="relevantExperience"
+                            step="0.1"
+                            min="0"
+                            max="50"
+                            placeholder="e.g., 3.5"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={relevantExperience}
+                            onChange={(e) =>
+                              setRelevantExperience(e.target.value)
+                            }
+                          />
+                        </div>
+
+                        {/* Row 3: Current CTC and Expected CTC */}
+                        <div>
+                          <label
+                            htmlFor="currentCTC"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Current Salary (
+                            {compensationType === "HOURLY"
+                              ? "Per Hour"
+                              : compensationType === "MONTHLY"
+                              ? "Per Month"
+                              : "Per Year"}
+                            ){" "}
+                            {country === "India" && (
+                              <span className="text-red-500">*</span>
+                            )}
+                          </label>
+                          <input
+                            type="number"
+                            id="currentCTC"
+                            min="0"
+                            step="1"
+                            placeholder={
+                              compensationType === "HOURLY"
+                                ? "e.g., 25 (per hour)"
                                 : compensationType === "MONTHLY"
-                                ? "Per Month"
-                                : "Per Year"}
-                              ) <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="number"
-                              id="expectedCTC"
-                              min="0"
-                              step="1"
-                              placeholder={
-                                compensationType === "HOURLY"
-                                  ? "e.g., 30 (per hour)"
-                                  : compensationType === "MONTHLY"
-                                  ? "e.g., 60000 (per month)"
-                                  : "e.g., 720000 (per year)"
-                              }
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={expectedCTC}
-                              onChange={(e) => setExpectedCTC(e.target.value)}
-                            />
-                          </div>
+                                ? "e.g., 50000 (per month)"
+                                : "e.g., 600000 (per year)"
+                            }
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required={country === "India"}
+                            value={currentCTC}
+                            onChange={(e) => setCurrentCTC(e.target.value)}
+                          />
+                        </div>
 
-                          {/* Notice Period */}
-                          <div>
-                            <label
-                              htmlFor="noticePeriod"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Notice Period{" "}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              id="noticePeriod"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              required
-                              value={noticePeriod}
-                              onChange={(e) => setNoticePeriod(e.target.value)}
-                            />
-                          </div>
+                        <div>
+                          <label
+                            htmlFor="expectedCTC"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Expected Salary (
+                            {compensationType === "HOURLY"
+                              ? "Per Hour"
+                              : compensationType === "MONTHLY"
+                              ? "Per Month"
+                              : "Per Year"}
+                            ) <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            id="expectedCTC"
+                            min="0"
+                            step="1"
+                            placeholder={
+                              compensationType === "HOURLY"
+                                ? "e.g., 30 (per hour)"
+                                : compensationType === "MONTHLY"
+                                ? "e.g., 60000 (per month)"
+                                : "e.g., 720000 (per year)"
+                            }
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={expectedCTC}
+                            onChange={(e) => setExpectedCTC(e.target.value)}
+                          />
+                        </div>
+
+                        {/* Row 4: Qualification and Notice Period */}
+                        <div>
+                          <label
+                            htmlFor="qualification"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Qualification <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="qualification"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={qualification}
+                            onChange={(e) => setQualification(e.target.value)}
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="noticePeriod"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Notice Period <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="noticePeriod"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                            value={noticePeriod}
+                            onChange={(e) => setNoticePeriod(e.target.value)}
+                          />
                         </div>
                       </div>
 

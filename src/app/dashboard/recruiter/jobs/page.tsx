@@ -93,8 +93,8 @@ function RecruiterJobsContent() {
   // Filter jobs based on current filter settings
   const filteredJobs =
     jobs?.filter((job) => {
-      // Only show ACTIVE jobs for recruiters
-      if (job.status !== "ACTIVE") return false;
+      // Show ACTIVE and PAUSED jobs for recruiters (but PAUSED jobs will have disabled apply buttons)
+      if (job.status !== "ACTIVE" && job.status !== "PAUSED") return false;
 
       // Apply search filter
       if (
@@ -145,13 +145,13 @@ function RecruiterJobsContent() {
   // Extract unique values for filters
   useEffect(() => {
     if (jobs) {
-      const activeJobs = jobs.filter((job) => job.status === "ACTIVE");
-      setLocations([...new Set(activeJobs.map((job) => job.location))].sort());
-      setCountries([...new Set(activeJobs.map((job) => job.country))].sort());
+      const activeAndPausedJobs = jobs.filter((job) => job.status === "ACTIVE" || job.status === "PAUSED");
+      setLocations([...new Set(activeAndPausedJobs.map((job) => job.location))].sort());
+      setCountries([...new Set(activeAndPausedJobs.map((job) => job.country))].sort());
       setClients(
         [
           ...new Set(
-            activeJobs
+            activeAndPausedJobs
               .map((job) => job.postedByName)
               .filter((name): name is string => !!name)
           ),
@@ -458,6 +458,11 @@ function RecruiterJobsContent() {
                                   {job.experienceLevel.min}-
                                   {job.experienceLevel.max} Years
                                 </span>
+                                {job.status === "PAUSED" && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Paused
+                                  </span>
+                                )}
                                 <span
                                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCommissionBadgeColor(
                                     job
@@ -497,10 +502,15 @@ function RecruiterJobsContent() {
                                     `/dashboard/recruiter/jobs/${job._id}/apply?from=${activeTab}`
                                   )
                                 }
-                                className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                disabled={job.status === "PAUSED"}
+                                className={`inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white ${
+                                  job.status === "PAUSED"
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                }`}
                               >
                                 <FileText className="mr-1.5 h-3 w-3" />
-                                Upload Resume
+                                {job.status === "PAUSED" ? "Job Paused" : "Upload Resume"}
                               </button>
 
                               <button
