@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDb from './../../../lib/db';
 import User, { UserRole } from './../../../models/User';
 import { generateToken } from './../../../lib/auth';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,8 +30,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate phone number format
-    if (!isValidPhoneNumber(phone)) {
-      console.log(`Invalid phone number format: ${phone}`);
+    try {
+      if (!isValidPhoneNumber(phone)) {
+        console.log(`Invalid phone number format: ${phone}`);
+        return NextResponse.json(
+          { error: 'Please provide a valid phone number with country code' },
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      console.log(`Phone number validation error: ${error}`);
       return NextResponse.json(
         { error: 'Please provide a valid phone number' },
         { status: 400 }
