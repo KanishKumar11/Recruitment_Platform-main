@@ -1,15 +1,15 @@
 // src/lib/emailService.ts
 import nodemailer from "nodemailer";
 
-// Create transporter for Zoho Mail
+// Create transporter for ZeptoMail (using original variable names for compatibility)
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: "smtp.zoho.com",
+    host: "smtp.zeptomail.in", // ZeptoMail SMTP host
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: process.env.ZOHO_EMAIL, // Your Zoho email
-      pass: process.env.ZOHO_APP_PASSWORD, // Your Zoho app password
+      user: process.env.ZOHO_EMAIL, // Your ZeptoMail email
+      pass: process.env.ZOHO_APP_PASSWORD, // Your ZeptoMail password
     },
     tls: {
       rejectUnauthorized: false,

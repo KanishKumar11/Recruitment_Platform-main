@@ -712,11 +712,11 @@ const getEndOfDayNotificationTemplate = (
   };
 };
 
-// Create transporter function (re-export from emailService)
+// Create transporter function for ZeptoMail (using original variable names for compatibility)
 const createRecruiterTransporter = () => {
   const nodemailer = require("nodemailer");
   return nodemailer.createTransporter({
-    host: "smtp.zoho.com",
+    host: "smtp.zeptomail.in", // ZeptoMail SMTP host
     port: 587,
     secure: false,
     auth: {
