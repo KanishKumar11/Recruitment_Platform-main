@@ -716,7 +716,7 @@ const getEndOfDayNotificationTemplate = (
 const createRecruiterTransporter = () => {
   const nodemailer = require("nodemailer");
   return nodemailer.createTransporter({
-    host: "smtp.zeptomail.in", // ZeptoMail SMTP host
+    host: "smtp.zeptomail.com", // ZeptoMail SMTP host
     port: 587,
     secure: false,
     auth: {
