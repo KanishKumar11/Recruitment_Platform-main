@@ -220,11 +220,11 @@ function AdminUsersContent() {
     return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
   };
 
-    // Function to export filtered users to CSV
+  // Function to export filtered users to CSV
   const exportFilteredUsersToCSV = async () => {
     try {
       toast.loading("Preparing export...");
-      
+
       const exportData = await triggerExport({
         role: filters.role,
         isPrimary: filters.isPrimary,

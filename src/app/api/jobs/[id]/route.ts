@@ -68,7 +68,10 @@ async function hasAccessToJob(
   }
 
   // Recruiters can access active and paused jobs (but upload will be disabled for paused jobs)
-  if (userData.role === UserRole.RECRUITER && (job.status === "ACTIVE" || job.status === "PAUSED")) {
+  if (
+    userData.role === UserRole.RECRUITER &&
+    (job.status === "ACTIVE" || job.status === "PAUSED")
+  ) {
     return true;
   }
 
@@ -331,24 +334,30 @@ export async function PUT(
     try {
       if (updatedJob) {
         // Get recruiters who have saved this job or uploaded resumes for it
-        const eligibleRecruiters = await JobUpdateNotificationService.getEligibleRecruiters(
-          (updatedJob._id as mongoose.Types.ObjectId).toString()
-        );
-        
+        const eligibleRecruiters =
+          await JobUpdateNotificationService.getEligibleRecruiters(
+            (updatedJob._id as mongoose.Types.ObjectId).toString()
+          );
+
         // Create notifications for each eligible recruiter
         for (const recruiter of eligibleRecruiters) {
           await NotificationService.createJobModificationNotification(
             recruiter.recruiterId,
             updatedJob.title,
-            ['job'], // modifiedFields - we'll use a generic field for now
+            ["job"], // modifiedFields - we'll use a generic field for now
             (updatedJob._id as mongoose.Types.ObjectId).toString()
           );
         }
-        
-        console.log(`Job modification notifications sent to ${eligibleRecruiters.length} eligible recruiters for job: ${updatedJob.title}`);
+
+        console.log(
+          `Job modification notifications sent to ${eligibleRecruiters.length} eligible recruiters for job: ${updatedJob.title}`
+        );
       }
     } catch (notificationError) {
-      console.error('Failed to create job modification notification:', notificationError);
+      console.error(
+        "Failed to create job modification notification:",
+        notificationError
+      );
       // Continue with the response even if notification fails
     }
 

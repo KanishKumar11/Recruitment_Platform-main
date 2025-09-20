@@ -38,7 +38,11 @@ import { countries } from "@/lib/countries";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CountrySelector } from "@/components/ui/country-selector";
 import { validatePhone } from "@/app/utils/formData";
-import { validateResumeFile, validateAdditionalDocument, formatFileSize } from "@/app/lib/fileValidation";
+import {
+  validateResumeFile,
+  validateAdditionalDocument,
+  formatFileSize,
+} from "@/app/lib/fileValidation";
 
 // Import the Country type from lib/countries
 import { Country } from "@/lib/countries";
@@ -95,7 +99,7 @@ export default function RecruiterJobApplyPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const fromTab = searchParams.get('from') || 'saved';
+  const fromTab = searchParams.get("from") || "saved";
   const id = params?.id as string;
 
   const { data: job, isLoading } = useGetJobByIdQuery(id);
@@ -359,11 +363,12 @@ export default function RecruiterJobApplyPage() {
       formData.append("currentDesignation", currentDesignation);
       formData.append("totalExperience", totalExperience);
       formData.append("relevantExperience", relevantExperience);
-      
+
       // For international jobs, send "0" if currentCTC is empty to satisfy API validation
-      const currentCTCSalary = (country !== "India" && !currentCTC.trim()) ? "0" : currentCTC;
+      const currentCTCSalary =
+        country !== "India" && !currentCTC.trim() ? "0" : currentCTC;
       formData.append("currentCTC", currentCTCSalary);
-      
+
       formData.append("expectedCTC", expectedCTC);
       formData.append("compensationType", compensationType); // Add compensation type
       formData.append("noticePeriod", noticePeriod);
@@ -499,7 +504,9 @@ export default function RecruiterJobApplyPage() {
             <div className="mb-6">
               <button
                 onClick={() =>
-                  router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`)
+                  router.push(
+                    `/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`
+                  )
                 }
                 className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
               >
@@ -527,14 +534,18 @@ export default function RecruiterJobApplyPage() {
                           </h3>
                           <div className="mt-2 text-sm text-yellow-700">
                             <p>
-                              This job posting is currently paused and not accepting new applications.
-                              Please check back later or contact the job poster for more information.
+                              This job posting is currently paused and not
+                              accepting new applications. Please check back
+                              later or contact the job poster for more
+                              information.
                             </p>
                           </div>
                           <div className="mt-4">
                             <button
                               onClick={() =>
-                                router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`)
+                                router.push(
+                                  `/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`
+                                )
                               }
                               className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                             >
@@ -548,795 +559,828 @@ export default function RecruiterJobApplyPage() {
                   </div>
                 </div>
               ) : (
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Apply for: {job.title}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Complete all required fields below
-                  </p>
-                </div>
-                <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                  {submitSuccess ? (
-                    <div className="rounded-md bg-green-50 p-4 mb-4">
-                      <div className="flex">
-                        <div className="flex-shrink-0">
-                          <Check className="h-5 w-5 text-green-400" />
-                        </div>
-                        <div className="ml-3">
-                          <h3 className="text-sm font-medium text-green-800">
-                            Resume submitted successfully
-                          </h3>
-                          <div className="mt-2 text-sm text-green-700">
-                            <p>
-                              Your candidate resume has been submitted for this
-                              job position.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {/* Validation Summary - Only show if there are non-email errors */}
-                  {hasValidated &&
-                    validationResult &&
-                    validationResult.errors.filter(error => error.field !== 'email').length > 0 && (
-                      <div className="rounded-md bg-red-50 p-4 mb-6">
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Apply for: {job.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Complete all required fields below
+                    </p>
+                  </div>
+                  <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+                    {submitSuccess ? (
+                      <div className="rounded-md bg-green-50 p-4 mb-4">
                         <div className="flex">
                           <div className="flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 text-red-400" />
+                            <Check className="h-5 w-5 text-green-400" />
                           </div>
                           <div className="ml-3">
-                            <h3 className="text-sm font-medium text-red-800">
-                              Candidate Validation Error
+                            <h3 className="text-sm font-medium text-green-800">
+                              Resume submitted successfully
                             </h3>
-                            <div className="mt-2 text-sm text-red-700">
+                            <div className="mt-2 text-sm text-green-700">
                               <p>
-                                ⚠️ This candidate cannot be submitted due to
-                                validation errors.
+                                Your candidate resume has been submitted for
+                                this job position.
                               </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                    )}
+                    ) : null}
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Candidate Information Section */}
-                    <div className="border-b border-gray-200 pb-6 mb-6">
-                      <h4 className="text-md font-medium text-gray-900 mb-4">
-                        Candidate Information
-                      </h4>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Row 1: Candidate Name and Email */}
-                        <div>
-                          <label
-                            htmlFor="candidateName"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Candidate Name <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="candidateName"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={candidateName}
-                            onChange={(e) => setCandidateName(e.target.value)}
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="email"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Email <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="email"
-                            id="email"
-                            className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
-                              hasValidated &&
-                              validationResult?.errors.some(
-                                (e) => e.field === "email"
-                              )
-                                ? "border-red-300 focus:border-red-500"
-                                : "border-gray-300 focus:border-indigo-500"
-                            }`}
-                            required
-                            value={email}
-                            onChange={(e) =>
-                              handleEmailChange(e.target.value)
-                            }
-                          />
-                          {renderValidationStatus()}
-                        </div>
-
-                        {/* Row 2: Phone and Alternative Phone */}
-                        <div>
-                          <label
-                            htmlFor="phone"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Phone <span className="text-red-500">*</span>
-                          </label>
-                          <div className="mt-1">
-                            <PhoneInput
-                              value={phone}
-                              onChange={handlePhoneChange}
-                              placeholder="Enter phone number"
-                              className="w-full"
-                            />
-                            {phoneError && (
-                              <p className="mt-1 text-sm text-red-600">
-                                {phoneError}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="alternativePhone"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Alternative Phone
-                          </label>
-                          <div className="mt-1">
-                            <PhoneInput
-                              value={alternativePhone}
-                              onChange={(phone: string | undefined) => {
-                                const phoneValue = phone || "";
-                                setAlternativePhone(phoneValue);
-
-                                // Validate alternative phone format immediately
-                                if (
-                                  phoneValue &&
-                                  !validatePhone(phoneValue)
-                                ) {
-                                  setAlternativePhoneError(
-                                    "Please enter a valid phone number with country code (e.g., +919876543210)"
-                                  );
-                                } else {
-                                  setAlternativePhoneError("");
-                                }
-                              }}
-                              placeholder="Alternative phone number"
-                              className="w-full"
-                            />
-                            {alternativePhoneError && (
-                              <p className="mt-1 text-sm text-red-600">
-                                {alternativePhoneError}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Row 3: Country and Location */}
-                        <div>
-                          <label
-                            htmlFor="country"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Country <span className="text-red-500">*</span>
-                          </label>
-                          <CountrySelector
-                            value={country}
-                            onValueChange={(value: string) =>
-                              setCountry(value)
-                            }
-                            placeholder="Select a country"
-                            className="mt-1 w-full"
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="location"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Location <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="location"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Professional Information Section */}
-                    <div className="border-b border-gray-200 pb-6 mb-6">
-                      <h4 className="text-md font-medium text-gray-900 mb-4">
-                        Professional Information
-                      </h4>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Row 1: Current Company and Current Designation */}
-                        <div>
-                          <label
-                            htmlFor="currentCompany"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Current Company <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="currentCompany"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={currentCompany}
-                            onChange={(e) =>
-                              setCurrentCompany(e.target.value)
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="currentDesignation"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Current Designation <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="currentDesignation"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={currentDesignation}
-                            onChange={(e) =>
-                              setCurrentDesignation(e.target.value)
-                            }
-                          />
-                        </div>
-
-                        {/* Row 2: Total Experience and Relevant Experience */}
-                        <div>
-                          <label
-                            htmlFor="totalExperience"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Total Experience (Years) <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            id="totalExperience"
-                            step="0.1"
-                            min="0"
-                            max="50"
-                            placeholder="e.g., 5.5"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={totalExperience}
-                            onChange={(e) =>
-                              setTotalExperience(e.target.value)
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="relevantExperience"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Relevant Experience (Years) <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            id="relevantExperience"
-                            step="0.1"
-                            min="0"
-                            max="50"
-                            placeholder="e.g., 3.5"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={relevantExperience}
-                            onChange={(e) =>
-                              setRelevantExperience(e.target.value)
-                            }
-                          />
-                        </div>
-
-                        {/* Row 3: Current CTC and Expected CTC */}
-                        <div>
-                          <label
-                            htmlFor="currentCTC"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Current Salary (
-                            {compensationType === "HOURLY"
-                              ? "Per Hour"
-                              : compensationType === "MONTHLY"
-                              ? "Per Month"
-                              : "Per Year"}
-                            ){" "}
-                            {country === "India" && (
-                              <span className="text-red-500">*</span>
-                            )}
-                          </label>
-                          <input
-                            type="number"
-                            id="currentCTC"
-                            min="0"
-                            step="1"
-                            placeholder={
-                              compensationType === "HOURLY"
-                                ? "e.g., 25 (per hour)"
-                                : compensationType === "MONTHLY"
-                                ? "e.g., 50000 (per month)"
-                                : "e.g., 600000 (per year)"
-                            }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required={country === "India"}
-                            value={currentCTC}
-                            onChange={(e) => setCurrentCTC(e.target.value)}
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="expectedCTC"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Expected Salary (
-                            {compensationType === "HOURLY"
-                              ? "Per Hour"
-                              : compensationType === "MONTHLY"
-                              ? "Per Month"
-                              : "Per Year"}
-                            ) <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            id="expectedCTC"
-                            min="0"
-                            step="1"
-                            placeholder={
-                              compensationType === "HOURLY"
-                                ? "e.g., 30 (per hour)"
-                                : compensationType === "MONTHLY"
-                                ? "e.g., 60000 (per month)"
-                                : "e.g., 720000 (per year)"
-                            }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={expectedCTC}
-                            onChange={(e) => setExpectedCTC(e.target.value)}
-                          />
-                        </div>
-
-                        {/* Row 4: Qualification and Notice Period */}
-                        <div>
-                          <label
-                            htmlFor="qualification"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Qualification <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="qualification"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={qualification}
-                            onChange={(e) => setQualification(e.target.value)}
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="noticePeriod"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Notice Period <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="noticePeriod"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                            value={noticePeriod}
-                            onChange={(e) => setNoticePeriod(e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Remarks - Full Width */}
-                      <div className="mt-4">
-                        <label
-                          htmlFor="remarks"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Remarks
-                        </label>
-                        <textarea
-                          id="remarks"
-                          rows={3}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          value={remarks}
-                          onChange={(e) => setRemarks(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    {/* File Upload Section */}
-                    <div className="border-b border-gray-200 pb-6 mb-6">
-                      <h4 className="text-md font-medium text-gray-900 mb-4">
-                        Document Upload
-                      </h4>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Resume Upload */}
-                        <div>
-                          <label
-                            htmlFor="resume"
-                            className="block text-sm font-medium text-gray-700 mb-2"
-                          >
-                            Resume <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="file"
-                            id="resume"
-                            accept=".pdf,.doc,.docx"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                          />
-                          <p className="mt-1 text-xs text-gray-500">
-                            Maximum file size: {formatFileSize(2 * 1024 * 1024)}. Accepted formats: PDF, DOC,
-                            DOCX
-                          </p>
-                          {selectedFile && (
-                            <p className="mt-2 text-sm text-gray-500">
-                              Selected: {selectedFile.name} (
-                              {(selectedFile.size / (1024 * 1024)).toFixed(2)}{" "}
-                              MB)
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Additional Documents Upload */}
-                        <div>
-                          <label
-                            htmlFor="additionalDocuments"
-                            className="block text-sm font-medium text-gray-700 mb-2"
-                          >
-                            Additional Documents
-                          </label>
-                          <input
-                            type="file"
-                            id="additionalDocuments"
-                            multiple
-                            ref={additionalFilesRef}
-                            onChange={handleAdditionalFilesChange}
-                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          />
-                          <p className="mt-1 text-xs text-gray-500">
-                            Certificates, portfolio, cover letter, etc.
-                            (Optional)
-                            <br />
-                            Maximum file size: {formatFileSize(2 * 1024 * 1024)} per file
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Display selected additional files */}
-                      {additionalFiles.length > 0 && (
-                        <div className="mt-4">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">
-                            Selected Files ({additionalFiles.length}):
-                          </h5>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {additionalFiles.map((file, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
-                              >
-                                <div className="flex items-center">
-                                  <FileUp className="h-4 w-4 text-gray-400 mr-2" />
-                                  <span className="text-sm text-gray-700 truncate">
-                                    {file.name}
-                                  </span>
-                                  <span className="text-xs text-gray-500 ml-2">
-                                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                                  </span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeAdditionalFile(index)}
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
+                    {/* Validation Summary - Only show if there are non-email errors */}
+                    {hasValidated &&
+                      validationResult &&
+                      validationResult.errors.filter(
+                        (error) => error.field !== "email"
+                      ).length > 0 && (
+                        <div className="rounded-md bg-red-50 p-4 mb-6">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <AlertCircle className="h-5 w-5 text-red-400" />
+                            </div>
+                            <div className="ml-3">
+                              <h3 className="text-sm font-medium text-red-800">
+                                Candidate Validation Error
+                              </h3>
+                              <div className="mt-2 text-sm text-red-700">
+                                <p>
+                                  ⚠️ This candidate cannot be submitted due to
+                                  validation errors.
+                                </p>
                               </div>
-                            ))}
+                            </div>
                           </div>
                         </div>
                       )}
-                    </div>
 
-                    {/* Screening Questions Section */}
-                    {job.screeningQuestions &&
-                      job.screeningQuestions.length > 0 && (
-                        <div className="mb-6">
-                          <h4 className="text-md font-medium text-gray-900 mb-4">
-                            Screening Questions
-                          </h4>
-                          <div className="space-y-6">
-                            {(
-                              job.screeningQuestions as unknown as {
-                                _id: string;
-                                question: string;
-                                questionType: string;
-                                required: boolean;
-                                options?: string[];
-                              }[]
-                            ).map((question, index) => (
-                              <div
-                                key={String(question._id)}
-                                className="space-y-2"
-                              >
-                                <label className="block text-sm font-medium text-gray-700">
-                                  {index + 1}. {question.question}
-                                  {question.required && (
-                                    <span className="text-red-500">*</span>
-                                  )}
-                                </label>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Candidate Information Section */}
+                      <div className="border-b border-gray-200 pb-6 mb-6">
+                        <h4 className="text-md font-medium text-gray-900 mb-4">
+                          Candidate Information
+                        </h4>
 
-                                {/* Render different input types based on questionType */}
-                                {question.questionType === "YES_NO" ? (
-                                  <div className="mt-2">
-                                    <div className="flex space-x-3">
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleAnswerChange(
-                                            question._id,
-                                            "Yes"
-                                          )
-                                        }
-                                        className={`flex items-center justify-center px-6 py-3 border rounded-lg transition-all duration-200 ${
-                                          screeningAnswers[question._id] ===
-                                          "Yes"
-                                            ? "border-green-500 bg-green-50 text-green-700"
-                                            : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
-                                        }`}
-                                      >
-                                        <Check
-                                          className={`mr-2 h-4 w-4 ${
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {/* Row 1: Candidate Name and Email */}
+                          <div>
+                            <label
+                              htmlFor="candidateName"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Candidate Name{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="candidateName"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={candidateName}
+                              onChange={(e) => setCandidateName(e.target.value)}
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="email"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Email <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              id="email"
+                              className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                                hasValidated &&
+                                validationResult?.errors.some(
+                                  (e) => e.field === "email"
+                                )
+                                  ? "border-red-300 focus:border-red-500"
+                                  : "border-gray-300 focus:border-indigo-500"
+                              }`}
+                              required
+                              value={email}
+                              onChange={(e) =>
+                                handleEmailChange(e.target.value)
+                              }
+                            />
+                            {renderValidationStatus()}
+                          </div>
+
+                          {/* Row 2: Phone and Alternative Phone */}
+                          <div>
+                            <label
+                              htmlFor="phone"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Phone <span className="text-red-500">*</span>
+                            </label>
+                            <div className="mt-1">
+                              <PhoneInput
+                                value={phone}
+                                onChange={handlePhoneChange}
+                                placeholder="Enter phone number"
+                                className="w-full"
+                              />
+                              {phoneError && (
+                                <p className="mt-1 text-sm text-red-600">
+                                  {phoneError}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="alternativePhone"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Alternative Phone
+                            </label>
+                            <div className="mt-1">
+                              <PhoneInput
+                                value={alternativePhone}
+                                onChange={(phone: string | undefined) => {
+                                  const phoneValue = phone || "";
+                                  setAlternativePhone(phoneValue);
+
+                                  // Validate alternative phone format immediately
+                                  if (
+                                    phoneValue &&
+                                    !validatePhone(phoneValue)
+                                  ) {
+                                    setAlternativePhoneError(
+                                      "Please enter a valid phone number with country code (e.g., +919876543210)"
+                                    );
+                                  } else {
+                                    setAlternativePhoneError("");
+                                  }
+                                }}
+                                placeholder="Alternative phone number"
+                                className="w-full"
+                              />
+                              {alternativePhoneError && (
+                                <p className="mt-1 text-sm text-red-600">
+                                  {alternativePhoneError}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Row 3: Country and Location */}
+                          <div>
+                            <label
+                              htmlFor="country"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Country <span className="text-red-500">*</span>
+                            </label>
+                            <CountrySelector
+                              value={country}
+                              onValueChange={(value: string) =>
+                                setCountry(value)
+                              }
+                              placeholder="Select a country"
+                              className="mt-1 w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="location"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Location <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="location"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={location}
+                              onChange={(e) => setLocation(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Professional Information Section */}
+                      <div className="border-b border-gray-200 pb-6 mb-6">
+                        <h4 className="text-md font-medium text-gray-900 mb-4">
+                          Professional Information
+                        </h4>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {/* Row 1: Current Company and Current Designation */}
+                          <div>
+                            <label
+                              htmlFor="currentCompany"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Current Company{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="currentCompany"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={currentCompany}
+                              onChange={(e) =>
+                                setCurrentCompany(e.target.value)
+                              }
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="currentDesignation"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Current Designation{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="currentDesignation"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={currentDesignation}
+                              onChange={(e) =>
+                                setCurrentDesignation(e.target.value)
+                              }
+                            />
+                          </div>
+
+                          {/* Row 2: Total Experience and Relevant Experience */}
+                          <div>
+                            <label
+                              htmlFor="totalExperience"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Total Experience (Years){" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              id="totalExperience"
+                              step="0.1"
+                              min="0"
+                              max="50"
+                              placeholder="e.g., 5.5"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={totalExperience}
+                              onChange={(e) =>
+                                setTotalExperience(e.target.value)
+                              }
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="relevantExperience"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Relevant Experience (Years){" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              id="relevantExperience"
+                              step="0.1"
+                              min="0"
+                              max="50"
+                              placeholder="e.g., 3.5"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={relevantExperience}
+                              onChange={(e) =>
+                                setRelevantExperience(e.target.value)
+                              }
+                            />
+                          </div>
+
+                          {/* Row 3: Current CTC and Expected CTC */}
+                          <div>
+                            <label
+                              htmlFor="currentCTC"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Current Salary (
+                              {compensationType === "HOURLY"
+                                ? "Per Hour"
+                                : compensationType === "MONTHLY"
+                                ? "Per Month"
+                                : "Per Year"}
+                              ){" "}
+                              {country === "India" && (
+                                <span className="text-red-500">*</span>
+                              )}
+                            </label>
+                            <input
+                              type="number"
+                              id="currentCTC"
+                              min="0"
+                              step="1"
+                              placeholder={
+                                compensationType === "HOURLY"
+                                  ? "e.g., 25 (per hour)"
+                                  : compensationType === "MONTHLY"
+                                  ? "e.g., 50000 (per month)"
+                                  : "e.g., 600000 (per year)"
+                              }
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required={country === "India"}
+                              value={currentCTC}
+                              onChange={(e) => setCurrentCTC(e.target.value)}
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="expectedCTC"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Expected Salary (
+                              {compensationType === "HOURLY"
+                                ? "Per Hour"
+                                : compensationType === "MONTHLY"
+                                ? "Per Month"
+                                : "Per Year"}
+                              ) <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              id="expectedCTC"
+                              min="0"
+                              step="1"
+                              placeholder={
+                                compensationType === "HOURLY"
+                                  ? "e.g., 30 (per hour)"
+                                  : compensationType === "MONTHLY"
+                                  ? "e.g., 60000 (per month)"
+                                  : "e.g., 720000 (per year)"
+                              }
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={expectedCTC}
+                              onChange={(e) => setExpectedCTC(e.target.value)}
+                            />
+                          </div>
+
+                          {/* Row 4: Qualification and Notice Period */}
+                          <div>
+                            <label
+                              htmlFor="qualification"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Qualification{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="qualification"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={qualification}
+                              onChange={(e) => setQualification(e.target.value)}
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="noticePeriod"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Notice Period{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="noticePeriod"
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                              value={noticePeriod}
+                              onChange={(e) => setNoticePeriod(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Remarks - Full Width */}
+                        <div className="mt-4">
+                          <label
+                            htmlFor="remarks"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Remarks
+                          </label>
+                          <textarea
+                            id="remarks"
+                            rows={3}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            value={remarks}
+                            onChange={(e) => setRemarks(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* File Upload Section */}
+                      <div className="border-b border-gray-200 pb-6 mb-6">
+                        <h4 className="text-md font-medium text-gray-900 mb-4">
+                          Document Upload
+                        </h4>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Resume Upload */}
+                          <div>
+                            <label
+                              htmlFor="resume"
+                              className="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                              Resume <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="file"
+                              id="resume"
+                              accept=".pdf,.doc,.docx"
+                              ref={fileInputRef}
+                              onChange={handleFileChange}
+                              className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              required
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Maximum file size:{" "}
+                              {formatFileSize(2 * 1024 * 1024)}. Accepted
+                              formats: PDF, DOC, DOCX
+                            </p>
+                            {selectedFile && (
+                              <p className="mt-2 text-sm text-gray-500">
+                                Selected: {selectedFile.name} (
+                                {(selectedFile.size / (1024 * 1024)).toFixed(2)}{" "}
+                                MB)
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Additional Documents Upload */}
+                          <div>
+                            <label
+                              htmlFor="additionalDocuments"
+                              className="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                              Additional Documents
+                            </label>
+                            <input
+                              type="file"
+                              id="additionalDocuments"
+                              multiple
+                              ref={additionalFilesRef}
+                              onChange={handleAdditionalFilesChange}
+                              className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Certificates, portfolio, cover letter, etc.
+                              (Optional)
+                              <br />
+                              Maximum file size:{" "}
+                              {formatFileSize(2 * 1024 * 1024)} per file
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Display selected additional files */}
+                        {additionalFiles.length > 0 && (
+                          <div className="mt-4">
+                            <h5 className="text-sm font-medium text-gray-700 mb-2">
+                              Selected Files ({additionalFiles.length}):
+                            </h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {additionalFiles.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
+                                >
+                                  <div className="flex items-center">
+                                    <FileUp className="h-4 w-4 text-gray-400 mr-2" />
+                                    <span className="text-sm text-gray-700 truncate">
+                                      {file.name}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-2">
+                                      ({(file.size / 1024 / 1024).toFixed(2)}{" "}
+                                      MB)
+                                    </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeAdditionalFile(index)}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Screening Questions Section */}
+                      {job.screeningQuestions &&
+                        job.screeningQuestions.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className="text-md font-medium text-gray-900 mb-4">
+                              Screening Questions
+                            </h4>
+                            <div className="space-y-6">
+                              {(
+                                job.screeningQuestions as unknown as {
+                                  _id: string;
+                                  question: string;
+                                  questionType: string;
+                                  required: boolean;
+                                  options?: string[];
+                                }[]
+                              ).map((question, index) => (
+                                <div
+                                  key={String(question._id)}
+                                  className="space-y-2"
+                                >
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    {index + 1}. {question.question}
+                                    {question.required && (
+                                      <span className="text-red-500">*</span>
+                                    )}
+                                  </label>
+
+                                  {/* Render different input types based on questionType */}
+                                  {question.questionType === "YES_NO" ? (
+                                    <div className="mt-2">
+                                      <div className="flex space-x-3">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleAnswerChange(
+                                              question._id,
+                                              "Yes"
+                                            )
+                                          }
+                                          className={`flex items-center justify-center px-6 py-3 border rounded-lg transition-all duration-200 ${
                                             screeningAnswers[question._id] ===
                                             "Yes"
-                                              ? "text-green-600"
-                                              : "text-gray-400"
+                                              ? "border-green-500 bg-green-50 text-green-700"
+                                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
                                           }`}
-                                        />
-                                        <span className="text-sm font-medium">
-                                          Yes
-                                        </span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleAnswerChange(question._id, "No")
-                                        }
-                                        className={`flex items-center justify-center px-6 py-3 border rounded-lg transition-all duration-200 ${
-                                          screeningAnswers[question._id] ===
-                                          "No"
-                                            ? "border-red-500 bg-red-50 text-red-700"
-                                            : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
-                                        }`}
-                                      >
-                                        <X
-                                          className={`mr-2 h-4 w-4 ${
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${
+                                              screeningAnswers[question._id] ===
+                                              "Yes"
+                                                ? "text-green-600"
+                                                : "text-gray-400"
+                                            }`}
+                                          />
+                                          <span className="text-sm font-medium">
+                                            Yes
+                                          </span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleAnswerChange(
+                                              question._id,
+                                              "No"
+                                            )
+                                          }
+                                          className={`flex items-center justify-center px-6 py-3 border rounded-lg transition-all duration-200 ${
                                             screeningAnswers[question._id] ===
                                             "No"
-                                              ? "text-red-600"
-                                              : "text-gray-400"
+                                              ? "border-red-500 bg-red-50 text-red-700"
+                                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
                                           }`}
-                                        />
-                                        <span className="text-sm font-medium">
-                                          No
-                                        </span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : question.questionType === "NUMERIC" ? (
-                                  <input
-                                    type="number"
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    value={screeningAnswers[question._id] || ""}
-                                    onChange={(e) =>
-                                      handleAnswerChange(
-                                        question._id,
-                                        e.target.value
-                                      )
-                                    }
-                                    required={question.required}
-                                    placeholder="Enter a number"
-                                  />
-                                ) : question.questionType === "MCQ" ? (
-                                  <div className="mt-2 space-y-2">
-                                    {question.options?.map(
-                                      (option: string, optionIndex: number) => (
-                                        <label
-                                          key={optionIndex}
-                                          className="flex items-center"
                                         >
-                                          <input
-                                            type="radio"
-                                            name={`question_${question._id}`}
-                                            value={option}
-                                            checked={
+                                          <X
+                                            className={`mr-2 h-4 w-4 ${
                                               screeningAnswers[question._id] ===
-                                              option
-                                            }
-                                            onChange={(e) =>
-                                              handleAnswerChange(
-                                                question._id,
-                                                e.target.value
-                                              )
-                                            }
-                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                                            required={question.required}
+                                              "No"
+                                                ? "text-red-600"
+                                                : "text-gray-400"
+                                            }`}
                                           />
-                                          <span className="ml-2 text-sm text-gray-700">
-                                            {option}
+                                          <span className="text-sm font-medium">
+                                            No
                                           </span>
-                                        </label>
-                                      )
-                                    )}
-                                  </div>
-                                ) : question.questionType === "MULTI_SELECT" ? (
-                                  <div className="mt-2 space-y-2">
-                                    {question.options?.map(
-                                      (option: string, optionIndex: number) => {
-                                        const currentAnswers = screeningAnswers[
-                                          question._id
-                                        ]
-                                          ? screeningAnswers[question._id]
-                                              .split(",")
-                                              .map((a: string) => a.trim())
-                                          : [];
-                                        return (
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : question.questionType === "NUMERIC" ? (
+                                    <input
+                                      type="number"
+                                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                      value={
+                                        screeningAnswers[question._id] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleAnswerChange(
+                                          question._id,
+                                          e.target.value
+                                        )
+                                      }
+                                      required={question.required}
+                                      placeholder="Enter a number"
+                                    />
+                                  ) : question.questionType === "MCQ" ? (
+                                    <div className="mt-2 space-y-2">
+                                      {question.options?.map(
+                                        (
+                                          option: string,
+                                          optionIndex: number
+                                        ) => (
                                           <label
                                             key={optionIndex}
                                             className="flex items-center"
                                           >
                                             <input
-                                              type="checkbox"
+                                              type="radio"
+                                              name={`question_${question._id}`}
                                               value={option}
-                                              checked={currentAnswers.includes(
-                                                option
-                                              )}
-                                              onChange={(e) => {
-                                                const isChecked =
-                                                  e.target.checked;
-                                                let newAnswers;
-                                                if (isChecked) {
-                                                  newAnswers = [
-                                                    ...currentAnswers,
-                                                    option,
-                                                  ];
-                                                } else {
-                                                  newAnswers =
-                                                    currentAnswers.filter(
-                                                      (a: string) =>
-                                                        a !== option
-                                                    );
-                                                }
+                                              checked={
+                                                screeningAnswers[
+                                                  question._id
+                                                ] === option
+                                              }
+                                              onChange={(e) =>
                                                 handleAnswerChange(
                                                   question._id,
-                                                  newAnswers.join(", ")
-                                                );
-                                              }}
-                                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                                  e.target.value
+                                                )
+                                              }
+                                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                                              required={question.required}
                                             />
                                             <span className="ml-2 text-sm text-gray-700">
                                               {option}
                                             </span>
                                           </label>
-                                        );
+                                        )
+                                      )}
+                                    </div>
+                                  ) : question.questionType ===
+                                    "MULTI_SELECT" ? (
+                                    <div className="mt-2 space-y-2">
+                                      {question.options?.map(
+                                        (
+                                          option: string,
+                                          optionIndex: number
+                                        ) => {
+                                          const currentAnswers =
+                                            screeningAnswers[question._id]
+                                              ? screeningAnswers[question._id]
+                                                  .split(",")
+                                                  .map((a: string) => a.trim())
+                                              : [];
+                                          return (
+                                            <label
+                                              key={optionIndex}
+                                              className="flex items-center"
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                value={option}
+                                                checked={currentAnswers.includes(
+                                                  option
+                                                )}
+                                                onChange={(e) => {
+                                                  const isChecked =
+                                                    e.target.checked;
+                                                  let newAnswers;
+                                                  if (isChecked) {
+                                                    newAnswers = [
+                                                      ...currentAnswers,
+                                                      option,
+                                                    ];
+                                                  } else {
+                                                    newAnswers =
+                                                      currentAnswers.filter(
+                                                        (a: string) =>
+                                                          a !== option
+                                                      );
+                                                  }
+                                                  handleAnswerChange(
+                                                    question._id,
+                                                    newAnswers.join(", ")
+                                                  );
+                                                }}
+                                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                              />
+                                              <span className="ml-2 text-sm text-gray-700">
+                                                {option}
+                                              </span>
+                                            </label>
+                                          );
+                                        }
+                                      )}
+                                    </div>
+                                  ) : (
+                                    // Default to TEXT type
+                                    <textarea
+                                      rows={3}
+                                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                      value={
+                                        screeningAnswers[question._id] || ""
                                       }
-                                    )}
-                                  </div>
-                                ) : (
-                                  // Default to TEXT type
-                                  <textarea
-                                    rows={3}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    value={screeningAnswers[question._id] || ""}
-                                    onChange={(e) =>
-                                      handleAnswerChange(
-                                        question._id,
-                                        e.target.value
-                                      )
-                                    }
-                                    required={question.required}
-                                    placeholder="Enter your answer"
-                                  />
-                                )}
-                              </div>
-                            ))}
+                                      onChange={(e) =>
+                                        handleAnswerChange(
+                                          question._id,
+                                          e.target.value
+                                        )
+                                      }
+                                      required={question.required}
+                                      placeholder="Enter your answer"
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-
-                    {/* Candidate Consent Checkbox */}
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                      <div className="flex items-start">
-                        <input
-                          type="checkbox"
-                          id="candidateConsent"
-                          checked={candidateConsent}
-                          onChange={(e) =>
-                            setCandidateConsent(e.target.checked)
-                          }
-                          className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                          required
-                        />
-                        <label
-                          htmlFor="candidateConsent"
-                          className="ml-3 text-sm text-gray-700"
-                        >
-                          <span className="font-medium text-blue-800">
-                            Candidate Consent Declaration:
-                          </span>
-                          <br />I confirm that I have spoken to the candidate,
-                          who is ready for this opportunity and has consented to
-                          share his/her resume.
-                          <span className="text-red-500"> *</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <div className="mt-6">
-                      <button
-                        type="submit"
-                        className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          isUploading || !candidateConsent || (job?.status as string) === "PAUSED"
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                        disabled={isUploading || !candidateConsent || (job?.status as string) === "PAUSED"}
-                      >
-                        {isUploading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <FileUp className="mr-2 h-4 w-4" />
-                            Submit Resume
-                          </>
                         )}
-                      </button>
-                      {!candidateConsent && (
-                        <p className="mt-2 text-sm text-red-600">
-                          Please confirm candidate consent before submitting the
-                          resume.
-                        </p>
-                      )}
-                      {(job?.status as string) === "PAUSED" && (
-                        <p className="mt-2 text-sm text-red-600">
-                          This job is currently paused and not accepting new applications.
-                        </p>
-                      )}
-                    </div>
-                  </form>
+
+                      {/* Candidate Consent Checkbox */}
+                      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                        <div className="flex items-start">
+                          <input
+                            type="checkbox"
+                            id="candidateConsent"
+                            checked={candidateConsent}
+                            onChange={(e) =>
+                              setCandidateConsent(e.target.checked)
+                            }
+                            className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                            required
+                          />
+                          <label
+                            htmlFor="candidateConsent"
+                            className="ml-3 text-sm text-gray-700"
+                          >
+                            <span className="font-medium text-blue-800">
+                              Candidate Consent Declaration:
+                            </span>
+                            <br />I confirm that I have spoken to the candidate,
+                            who is ready for this opportunity and has consented
+                            to share his/her resume.
+                            <span className="text-red-500"> *</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Submit Button */}
+                      <div className="mt-6">
+                        <button
+                          type="submit"
+                          className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                            isUploading ||
+                            !candidateConsent ||
+                            (job?.status as string) === "PAUSED"
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                          disabled={
+                            isUploading ||
+                            !candidateConsent ||
+                            (job?.status as string) === "PAUSED"
+                          }
+                        >
+                          {isUploading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <FileUp className="mr-2 h-4 w-4" />
+                              Submit Resume
+                            </>
+                          )}
+                        </button>
+                        {!candidateConsent && (
+                          <p className="mt-2 text-sm text-red-600">
+                            Please confirm candidate consent before submitting
+                            the resume.
+                          </p>
+                        )}
+                        {(job?.status as string) === "PAUSED" && (
+                          <p className="mt-2 text-sm text-red-600">
+                            This job is currently paused and not accepting new
+                            applications.
+                          </p>
+                        )}
+                      </div>
+                    </form>
+                  </div>
                 </div>
-              </div>
               )
             ) : (
               <div className="flex justify-center items-center h-64">

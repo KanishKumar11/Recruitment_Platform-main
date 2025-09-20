@@ -23,15 +23,15 @@ async function hasAccessToJob(
   if (!job) return false;
 
   // Admin and internal users have access to all jobs
-  if (
-    userData.role === UserRole.ADMIN ||
-    userData.role === UserRole.INTERNAL
-  ) {
+  if (userData.role === UserRole.ADMIN || userData.role === UserRole.INTERNAL) {
     return true;
   }
 
   // Recruiters can view updates for active and paused jobs
-  if (userData.role === UserRole.RECRUITER && (job.status === "ACTIVE" || job.status === "PAUSED")) {
+  if (
+    userData.role === UserRole.RECRUITER &&
+    (job.status === "ACTIVE" || job.status === "PAUSED")
+  ) {
     return true;
   }
 
@@ -44,14 +44,14 @@ async function hasAccessToJob(
   if (userData.role === UserRole.COMPANY) {
     // Get the current user to check isPrimary status
     const currentUser = await User.findById(userData.userId);
-    
+
     if (currentUser?.isPrimary) {
       // Check if the job was posted by a team member
       const teamMember = await User.findOne({
         _id: job.postedBy,
-        parentId: userData.userId
+        parentId: userData.userId,
       });
-      
+
       if (teamMember) {
         return true;
       }
@@ -63,11 +63,9 @@ async function hasAccessToJob(
 
 // Helper function to check if user can post updates
 function canPostUpdates(userData: JwtPayload): boolean {
-  return [
-    UserRole.ADMIN,
-    UserRole.INTERNAL,
-    UserRole.COMPANY,
-  ].includes(userData.role);
+  return [UserRole.ADMIN, UserRole.INTERNAL, UserRole.COMPANY].includes(
+    userData.role
+  );
 }
 
 // GET - Fetch job updates
@@ -145,7 +143,7 @@ export async function POST(
       return NextResponse.json(
         { error: "You don't have permission to post job updates" },
         { status: 403 }
-      )
+      );
     }
 
     // Check if user has access to this job
@@ -157,10 +155,7 @@ export async function POST(
     // Verify job exists
     const job = await Job.findById(id);
     if (!job) {
-      return NextResponse.json(
-        { error: "Job not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
     // Parse request body
@@ -194,12 +189,9 @@ export async function POST(
     }
 
     // Get user details
-    const user = await User.findById(userData.userId).select('name role');
+    const user = await User.findById(userData.userId).select("name role");
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Create job update
@@ -223,7 +215,10 @@ export async function POST(
         user.name
       );
     } catch (notificationError) {
-      console.error('Failed to send job update notifications:', notificationError);
+      console.error(
+        "Failed to send job update notifications:",
+        notificationError
+      );
       // Continue with the response even if notification fails
     }
 

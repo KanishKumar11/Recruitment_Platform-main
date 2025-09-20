@@ -1,7 +1,7 @@
 // src/app/store/services/adminApi.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '../index';
-import { IUser, UserRole } from '../../models/User';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { RootState } from "../index";
+import { IUser, UserRole } from "../../models/User";
 
 interface UsersResponse {
   users: IUser[];
@@ -18,8 +18,8 @@ interface StatsResponse {
     users: {
       total: number;
       byRole: {
-        company: number;         // This now represents total company users
-        companyPrimary: number;  // This new field will represent actual company count (primary accounts only)
+        company: number; // This now represents total company users
+        companyPrimary: number; // This new field will represent actual company count (primary accounts only)
         recruiter: number;
         internal: number;
         admin: number;
@@ -49,27 +49,30 @@ interface UserStatusResponse {
 }
 
 export const adminApi = createApi({
-  reducerPath: 'adminApi',
+  reducerPath: "adminApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: '/api/admin',
+    baseUrl: "/api/admin",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {
-        headers.set('authorization', `Bearer ${token}`);
+        headers.set("authorization", `Bearer ${token}`);
       }
       return headers;
     },
   }),
-  tagTypes: ['AdminUsers', 'AdminStats', 'EmailSettings'],
+  tagTypes: ["AdminUsers", "AdminStats", "EmailSettings"],
   endpoints: (builder) => ({
-    getUsers: builder.query<UsersResponse, { 
-      role?: UserRole; 
-      page?: number; 
-      limit?: number; 
-      isPrimary?: boolean;
-      isActive?: boolean;
-      search?: string; // Add search parameter
-    }>({
+    getUsers: builder.query<
+      UsersResponse,
+      {
+        role?: UserRole;
+        page?: number;
+        limit?: number;
+        isPrimary?: boolean;
+        isActive?: boolean;
+        search?: string; // Add search parameter
+      }
+    >({
       query: ({ role, page = 1, limit = 10, isPrimary, isActive, search }) => {
         let queryString = `/users?page=${page}&limit=${limit}`;
         if (role) {
@@ -86,14 +89,17 @@ export const adminApi = createApi({
         }
         return queryString;
       },
-      providesTags: ['AdminUsers'],
+      providesTags: ["AdminUsers"],
     }),
-    exportUsers: builder.query<{ users: IUser[]; total: number }, { 
-      role?: UserRole; 
-      isPrimary?: boolean;
-      isActive?: boolean;
-      search?: string;
-    }>({
+    exportUsers: builder.query<
+      { users: IUser[]; total: number },
+      {
+        role?: UserRole;
+        isPrimary?: boolean;
+        isActive?: boolean;
+        search?: string;
+      }
+    >({
       query: ({ role, isPrimary, isActive, search }) => {
         let queryString = `/users?export=true`;
         if (role) {
@@ -113,64 +119,79 @@ export const adminApi = createApi({
     }),
     getUserById: builder.query<IUser, string>({
       query: (id) => `/users/${id}`,
-      providesTags: (_result, _error, id) => [{ type: 'AdminUsers', id }],
+      providesTags: (_result, _error, id) => [{ type: "AdminUsers", id }],
     }),
-    createInternalUser: builder.mutation<{ success: boolean; user: IUser }, CreateUserRequest>({
+    createInternalUser: builder.mutation<
+      { success: boolean; user: IUser },
+      CreateUserRequest
+    >({
       query: (userData) => ({
-        url: '/users',
-        method: 'POST',
+        url: "/users",
+        method: "POST",
         body: userData,
       }),
-      invalidatesTags: ['AdminUsers', 'AdminStats'],
+      invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
-    updateUser: builder.mutation<IUser, { id: string; userData: Partial<IUser> }>({
+    updateUser: builder.mutation<
+      IUser,
+      { id: string; userData: Partial<IUser> }
+    >({
       query: ({ id, userData }) => ({
         url: `/users/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: userData,
       }),
-      invalidatesTags: ['AdminUsers', 'AdminStats'],
+      invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
     deleteUser: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({
         url: `/users/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['AdminUsers', 'AdminStats'],
+      invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
     // New endpoint for admin to change user password
-    changeUserPassword: builder.mutation<{ success: boolean; message: string }, { id: string; newPassword: string }>({      
+    changeUserPassword: builder.mutation<
+      { success: boolean; message: string },
+      { id: string; newPassword: string }
+    >({
       query: ({ id, newPassword }) => ({
         url: `/users/${id}/change-password`,
-        method: 'PUT',
+        method: "PUT",
         body: { newPassword },
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     // New endpoint for activating/deactivating users
-    toggleUserStatus: builder.mutation<UserStatusResponse, { id: string; isActive: boolean }>({
+    toggleUserStatus: builder.mutation<
+      UserStatusResponse,
+      { id: string; isActive: boolean }
+    >({
       query: ({ id, isActive }) => ({
         url: `/users/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: { isActive },
       }),
-      invalidatesTags: ['AdminUsers', 'AdminStats'],
+      invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
     getAdminStats: builder.query<StatsResponse, void>({
-      query: () => '/stats',
-      providesTags: ['AdminStats'],
+      query: () => "/stats",
+      providesTags: ["AdminStats"],
     }),
     getEmailSettings: builder.query<{ settings: Record<string, any> }, void>({
-      query: () => '/email-settings',
-      providesTags: ['EmailSettings'],
+      query: () => "/email-settings",
+      providesTags: ["EmailSettings"],
     }),
-    updateEmailSettings: builder.mutation<{ settings: Record<string, any>; message: string }, { settings: Record<string, any> }>({
+    updateEmailSettings: builder.mutation<
+      { settings: Record<string, any>; message: string },
+      { settings: Record<string, any> }
+    >({
       query: ({ settings }) => ({
-        url: '/email-settings',
-        method: 'PUT',
+        url: "/email-settings",
+        method: "PUT",
         body: { settings },
       }),
-      invalidatesTags: ['EmailSettings'],
+      invalidatesTags: ["EmailSettings"],
     }),
   }),
 });

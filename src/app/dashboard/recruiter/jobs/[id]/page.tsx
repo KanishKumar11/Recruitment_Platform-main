@@ -29,7 +29,7 @@ export default function RecruiterJobDetailsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params?.id as string;
-  const fromTab = searchParams.get('from') || 'saved';
+  const fromTab = searchParams.get("from") || "saved";
 
   // const { user } = useSelector((state: RootState) => state.auth);
   const { data: job, isLoading } = useGetJobByIdQuery(id);
@@ -157,14 +157,20 @@ export default function RecruiterJobDetailsPage() {
                           </p>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            job.status === "ACTIVE" 
-                              ? "bg-green-100 text-green-800" 
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                              job.status === "ACTIVE"
+                                ? "bg-green-100 text-green-800"
+                                : job.status === "PAUSED"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {job.status === "ACTIVE"
+                              ? "Active"
                               : job.status === "PAUSED"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}>
-                            {job.status === "ACTIVE" ? "Active" : job.status === "PAUSED" ? "Paused" : job.status}
+                              ? "Paused"
+                              : job.status}
                           </span>
                           <button
                             onClick={() =>
@@ -206,7 +212,9 @@ export default function RecruiterJobDetailsPage() {
                             }`}
                           >
                             <FileText className="mr-2 h-4 w-4" />
-                            {job.status === "PAUSED" ? "Job Paused" : "Upload Resume"}
+                            {job.status === "PAUSED"
+                              ? "Job Paused"
+                              : "Upload Resume"}
                           </button>
                         </div>
                       </div>
