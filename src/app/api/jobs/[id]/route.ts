@@ -67,8 +67,8 @@ async function hasAccessToJob(
     return true;
   }
 
-  // Recruiters can access active jobs
-  if (userData.role === UserRole.RECRUITER && job.status === "ACTIVE") {
+  // Recruiters can access active and paused jobs (but upload will be disabled for paused jobs)
+  if (userData.role === UserRole.RECRUITER && (job.status === "ACTIVE" || job.status === "PAUSED")) {
     return true;
   }
 

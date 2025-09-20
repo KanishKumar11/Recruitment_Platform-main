@@ -88,6 +88,29 @@ export const adminApi = createApi({
       },
       providesTags: ['AdminUsers'],
     }),
+    exportUsers: builder.query<{ users: IUser[]; total: number }, { 
+      role?: UserRole; 
+      isPrimary?: boolean;
+      isActive?: boolean;
+      search?: string;
+    }>({
+      query: ({ role, isPrimary, isActive, search }) => {
+        let queryString = `/users?export=true`;
+        if (role) {
+          queryString += `&role=${role}`;
+        }
+        if (isPrimary !== undefined) {
+          queryString += `&isPrimary=${isPrimary}`;
+        }
+        if (isActive !== undefined) {
+          queryString += `&isActive=${isActive}`;
+        }
+        if (search) {
+          queryString += `&search=${encodeURIComponent(search)}`;
+        }
+        return queryString;
+      },
+    }),
     getUserById: builder.query<IUser, string>({
       query: (id) => `/users/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'AdminUsers', id }],
@@ -160,6 +183,7 @@ export const {
   useDeleteUserMutation,
   useChangeUserPasswordMutation, // New hook for password change
   useToggleUserStatusMutation, // New hook for activate/deactivate
+  useLazyExportUsersQuery,
   useGetAdminStatsQuery,
   useGetEmailSettingsQuery,
   useUpdateEmailSettingsMutation,

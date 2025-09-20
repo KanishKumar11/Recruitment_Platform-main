@@ -30,8 +30,8 @@ async function hasAccessToJob(
     return true;
   }
 
-  // Recruiters can view updates for active jobs
-  if (userData.role === UserRole.RECRUITER && job.status === "ACTIVE") {
+  // Recruiters can view updates for active and paused jobs
+  if (userData.role === UserRole.RECRUITER && (job.status === "ACTIVE" || job.status === "PAUSED")) {
     return true;
   }
 

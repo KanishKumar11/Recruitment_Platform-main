@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
     const search = url.searchParams.get('search');
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '10');
+    const isExport = url.searchParams.get('export') === 'true';
     const skip = (page - 1) * limit;
 
     // Build query
@@ -55,12 +56,23 @@ export async function GET(req: NextRequest) {
     // Count total users matching query
     const total = await User.countDocuments(query);
     
-    // Fetch users with pagination
-    const users = await User.find(query)
+    // Fetch users - skip pagination for export
+    const queryBuilder = User.find(query)
       .select('-password')
-      .skip(skip)
-      .limit(limit)
       .sort({ createdAt: -1 });
+    
+    if (!isExport) {
+      queryBuilder.skip(skip).limit(limit);
+    }
+    
+    const users = await queryBuilder;
+
+    if (isExport) {
+      return NextResponse.json({
+        users,
+        total
+      });
+    }
 
     return NextResponse.json({
       users,

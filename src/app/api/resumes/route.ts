@@ -113,6 +113,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
+    // Check if job is active (prevent uploads to paused/closed jobs)
+    if (job.status !== "ACTIVE") {
+      return NextResponse.json(
+        { error: "Cannot upload resume to a paused or closed job" },
+        { status: 400 }
+      );
+    }
+
     // Parse screening question answers
     const screeningAnswers = [];
     for (const [key, value] of formData.entries()) {

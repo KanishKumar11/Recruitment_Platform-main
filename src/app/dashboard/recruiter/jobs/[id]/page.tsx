@@ -17,7 +17,7 @@ import {
   FileText,
 } from "lucide-react";
 import { format } from "date-fns";
-import { IJob } from "@/app/models/Job";
+import { IJob, JobStatus } from "@/app/models/Job";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 import JobUpdatesModal from "@/components/JobUpdatesModal";
 import { MessageSquare } from "lucide-react";
@@ -157,8 +157,14 @@ export default function RecruiterJobDetailsPage() {
                           </p>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                            Active
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                            job.status === "ACTIVE" 
+                              ? "bg-green-100 text-green-800" 
+                              : job.status === "PAUSED"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}>
+                            {job.status === "ACTIVE" ? "Active" : job.status === "PAUSED" ? "Paused" : job.status}
                           </span>
                           <button
                             onClick={() =>
@@ -192,10 +198,15 @@ export default function RecruiterJobDetailsPage() {
                                 `/dashboard/recruiter/jobs/${params.id}/apply?from=${fromTab}`
                               )
                             }
-                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            disabled={job.status === "PAUSED"}
+                            className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                              job.status === "PAUSED"
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            }`}
                           >
                             <FileText className="mr-2 h-4 w-4" />
-                            Upload Resume
+                            {job.status === "PAUSED" ? "Job Paused" : "Upload Resume"}
                           </button>
                         </div>
                       </div>

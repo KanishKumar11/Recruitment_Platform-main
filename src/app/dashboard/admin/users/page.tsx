@@ -15,6 +15,7 @@ import {
   useDeleteUserMutation,
   useToggleUserStatusMutation,
   useChangeUserPasswordMutation,
+  useLazyExportUsersQuery,
 } from "../../../store/services/adminApi";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { UserRole } from "@/app/constants/userRoles";
@@ -57,6 +58,9 @@ function AdminUsersContent() {
     limit: filters.limit,
     search: filters.search || undefined,
   });
+
+  // Lazy query for export
+  const [triggerExport, exportResult] = useLazyExportUsersQuery();
 
   // Delete user mutation
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
@@ -216,50 +220,68 @@ function AdminUsersContent() {
     return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
   };
 
-  // Function to export filtered users to CSV
-  const exportFilteredUsersToCSV = () => {
-    if (!data?.users || data.users.length === 0) {
-      toast.error("No users to export");
-      return;
+    // Function to export filtered users to CSV
+  const exportFilteredUsersToCSV = async () => {
+    try {
+      toast.loading("Preparing export...");
+      
+      const exportData = await triggerExport({
+        role: filters.role,
+        isPrimary: filters.isPrimary,
+        isActive: filters.isActive,
+        search: filters.search || undefined,
+      }).unwrap();
+
+      if (!exportData?.users || exportData.users.length === 0) {
+        toast.error("No users to export");
+        return;
+      }
+
+      const csvHeaders = [
+        "Name",
+        "Email",
+        "Mobile",
+        "Role",
+        "Account Type",
+        "Status",
+        "Created At",
+      ];
+
+      const csvData = exportData.users.map((user) => [
+        user.name || "",
+        user.email || "",
+        user.phone || "",
+        user.role || "",
+        user.isPrimary ? "Primary" : "Secondary",
+        user.isActive ? "Active" : "Inactive",
+        user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "",
+      ]);
+
+      const csvContent = [
+        csvHeaders.join(","),
+        ...csvData.map((row) => row.map((field) => `"${field}"`).join(",")),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `filtered_users_${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(`Exported ${exportData.users.length} users to CSV`);
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export users");
+    } finally {
+      toast.dismiss();
     }
-
-    const csvHeaders = [
-      "Name",
-      "Email",
-      "Role",
-      "Account Type",
-      "Status",
-      "Created At",
-    ];
-
-    const csvData = data.users.map((user) => [
-      user.name || "",
-      user.email || "",
-      user.role || "",
-      user.isPrimary ? "Primary" : "Secondary",
-      user.isActive ? "Active" : "Inactive",
-      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "",
-    ]);
-
-    const csvContent = [
-      csvHeaders.join(","),
-      ...csvData.map((row) => row.map((field) => `"${field}"`).join(",")),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `filtered_users_${new Date().toISOString().split("T")[0]}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast.success(`Exported ${data.users.length} users to CSV`);
   };
 
   const renderPagination = () => {

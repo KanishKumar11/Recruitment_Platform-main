@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { JobStatus } from "@/app/models/Job";
 import {
   PHONE_COUNTRY_CODES,
   UNIQUE_COUNTRIES,
@@ -512,6 +513,41 @@ export default function RecruiterJobApplyPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
               </div>
             ) : job ? (
+              (job.status as string) === "PAUSED" ? (
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <div className="rounded-md bg-yellow-50 p-4">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-yellow-800">
+                            Job is currently paused
+                          </h3>
+                          <div className="mt-2 text-sm text-yellow-700">
+                            <p>
+                              This job posting is currently paused and not accepting new applications.
+                              Please check back later or contact the job poster for more information.
+                            </p>
+                          </div>
+                          <div className="mt-4">
+                            <button
+                              onClick={() =>
+                                router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`)
+                              }
+                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                            >
+                              <ArrowLeft className="mr-2 h-4 w-4" />
+                              Back to Job Details
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -1268,11 +1304,11 @@ export default function RecruiterJobApplyPage() {
                       <button
                         type="submit"
                         className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          isUploading || !candidateConsent || job?.status === 'PAUSED'
+                          isUploading || !candidateConsent || (job?.status as string) === "PAUSED"
                             ? "opacity-50 cursor-not-allowed"
                             : ""
                         }`}
-                        disabled={isUploading || !candidateConsent || job?.status === 'PAUSED'}
+                        disabled={isUploading || !candidateConsent || (job?.status as string) === "PAUSED"}
                       >
                         {isUploading ? (
                           <>
@@ -1292,7 +1328,7 @@ export default function RecruiterJobApplyPage() {
                           resume.
                         </p>
                       )}
-                      {job?.status === 'PAUSED' && (
+                      {(job?.status as string) === "PAUSED" && (
                         <p className="mt-2 text-sm text-red-600">
                           This job is currently paused and not accepting new applications.
                         </p>
@@ -1301,6 +1337,7 @@ export default function RecruiterJobApplyPage() {
                   </form>
                 </div>
               </div>
+              )
             ) : (
               <div className="flex justify-center items-center h-64">
                 <AlertCircle className="h-8 w-8 text-red-500" />
