@@ -341,7 +341,7 @@ export const shouldSendNotification = async (
 
     // Get configurable frequency (applications per job threshold)
     const frequency = await getJobNotificationFrequency();
-    
+
     // Find jobs posted today that have reached the application threshold
     const jobsToNotify = await Job.find({
       status: "ACTIVE",
@@ -377,7 +377,7 @@ export const shouldSendEndOfDayNotification = async (
     // Check if notifications and end-of-day notifications are enabled
     const notificationsEnabled = await areNotificationsEnabled();
     const endOfDayEnabled = await areEndOfDayNotificationsEnabled();
-    
+
     if (!notificationsEnabled || !endOfDayEnabled) {
       return { shouldSend: false, jobCount: 0, jobIds: [] };
     }
@@ -456,7 +456,7 @@ export const shouldSendGlobalNotification = async (): Promise<{
 
     // Get configurable frequency (applications per job threshold)
     const frequency = await getJobNotificationFrequency();
-    
+
     // Find jobs that have reached the application threshold and haven't been notified today
     const jobsToNotify = await Job.find({
       status: "ACTIVE",
@@ -580,7 +580,10 @@ export const sendEndOfDayNotificationEmail = async (
     console.log(`End-of-day notification sent to ${recipientEmail}`);
     return true;
   } catch (error) {
-    console.error(`Failed to send end-of-day notification to ${recipientEmail}:`, error);
+    console.error(
+      `Failed to send end-of-day notification to ${recipientEmail}:`,
+      error
+    );
     return false;
   }
 };
@@ -597,10 +600,13 @@ const getEndOfDayNotificationTemplate = (
   }>
 ) => {
   const jobCount = jobs.length;
-  const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com";
+  const dashboardUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com";
 
   return {
-    subject: `Daily Job Summary - ${jobCount} New Job${jobCount > 1 ? 's' : ''} Available`,
+    subject: `Daily Job Summary - ${jobCount} New Job${
+      jobCount > 1 ? "s" : ""
+    } Available`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -645,20 +651,28 @@ const getEndOfDayNotificationTemplate = (
               Hello ${recruiterName}! 👋
             </div>
             <div class="job-summary">
-              <p><strong>📊 Today's Summary:</strong> ${jobCount} new job${jobCount > 1 ? 's have' : ' has'} been posted today that you might be interested in.</p>
+              <p><strong>📊 Today's Summary:</strong> ${jobCount} new job${
+      jobCount > 1 ? "s have" : " has"
+    } been posted today that you might be interested in.</p>
             </div>
             <div class="jobs-list">
-              ${jobs.map(job => `
+              ${jobs
+                .map(
+                  (job) => `
                 <div class="job-item">
                   <div class="job-title">${job.title}</div>
                   <div class="job-details">🏢 ${job.company}</div>
                   <div class="job-details">📍 ${job.location}</div>
                   <div class="job-meta">
                     <span class="job-type">${job.type}</span>
-                    <span class="posted-time">Posted: ${new Date(job.postedAt).toLocaleDateString()}</span>
+                    <span class="posted-time">Posted: ${new Date(
+                      job.postedAt
+                    ).toLocaleDateString()}</span>
                   </div>
                 </div>
-              `).join('')}
+              `
+                )
+                .join("")}
             </div>
             <div class="cta-section">
               <a href="${dashboardUrl}/dashboard/recruiter" class="cta-button">
@@ -690,15 +704,19 @@ const getEndOfDayNotificationTemplate = (
       
       DAILY JOB SUMMARY
       
-      ${jobCount} new job${jobCount > 1 ? 's have' : ' has'} been posted today:
+      ${jobCount} new job${jobCount > 1 ? "s have" : " has"} been posted today:
       
-      ${jobs.map(job => `
+      ${jobs
+        .map(
+          (job) => `
       • ${job.title}
         Company: ${job.company}
         Location: ${job.location}
         Type: ${job.type}
         Posted: ${new Date(job.postedAt).toLocaleDateString()}
-      `).join('\n')}
+      `
+        )
+        .join("\n")}
       
       HOW TO GET STARTED:
       1. Log in to your account using your username and password
@@ -713,7 +731,7 @@ const getEndOfDayNotificationTemplate = (
       Please do not reply to this email.
       
       © ${new Date().getFullYear()} SourcingScreen. All rights reserved.
-    `
+    `,
   };
 };
 

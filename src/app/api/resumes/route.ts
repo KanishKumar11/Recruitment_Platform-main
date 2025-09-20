@@ -9,7 +9,10 @@ import Job from "./../../models/Job";
 import RecruiterJob from "./../../models/RecruiterJob";
 import { authenticateRequest, unauthorized } from "./../../lib/auth";
 import { UserRole } from "./../../models/User";
-import { validateResumeFile, validateAdditionalDocument } from "./../../lib/fileValidation";
+import {
+  validateResumeFile,
+  validateAdditionalDocument,
+} from "./../../lib/fileValidation";
 import { shouldSendGlobalNotification } from "./../../lib/recruiterEmailService";
 import { addBulkEmailNotificationJob } from "./../../lib/backgroundJobProcessor";
 
@@ -53,9 +56,9 @@ export async function POST(req: NextRequest) {
     const resumeValidation = validateResumeFile(resumeFile);
     if (!resumeValidation.isValid) {
       return NextResponse.json(
-        { 
+        {
           error: resumeValidation.error,
-          currentSize: resumeValidation.fileSize
+          currentSize: resumeValidation.fileSize,
         },
         { status: 400 }
       );
@@ -71,9 +74,9 @@ export async function POST(req: NextRequest) {
         const docValidation = validateAdditionalDocument(file);
         if (!docValidation.isValid) {
           return NextResponse.json(
-            { 
+            {
               error: `Additional document "${file.name}": ${docValidation.error}`,
-              currentSize: docValidation.fileSize
+              currentSize: docValidation.fileSize,
             },
             { status: 400 }
           );
@@ -192,8 +195,13 @@ export async function POST(req: NextRequest) {
     try {
       const globalCheck = await shouldSendGlobalNotification();
       if (globalCheck.shouldSend) {
-        await addBulkEmailNotificationJob(globalCheck.jobIds, globalCheck.jobCount);
-        console.log(`Triggered bulk email notification for ${globalCheck.jobCount} jobs`);
+        await addBulkEmailNotificationJob(
+          globalCheck.jobIds,
+          globalCheck.jobCount
+        );
+        console.log(
+          `Triggered bulk email notification for ${globalCheck.jobCount} jobs`
+        );
       }
     } catch (error) {
       console.error("Error checking/triggering email notifications:", error);
