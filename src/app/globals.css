@@ -285,6 +285,7 @@
 }
 
 @layer base {
+
   /* * {
     @apply border-border;
   } */
@@ -338,6 +339,7 @@ body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
 }
+
 /* Compact Resume Modal Styles */
 .resume-modal-compact {
   font-size: 0.875rem;
@@ -503,6 +505,7 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

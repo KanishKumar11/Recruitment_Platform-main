@@ -339,9 +339,13 @@ export const shouldSendNotification = async (
       return { shouldSend: false, jobCount: 0, jobIds: [] };
     }
 
-    // Count active jobs posted today
-    const todaysJobs = await Job.find({
+    // Get configurable frequency (applications per job threshold)
+    const frequency = await getJobNotificationFrequency();
+    
+    // Find jobs posted today that have reached the application threshold
+    const jobsToNotify = await Job.find({
       status: "ACTIVE",
+      applicantCount: { $gte: frequency },
       createdAt: {
         $gte: todayStart,
         $lt: tomorrowStart,
@@ -350,14 +354,11 @@ export const shouldSendNotification = async (
       .select("_id")
       .lean();
 
-    const jobCount = todaysJobs.length;
-    const jobIds = todaysJobs.map((job: any) => job._id.toString());
+    const jobCount = jobsToNotify.length;
+    const jobIds = jobsToNotify.map((job: any) => job._id.toString());
 
-    // Get configurable frequency
-    const frequency = await getJobNotificationFrequency();
-    
-    // Send notification based on configurable frequency
-    const shouldSend = jobCount > 0 && jobCount % frequency === 0;
+    // Send notification if there are jobs that reached the threshold
+    const shouldSend = jobCount > 0;
 
     return { shouldSend, jobCount, jobIds };
   } catch (error) {
@@ -453,9 +454,13 @@ export const shouldSendGlobalNotification = async (): Promise<{
       return { shouldSend: false, jobCount: 0, jobIds: [] };
     }
 
-    // Count active jobs posted today
-    const todaysJobs = await Job.find({
+    // Get configurable frequency (applications per job threshold)
+    const frequency = await getJobNotificationFrequency();
+    
+    // Find jobs that have reached the application threshold and haven't been notified today
+    const jobsToNotify = await Job.find({
       status: "ACTIVE",
+      applicantCount: { $gte: frequency },
       createdAt: {
         $gte: todayStart,
         $lt: tomorrowStart,
@@ -464,11 +469,11 @@ export const shouldSendGlobalNotification = async (): Promise<{
       .select("_id")
       .lean();
 
-    const jobCount = todaysJobs.length;
-    const jobIds = todaysJobs.map((job: any) => job._id.toString());
+    const jobCount = jobsToNotify.length;
+    const jobIds = jobsToNotify.map((job: any) => job._id.toString());
 
-    // Send notification every 5 jobs
-    const shouldSend = jobCount > 0 && jobCount % 5 === 0;
+    // Send notification if there are jobs that reached the threshold
+    const shouldSend = jobCount > 0;
 
     return { shouldSend, jobCount, jobIds };
   } catch (error) {

@@ -12,6 +12,7 @@ import {
   addEmailNotificationJob,
   getProcessorStatus,
   processJobsNow,
+  backgroundJobProcessor,
 } from "@/app/lib/backgroundJobProcessor";
 import EmailNotification from "@/app/models/EmailNotification";
 import connectDb from "@/app/lib/db";
@@ -19,6 +20,9 @@ import connectDb from "@/app/lib/db";
 // GET - Check notification status and queue status
 export async function GET(request: NextRequest) {
   try {
+    // Start background processor if not already running
+    backgroundJobProcessor.start();
+
     // Authenticate request
     const authResult = authenticateRequest(request);
     if (!authResult) {
@@ -120,6 +124,9 @@ export async function GET(request: NextRequest) {
 // POST - Manually trigger email notifications
 export async function POST(request: NextRequest) {
   try {
+    // Start background processor if not already running
+    backgroundJobProcessor.start();
+
     // Authenticate request
     const authResult = authenticateRequest(request);
     if (!authResult) {

@@ -168,6 +168,7 @@ const JobSchema = new Schema<IJob>(
         ref: "ScreeningQuestion",
       },
     ],
+    applicantCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

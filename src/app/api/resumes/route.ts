@@ -10,6 +10,8 @@ import RecruiterJob from "./../../models/RecruiterJob";
 import { authenticateRequest, unauthorized } from "./../../lib/auth";
 import { UserRole } from "./../../models/User";
 import { validateResumeFile, validateAdditionalDocument } from "./../../lib/fileValidation";
+import { shouldSendGlobalNotification } from "./../../lib/recruiterEmailService";
+import { addBulkEmailNotificationJob } from "./../../lib/backgroundJobProcessor";
 
 export async function POST(req: NextRequest) {
   try {
@@ -182,6 +184,21 @@ export async function POST(req: NextRequest) {
     });
 
     await resume.save();
+
+    // Increment applicant count for the job
+    await Job.findByIdAndUpdate(jobId, { $inc: { applicantCount: 1 } });
+
+    // Check if bulk email notifications should be triggered
+    try {
+      const globalCheck = await shouldSendGlobalNotification();
+      if (globalCheck.shouldSend) {
+        await addBulkEmailNotificationJob(globalCheck.jobIds, globalCheck.jobCount);
+        console.log(`Triggered bulk email notification for ${globalCheck.jobCount} jobs`);
+      }
+    } catch (error) {
+      console.error("Error checking/triggering email notifications:", error);
+      // Don't fail the resume submission if notification check fails
+    }
 
     // Auto-add job to recruiter's saved jobs if not already saved
     if (userData.role === UserRole.RECRUITER) {

@@ -47,19 +47,27 @@ const EmailSettingsPage = () => {
     if (emailSettingsData?.settings) {
       setSettings({
         JOB_NOTIFICATION_FREQUENCY:
-          emailSettingsData.settings.JOB_NOTIFICATION_FREQUENCY || 5,
+          emailSettingsData.settings.job_notification_frequency || 5,
         END_OF_DAY_NOTIFICATIONS:
-          emailSettingsData.settings.END_OF_DAY_NOTIFICATIONS || false,
-        END_OF_DAY_TIME: emailSettingsData.settings.END_OF_DAY_TIME || "18:00",
+          emailSettingsData.settings.end_of_day_notifications || false,
+        END_OF_DAY_TIME: emailSettingsData.settings.end_of_day_time || "18:00",
         NOTIFICATION_ENABLED:
-          emailSettingsData.settings.NOTIFICATION_ENABLED !== false,
+          emailSettingsData.settings.email_notifications_enabled !== false,
       });
     }
   }, [emailSettingsData]);
 
   const handleSaveSettings = async () => {
     try {
-      await updateEmailSettings({ settings }).unwrap();
+      // Transform the settings keys to match API expectations
+      const transformedSettings = {
+        job_notification_frequency: settings.JOB_NOTIFICATION_FREQUENCY,
+        end_of_day_notifications: settings.END_OF_DAY_NOTIFICATIONS,
+        end_of_day_time: settings.END_OF_DAY_TIME,
+        email_notifications_enabled: settings.NOTIFICATION_ENABLED,
+      };
+
+      await updateEmailSettings({ settings: transformedSettings }).unwrap();
       toast.success("Email settings updated successfully!");
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to update email settings");
@@ -132,13 +140,13 @@ const EmailSettingsPage = () => {
             <CardTitle>Job Notification Frequency</CardTitle>
             <CardDescription>
               Configure how often recruiters receive email notifications about
-              new job posts
+              jobs that have reached application thresholds
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="frequency">
-                Send notification every X job posts
+                Send notification when jobs reach X applications
               </Label>
               <div className="flex items-center gap-2">
                 <Input
@@ -159,10 +167,10 @@ const EmailSettingsPage = () => {
                 <span className="text-sm text-muted-foreground">job posts</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Currently set to send notifications every{" "}
-                {settings.JOB_NOTIFICATION_FREQUENCY} job posts.
+                Currently set to send notifications when jobs reach{" "}
+                {settings.JOB_NOTIFICATION_FREQUENCY} applications.
                 {settings.JOB_NOTIFICATION_FREQUENCY === 1 &&
-                  " Recruiters will be notified for every single job post."}
+                  " Recruiters will be notified for every single application received."}
               </p>
             </div>
           </CardContent>
