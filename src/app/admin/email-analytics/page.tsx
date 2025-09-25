@@ -24,6 +24,7 @@ import {
 import { RootState } from "@/app/store/index";
 import { UserRole } from "@/app/constants/userRoles";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
+import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { useGetEmailAnalyticsQuery } from "@/app/store/services/emailNotificationsApi";
 
 interface EmailAnalytics {
@@ -145,180 +146,188 @@ export default function EmailAnalyticsPage() {
 
   return (
     <ProtectedLayout allowedRoles={["ADMIN"]}>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Email Analytics Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <Select value={selectedDays} onValueChange={handleDaysChange}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">Last 7 days</SelectItem>
-                <SelectItem value="30">Last 30 days</SelectItem>
-                <SelectItem value="90">Last 90 days</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={() => refetch()} variant="outline">
-              Refresh
-            </Button>
+      <DashboardLayout>
+        <div className="py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl font-bold">Email Analytics Dashboard</h1>
+              <div className="flex items-center gap-4">
+                <Select value={selectedDays} onValueChange={handleDaysChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Last 7 days</SelectItem>
+                    <SelectItem value="30">Last 30 days</SelectItem>
+                    <SelectItem value="90">Last 90 days</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => refetch()} variant="outline">
+                  Refresh
+                </Button>
+              </div>
+            </div>
+
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Total Emails
+                  </CardTitle>
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {overallStats.totalEmails}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {overallStats.totalRecipients} recipients
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Success Rate
+                  </CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {successRate}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {overallStats.sentEmails} sent successfully
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Usage Limit Emails
+                  </CardTitle>
+                  <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {overallStats.usageLimitEmails}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Triggered by job applications
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    EOD Emails
+                  </CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {overallStats.eodEmails}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    End-of-day summaries
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Email Type Success Rates */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Success Rate by Email Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {successRateByType.map((type, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div>
+                        <h3 className="font-medium">
+                          {type.type === "job_batch"
+                            ? "Usage Limit Emails"
+                            : "End-of-Day Emails"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {type.totalSent + type.totalFailed} total emails
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-green-600">
+                            {type.successRate.toFixed(1)}%
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {type.totalSent} sent, {type.totalFailed} failed
+                          </div>
+                        </div>
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-600 h-2 rounded-full"
+                            style={{ width: `${type.successRate}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Failures */}
+            {recentFailures.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    Recent Failures
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {recentFailures.map((failure) => (
+                      <div
+                        key={failure._id}
+                        className="flex items-center justify-between p-3 border border-red-200 rounded-lg bg-red-50"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="destructive">
+                              {failure.type === "job_batch"
+                                ? "Usage Limit"
+                                : "EOD"}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(failure.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="text-sm mt-1">
+                            {failure.recipientCount} recipients
+                          </p>
+                          {failure.errorMessage && (
+                            <p className="text-xs text-red-600 mt-1 font-mono">
+                              {failure.errorMessage}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
-
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Emails
-              </CardTitle>
-              <Mail className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {overallStats.totalEmails}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {overallStats.totalRecipients} recipients
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Success Rate
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {successRate}%
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {overallStats.sentEmails} sent successfully
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Usage Limit Emails
-              </CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {overallStats.usageLimitEmails}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Triggered by job applications
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">EOD Emails</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {overallStats.eodEmails}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                End-of-day summaries
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Email Type Success Rates */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Success Rate by Email Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {successRateByType.map((type, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <h3 className="font-medium">
-                      {type.type === "job_batch"
-                        ? "Usage Limit Emails"
-                        : "End-of-Day Emails"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {type.totalSent + type.totalFailed} total emails
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">
-                        {type.successRate.toFixed(1)}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {type.totalSent} sent, {type.totalFailed} failed
-                      </div>
-                    </div>
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${type.successRate}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Failures */}
-        {recentFailures.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-red-500" />
-                Recent Failures
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentFailures.map((failure) => (
-                  <div
-                    key={failure._id}
-                    className="flex items-center justify-between p-3 border border-red-200 rounded-lg bg-red-50"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="destructive">
-                          {failure.type === "job_batch" ? "Usage Limit" : "EOD"}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(failure.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-sm mt-1">
-                        {failure.recipientCount} recipients
-                      </p>
-                      {failure.errorMessage && (
-                        <p className="text-xs text-red-600 mt-1 font-mono">
-                          {failure.errorMessage}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      </DashboardLayout>
     </ProtectedLayout>
   );
 }
