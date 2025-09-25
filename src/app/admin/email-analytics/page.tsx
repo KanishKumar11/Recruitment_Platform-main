@@ -24,6 +24,7 @@ import {
 import { RootState } from "@/app/store/index";
 import { UserRole } from "@/app/constants/userRoles";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
+import { useGetEmailAnalyticsQuery } from "@/app/store/services/emailNotificationsApi";
 
 interface EmailAnalytics {
   dailyStats: Array<{
@@ -82,10 +83,15 @@ interface EmailAnalytics {
 export default function EmailAnalyticsPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
-  const [analytics, setAnalytics] = useState<EmailAnalytics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedDays, setSelectedDays] = useState("30");
+
+  // Use RTK Query for authenticated API calls
+  const {
+    data: analytics,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useGetEmailAnalyticsQuery({ days: selectedDays });
 
   // Redirect if not admin
   useEffect(() => {
@@ -94,30 +100,12 @@ export default function EmailAnalyticsPage() {
     }
   }, [user, router]);
 
-  const fetchAnalytics = async (days: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch(`/api/admin/email-analytics?days=${days}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch analytics");
-      }
-
-      const data = await response.json();
-      setAnalytics(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user?.role === UserRole.ADMIN) {
-      fetchAnalytics(selectedDays);
-    }
-  }, [user, selectedDays]);
+  // Convert RTK Query error to string
+  const error = queryError
+    ? "data" in queryError
+      ? (queryError.data as any)?.error || "Failed to fetch analytics"
+      : "Failed to fetch analytics"
+    : null;
 
   const handleDaysChange = (days: string) => {
     setSelectedDays(days);
@@ -140,9 +128,7 @@ export default function EmailAnalyticsPage() {
             Error Loading Analytics
           </h1>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => fetchAnalytics(selectedDays)}>
-            Try Again
-          </Button>
+          <Button onClick={() => refetch()}>Try Again</Button>
         </div>
       </div>
     );
@@ -173,10 +159,7 @@ export default function EmailAnalyticsPage() {
                 <SelectItem value="90">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
-            <Button
-              onClick={() => fetchAnalytics(selectedDays)}
-              variant="outline"
-            >
+            <Button onClick={() => refetch()} variant="outline">
               Refresh
             </Button>
           </div>
@@ -258,19 +241,19 @@ export default function EmailAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {successRateByType.map((type) => (
+              {successRateByType.map((type, index) => (
                 <div
-                  key={type._id}
+                  key={index}
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div>
                     <h3 className="font-medium">
-                      {type._id === "job_batch"
+                      {type.type === "job_batch"
                         ? "Usage Limit Emails"
                         : "End-of-Day Emails"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {type.total} total emails
+                      {type.totalSent + type.totalFailed} total emails
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
@@ -279,8 +262,7 @@ export default function EmailAnalyticsPage() {
                         {type.successRate.toFixed(1)}%
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {type.successful} sent, {type.failed} failed,{" "}
-                        {type.pending} pending
+                        {type.totalSent} sent, {type.totalFailed} failed
                       </div>
                     </div>
                     <div className="w-20 bg-gray-200 rounded-full h-2">
@@ -322,8 +304,7 @@ export default function EmailAnalyticsPage() {
                         </span>
                       </div>
                       <p className="text-sm mt-1">
-                        {failure.recipientCount} recipients •{" "}
-                        {failure.retryCount} retries
+                        {failure.recipientCount} recipients
                       </p>
                       {failure.errorMessage && (
                         <p className="text-xs text-red-600 mt-1 font-mono">

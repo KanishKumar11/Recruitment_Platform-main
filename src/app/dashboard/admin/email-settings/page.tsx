@@ -157,7 +157,7 @@ const EmailSettingsPage = () => {
           <CardHeader>
             <CardTitle>Job Notification Frequency</CardTitle>
             <CardDescription>
-              Configure the application threshold that triggers usage limit
+              Configure the job posting threshold that triggers usage limit
               emails.
               <strong> Important:</strong> If usage limit emails are sent on any
               day, End-of-Day emails will be automatically skipped to prevent
@@ -167,7 +167,7 @@ const EmailSettingsPage = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="frequency">
-                Send notification when jobs reach X applications
+                Send notification when X jobs are posted per day
               </Label>
               <div className="flex items-center gap-2">
                 <Input
@@ -189,13 +189,13 @@ const EmailSettingsPage = () => {
               </div>
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>Current Setting:</strong> Notifications sent when jobs
-                  reach <strong>{settings.JOB_NOTIFICATION_FREQUENCY}</strong>{" "}
-                  applications.
+                  <strong>Current Setting:</strong> Notifications sent when{" "}
+                  <strong>{settings.JOB_NOTIFICATION_FREQUENCY}</strong> jobs
+                  are posted per day.
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   {settings.JOB_NOTIFICATION_FREQUENCY === 1
-                    ? "⚠️ Recruiters will be notified for every single application (high frequency)."
+                    ? "⚠️ Recruiters will be notified for every single job posting (high frequency)."
                     : `Recruiters receive one email per day maximum - either usage limit OR end-of-day summary.`}
                 </p>
               </div>

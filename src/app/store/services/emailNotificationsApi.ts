@@ -48,6 +48,61 @@ interface EmailNotificationStatsParams {
   limit?: number;
 }
 
+interface EmailAnalytics {
+  dailyStats: Array<{
+    date: string;
+    usageLimit: {
+      sent: number;
+      failed: number;
+      pending: number;
+      recipients: number;
+    };
+    eod: { sent: number; failed: number; pending: number; recipients: number };
+    total: {
+      sent: number;
+      failed: number;
+      pending: number;
+      recipients: number;
+    };
+  }>;
+  overallStats: {
+    totalEmails: number;
+    totalRecipients: number;
+    sentEmails: number;
+    failedEmails: number;
+    pendingEmails: number;
+    usageLimitEmails: number;
+    eodEmails: number;
+  };
+  emailTypeBreakdown: Array<{
+    type: string;
+    count: number;
+    percentage: number;
+  }>;
+  successRateByType: Array<{
+    type: string;
+    successRate: number;
+    totalSent: number;
+    totalFailed: number;
+  }>;
+  recentFailures: Array<{
+    _id: string;
+    type: string;
+    status: string;
+    errorMessage: string;
+    createdAt: string;
+    recipientCount: number;
+  }>;
+  dateRange: {
+    startDate: string;
+    endDate: string;
+  };
+}
+
+interface EmailAnalyticsParams {
+  days?: string;
+}
+
 export const emailNotificationsApi = createApi({
   reducerPath: "emailNotificationsApi",
   baseQuery: fetchBaseQuery({
@@ -76,7 +131,17 @@ export const emailNotificationsApi = createApi({
       }),
       providesTags: ["EmailNotificationStats"],
     }),
+    getEmailAnalytics: builder.query<EmailAnalytics, EmailAnalyticsParams>({
+      query: ({ days = "30" }) => ({
+        url: "/email-analytics",
+        params: {
+          days,
+        },
+      }),
+      providesTags: ["EmailNotificationStats"],
+    }),
   }),
 });
 
-export const { useGetEmailNotificationStatsQuery } = emailNotificationsApi;
+export const { useGetEmailNotificationStatsQuery, useGetEmailAnalyticsQuery } =
+  emailNotificationsApi;
