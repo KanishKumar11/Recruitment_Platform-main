@@ -90,6 +90,11 @@ export default function Sidebar() {
         icon: "mail",
       },
       {
+        path: "/admin/email-analytics",
+        label: "Email Analytics",
+        icon: "chart-bar",
+      },
+      {
         path: "/dashboard/admin/email-settings",
         label: "Email Settings",
         icon: "cog",

@@ -16,7 +16,7 @@ interface QueueJob {
 }
 
 interface EmailNotificationJobData {
-  type?: 'job_batch' | 'end_of_day_summary';
+  type?: "job_batch" | "end_of_day_summary";
   recruiterId?: string;
   recruiterName?: string;
   recruiterEmail?: string;
@@ -83,7 +83,7 @@ class JobQueue {
     return this.addJob(
       "EMAIL_NOTIFICATION",
       {
-        type: 'job_batch',
+        type: "job_batch",
         recruiterId,
         recruiterName,
         recruiterEmail,
@@ -97,12 +97,7 @@ class JobQueue {
 
   // Add generic email notification job
   addEmailJob(data: EmailNotificationJobData, scheduledAt?: Date): string {
-    return this.addJob(
-      "EMAIL_NOTIFICATION",
-      data,
-      "high",
-      scheduledAt
-    );
+    return this.addJob("EMAIL_NOTIFICATION", data, "high", scheduledAt);
   }
 
   // Get queue status
@@ -264,28 +259,34 @@ class JobQueue {
   // Process email notification job
   private async processEmailNotificationJob(job: QueueJob): Promise<void> {
     const data = job.data as EmailNotificationJobData;
-    const emailType = data.type || 'job_batch';
+    const emailType = data.type || "job_batch";
+
+    // Enhanced logging for debugging
+    console.log(`Processing email job ${job.id} of type ${emailType}`);
 
     // Import here to avoid circular dependencies
-    const { sendRecruiterJobNotificationEmail, sendEndOfDayNotificationEmail } = await import(
-      "./recruiterEmailService"
-    );
+    const { sendRecruiterJobNotificationEmail, sendEndOfDayNotificationEmail } =
+      await import("./recruiterEmailService");
 
     let success = false;
 
-    if (emailType === 'end_of_day_summary') {
+    if (emailType === "end_of_day_summary") {
       // Handle end-of-day summary emails
-      const {
-        recipientEmail,
-        recipientName,
-        jobs,
-        notificationId
-      } = data;
+      const { recipientEmail, recipientName, jobs, notificationId } = data;
 
       if (!recipientEmail || !recipientName || !jobs) {
-        throw new Error("Missing required data for end-of-day email");
+        const errorMsg = "Missing required data for end-of-day email";
+        console.error(`Job ${job.id} failed: ${errorMsg}`, {
+          recipientEmail,
+          recipientName,
+          jobsCount: jobs?.length,
+        });
+        throw new Error(errorMsg);
       }
 
+      console.log(
+        `Sending end-of-day email to ${recipientEmail} with ${jobs.length} jobs`
+      );
       success = await sendEndOfDayNotificationEmail(
         recipientEmail,
         recipientName,
@@ -302,9 +303,27 @@ class JobQueue {
         totalJobCount,
       } = data;
 
-      if (!recruiterId || !recruiterName || !recruiterEmail || !jobIds || !totalJobCount) {
-        throw new Error("Missing required data for job batch email");
+      if (
+        !recruiterId ||
+        !recruiterName ||
+        !recruiterEmail ||
+        !jobIds ||
+        !totalJobCount
+      ) {
+        const errorMsg = "Missing required data for job batch email";
+        console.error(`Job ${job.id} failed: ${errorMsg}`, {
+          recruiterId,
+          recruiterName,
+          recruiterEmail,
+          jobIdsCount: jobIds?.length,
+          totalJobCount,
+        });
+        throw new Error(errorMsg);
       }
+
+      console.log(
+        `Sending job batch email to ${recruiterEmail} for ${totalJobCount} jobs`
+      );
 
       success = await sendRecruiterJobNotificationEmail(
         recruiterId,
@@ -316,8 +335,14 @@ class JobQueue {
     }
 
     if (!success) {
-      throw new Error(`Failed to send ${emailType} email`);
+      const errorMsg = `Failed to send ${emailType} email`;
+      console.error(`Job ${job.id} failed: ${errorMsg}`);
+      throw new Error(errorMsg);
     }
+
+    console.log(
+      `Job ${job.id} completed successfully - ${emailType} email sent`
+    );
   }
 
   // Sort queue by priority and creation time
@@ -367,7 +392,10 @@ export const getJobQueue = (): JobQueue => {
 };
 
 // Helper function to add end-of-day email notification jobs
-export const addEmailNotificationJob = (data: EmailNotificationJobData, scheduledAt?: Date): string => {
+export const addEmailNotificationJob = (
+  data: EmailNotificationJobData,
+  scheduledAt?: Date
+): string => {
   return jobQueueInstance.addEmailJob(data, scheduledAt);
 };
 

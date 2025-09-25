@@ -1,5 +1,5 @@
 # Coolify Configuration for Recruitment Platform
-version: '3.8'
+version: "3.8"
 
 services:
   recruitment-platform:
@@ -13,6 +13,9 @@ services:
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      # Email Configuration (Required for notifications)
+      - ZOHO_EMAIL=${ZOHO_EMAIL}
+      - ZOHO_APP_PASSWORD=${ZOHO_APP_PASSWORD}
     volumes:
       # Persistent storage for root uploads directory (job application resumes)
       - recruitment-uploads:/app/uploads
@@ -34,7 +37,7 @@ volumes:
       type: none
       o: bind
       device: /data/recruitment-platform/uploads
-  
+
   # Persistent volume for public uploads directory
   recruitment-public-uploads:
     driver: local

@@ -5,6 +5,7 @@ This guide explains how to set up persistent storage for file uploads in the Rec
 ## Overview
 
 The application uses two main directories for file uploads:
+
 - `/uploads/` - Stores job application resumes (private files)
 - `/public/uploads/` - Stores user profile pictures and public resume files
 
@@ -13,6 +14,7 @@ The application uses two main directories for file uploads:
 ### Using Docker Compose
 
 1. **Build and run with Docker Compose:**
+
    ```bash
    docker-compose up -d
    ```
@@ -24,6 +26,7 @@ The application uses two main directories for file uploads:
 ### Manual Docker Setup
 
 1. **Create named volumes:**
+
    ```bash
    docker volume create recruitment-uploads
    docker volume create recruitment-public-uploads
@@ -56,27 +59,67 @@ The application uses two main directories for file uploads:
 1. **Upload the `coolify.yml` file** to your Coolify project
 
 2. **Set Environment Variables in Coolify:**
+
    - `MONGODB_URI` - Your MongoDB connection string
    - `NEXTAUTH_SECRET` - Secret for NextAuth.js
    - `NEXTAUTH_URL` - Your application URL
    - `GOOGLE_CLIENT_ID` - Google OAuth client ID
    - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+   - `ZOHO_EMAIL` - Your ZeptoMail email address (required for notifications)
+   - `ZOHO_APP_PASSWORD` - Your ZeptoMail app password (required for notifications)
 
 3. **Configure Persistent Volumes in Coolify UI:**
-   
+
    **Volume 1: Root Uploads**
+
    - Name: `recruitment-uploads`
    - Host Path: `/data/recruitment-platform/uploads`
    - Container Path: `/app/uploads`
    - Type: `bind`
-   
+
    **Volume 2: Public Uploads**
+
    - Name: `recruitment-public-uploads`
    - Host Path: `/data/recruitment-platform/public-uploads`
    - Container Path: `/app/public/uploads`
    - Type: `bind`
 
 4. **Deploy the application** through Coolify
+
+5. **Set up Email Notification Cron Jobs:**
+   After deployment, run the cron setup script on your server:
+   ```bash
+   chmod +x cron-setup.sh
+   sudo ./cron-setup.sh
+   ```
+   This will configure:
+   - End-of-day email notifications (daily at 6 PM)
+   - Email retry processing (every 5 minutes)
+
+## Email System Setup
+
+### ZeptoMail Configuration
+
+1. **Create ZeptoMail Account:**
+
+   - Sign up at [ZeptoMail](https://www.zoho.com/zeptomail/)
+   - Verify your domain
+   - Create SMTP credentials
+
+2. **Get SMTP Credentials:**
+
+   - Email address: Your verified ZeptoMail email
+   - App password: Generate from ZeptoMail dashboard
+
+3. **Test Email Configuration:**
+
+   ```bash
+   # Test SMTP connection
+   node test-smtp.js
+
+   # Run comprehensive diagnostics
+   node email-diagnostics.js your-email@example.com
+   ```
 
 ### Alternative Coolify Setup (Manual Volume Configuration)
 
@@ -87,12 +130,14 @@ If you prefer to configure volumes manually in Coolify:
 3. **Add two persistent storages:**
 
    **Storage 1:**
+
    - Name: `uploads`
    - Source: `/data/recruitment-platform/uploads`
    - Destination: `/app/uploads`
    - Type: `bind`
 
    **Storage 2:**
+
    - Name: `public-uploads`
    - Source: `/data/recruitment-platform/public-uploads`
    - Destination: `/app/public/uploads`
@@ -126,6 +171,7 @@ If you prefer to configure volumes manually in Coolify:
 ⚠️ **Critical:** Without persistent storage, all uploaded files will be lost on container restart/redeployment.
 
 ✅ **Best Practices:**
+
 - Always backup your persistent volumes
 - Set proper file permissions (1001:1001 for Node.js user)
 - Monitor disk space usage
@@ -134,6 +180,7 @@ If you prefer to configure volumes manually in Coolify:
 ## Troubleshooting
 
 ### Permission Issues
+
 ```bash
 # Fix permissions on host directories
 sudo chown -R 1001:1001 /data/recruitment-platform/
@@ -141,12 +188,14 @@ sudo chmod -R 755 /data/recruitment-platform/
 ```
 
 ### Volume Not Mounting
+
 1. Check if host directories exist
 2. Verify Coolify volume configuration
 3. Check container logs for permission errors
 4. Ensure the Node.js user (1001) has write access
 
 ### File Upload Failures
+
 1. Check available disk space
 2. Verify upload directory permissions
 3. Check application logs for specific errors

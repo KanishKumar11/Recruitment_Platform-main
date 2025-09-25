@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   recruitment-platform:
@@ -9,6 +9,9 @@ services:
       - NODE_ENV=production
       - MONGODB_URI=${MONGODB_URI}
       - NEXT_TELEMETRY_DISABLED=1
+      # Email Configuration (Required for notifications)
+      - ZOHO_EMAIL=${ZOHO_EMAIL}
+      - ZOHO_APP_PASSWORD=${ZOHO_APP_PASSWORD}
     volumes:
       # Persistent storage for root uploads directory (job application resumes)
       - recruitment-uploads:/app/uploads

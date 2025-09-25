@@ -18,7 +18,15 @@ import {
   useUpdateEmailSettingsMutation,
 } from "../../../store/services/adminApi";
 import { toast } from "sonner";
-import { Loader2, Mail, Clock, Settings } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  Clock,
+  Settings,
+  BarChart3,
+  ExternalLink,
+} from "lucide-react";
+import Link from "next/link";
 
 interface EmailSettings {
   JOB_NOTIFICATION_FREQUENCY: number;
@@ -99,9 +107,19 @@ const EmailSettingsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Settings className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Email Notification Settings</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Settings className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Email Notification Settings</h1>
+        </div>
+        <Link
+          href="/admin/email-analytics"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <BarChart3 className="h-4 w-4" />
+          View Analytics
+          <ExternalLink className="h-3 w-3" />
+        </Link>
       </div>
 
       <div className="grid gap-6">
@@ -139,8 +157,11 @@ const EmailSettingsPage = () => {
           <CardHeader>
             <CardTitle>Job Notification Frequency</CardTitle>
             <CardDescription>
-              Configure how often recruiters receive email notifications about
-              jobs that have reached application thresholds
+              Configure the application threshold that triggers usage limit
+              emails.
+              <strong> Important:</strong> If usage limit emails are sent on any
+              day, End-of-Day emails will be automatically skipped to prevent
+              duplicate notifications.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -166,12 +187,18 @@ const EmailSettingsPage = () => {
                 />
                 <span className="text-sm text-muted-foreground">job posts</span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Currently set to send notifications when jobs reach{" "}
-                {settings.JOB_NOTIFICATION_FREQUENCY} applications.
-                {settings.JOB_NOTIFICATION_FREQUENCY === 1 &&
-                  " Recruiters will be notified for every single application received."}
-              </p>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Current Setting:</strong> Notifications sent when jobs
+                  reach <strong>{settings.JOB_NOTIFICATION_FREQUENCY}</strong>{" "}
+                  applications.
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {settings.JOB_NOTIFICATION_FREQUENCY === 1
+                    ? "⚠️ Recruiters will be notified for every single application (high frequency)."
+                    : `Recruiters receive one email per day maximum - either usage limit OR end-of-day summary.`}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -184,8 +211,9 @@ const EmailSettingsPage = () => {
               End-of-Day Notifications
             </CardTitle>
             <CardDescription>
-              Send daily summary emails even if the frequency threshold hasn't
-              been met
+              Send daily summary emails to recruiters at a scheduled time.
+              <strong> Note:</strong> EOD emails are automatically skipped if
+              usage limit emails were already sent that day.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -195,7 +223,8 @@ const EmailSettingsPage = () => {
                   Enable End-of-Day Notifications
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Send emails at the end of each day, even for single job posts
+                  Daily summary emails (only sent if no usage limit emails were
+                  triggered)
                 </p>
               </div>
               <Switch
