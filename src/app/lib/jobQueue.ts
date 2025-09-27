@@ -285,6 +285,12 @@ class JobQueue {
         throw new Error(errorMsg);
       }
 
+      // Skip processing if no jobs to report
+      if (jobs.length === 0) {
+        console.log(`Skipping end-of-day email to ${recipientEmail} - no jobs to report`);
+        return; // Mark as successful
+      }
+
       // Find recruiter by email to get recruiterId
       const User = (await import("../models/User")).default;
       const recruiter = await User.findOne({

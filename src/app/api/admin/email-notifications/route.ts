@@ -295,29 +295,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Add email job to queue for each recruiter
-    const emailPromises = recruiters.map((recruiter) =>
-      addEmailNotificationJob({
-        type: "end_of_day_summary",
-        recipientEmail: recruiter.email,
-        recipientName: recruiter.name,
-        jobs: todaysJobs.map((job) => ({
-          title: job.title,
-          company: job.company?.name || "Unknown Company",
-          location: job.location,
-          type: job.type,
-          postedAt: job.createdAt,
-        })),
-        notificationId: undefined, // Let individual jobs create their own notifications
-      })
-    );
+    // Send emails immediately for manual bulk notifications
+    const { sendEndOfDayNotificationEmail } = await import("@/app/lib/recruiterEmailService");
 
-    await Promise.all(emailPromises);
+    const emailPromises = recruiters.map(async (recruiter) => {
+      try {
+        const success = await sendEndOfDayNotificationEmail(
+          recruiter.email,
+          recruiter.name,
+          todaysJobs.map((job) => ({
+            title: job.title,
+            company: job.company?.name || "Unknown Company",
+            location: job.location,
+            type: job.type,
+            postedAt: job.createdAt,
+          })),
+          undefined // No notification ID for manual emails
+        );
+
+        if (success) {
+          // Create notification record for tracking
+          await EmailNotification.create({
+            recruiterId: recruiter._id,
+            emailType: "JOB_NOTIFICATION",
+            type: "end_of_day_summary",
+            jobCount: todaysJobs.length,
+            jobIds: todaysJobs.map(job => job._id),
+            sentDate: new Date(),
+            emailSent: true,
+            emailSentAt: new Date(),
+            recipientCount: 1,
+            status: "sent",
+          });
+        }
+
+        return success;
+      } catch (error) {
+        console.error(`Failed to send manual email to ${recruiter.email}:`, error);
+        return false;
+      }
+    });
+
+    const results = await Promise.all(emailPromises);
+    const successCount = results.filter(Boolean).length;
 
     return NextResponse.json({
-      message: `Manual bulk email notifications queued successfully`,
+      message: `Manual bulk email notifications sent successfully`,
       jobCount: todaysJobs.length,
       recipientCount: recruiters.length,
+      sentCount: successCount,
+      failedCount: recruiters.length - successCount,
       sent: true,
       emailType: "end_of_day_summary",
     });
