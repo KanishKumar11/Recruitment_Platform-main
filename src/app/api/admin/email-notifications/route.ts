@@ -295,15 +295,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create email notification record for manual send
-    const emailNotification = new EmailNotification({
-      type: "end_of_day_summary",
-      jobIds: todaysJobs.map((job) => job._id),
-      recipientCount: recruiters.length,
-      status: "pending",
-    });
-    await emailNotification.save();
-
     // Add email job to queue for each recruiter
     const emailPromises = recruiters.map((recruiter) =>
       addEmailNotificationJob({
@@ -317,24 +308,18 @@ export async function POST(request: NextRequest) {
           type: job.type,
           postedAt: job.createdAt,
         })),
-        notificationId: emailNotification._id.toString(),
+        notificationId: undefined, // Let individual jobs create their own notifications
       })
     );
 
     await Promise.all(emailPromises);
 
-    // Update notification status
-    emailNotification.status = "sent";
-    emailNotification.sentAt = new Date();
-    await emailNotification.save();
-
     return NextResponse.json({
-      message: `Manual bulk email notifications sent successfully`,
+      message: `Manual bulk email notifications queued successfully`,
       jobCount: todaysJobs.length,
       recipientCount: recruiters.length,
       sent: true,
       emailType: "end_of_day_summary",
-      notificationId: emailNotification._id,
     });
   } catch (error) {
     console.error("Error sending manual bulk emails:", error);

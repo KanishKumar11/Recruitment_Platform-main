@@ -1,4 +1,5 @@
 // Simple in-memory job queue system for background processing
+import EmailNotification from "../models/EmailNotification";
 
 interface QueueJob {
   id: string;
@@ -282,6 +283,21 @@ class JobQueue {
           jobsCount: jobs?.length,
         });
         throw new Error(errorMsg);
+      }
+
+      // Find recruiter by email to get recruiterId
+      const User = (await import("../models/User")).default;
+      const recruiter = await User.findOne({ email: recipientEmail, role: "RECRUITER" });
+
+      if (recruiter) {
+        // Create or update notification record for end-of-day summary
+        await EmailNotification.createOrUpdate(
+          recruiter._id.toString(),
+          "JOB_NOTIFICATION", // Use same type as regular notifications
+          jobs.length,
+          [], // No specific job IDs for end-of-day summaries
+          1
+        );
       }
 
       console.log(
