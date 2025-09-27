@@ -17,8 +17,40 @@ export const DEFAULT_EMAIL_NOTIFICATION_SETTINGS = {
 };
 
 /**
- * Get all email notification settings
+ * Initialize default email notification settings if they don't exist
  */
+export const initializeEmailNotificationSettings = async (
+  updatedBy: string
+): Promise<void> => {
+  try {
+    const settingKeys = Object.values(EMAIL_NOTIFICATION_SETTINGS);
+    const existingSettings = await Settings.find({ key: { $in: settingKeys } });
+    const existingKeys = existingSettings.map(setting => setting.key);
+
+    const settingsToCreate = settingKeys.filter(key => !existingKeys.includes(key));
+
+    if (settingsToCreate.length > 0) {
+      const createPromises = settingsToCreate.map(key => {
+        const constName = Object.keys(EMAIL_NOTIFICATION_SETTINGS).find(
+          name => EMAIL_NOTIFICATION_SETTINGS[name as keyof typeof EMAIL_NOTIFICATION_SETTINGS] === key
+        );
+        const defaultValue = DEFAULT_EMAIL_NOTIFICATION_SETTINGS[constName as keyof typeof DEFAULT_EMAIL_NOTIFICATION_SETTINGS];
+
+        return Settings.create({
+          key,
+          value: defaultValue,
+          description: getSettingDescription(key),
+          updatedBy,
+        });
+      });
+
+      await Promise.all(createPromises);
+      console.log(`Initialized ${settingsToCreate.length} default email notification settings`);
+    }
+  } catch (error) {
+    console.error("Error initializing email notification settings:", error);
+  }
+};
 export const getAllEmailNotificationSettings = async (): Promise<
   Record<string, any>
 > => {
@@ -35,9 +67,18 @@ export const getAllEmailNotificationSettings = async (): Promise<
       }
     );
 
+    // Create reverse mapping from database key to constant name
+    const keyMapping: Record<string, string> = {};
+    Object.entries(EMAIL_NOTIFICATION_SETTINGS).forEach(([constName, dbKey]) => {
+      keyMapping[dbKey] = constName;
+    });
+
     // Override with actual settings from database
     settings.forEach((setting) => {
-      settingsMap[setting.key] = setting.value;
+      const constName = keyMapping[setting.key];
+      if (constName) {
+        settingsMap[constName] = setting.value;
+      }
     });
 
     return settingsMap;

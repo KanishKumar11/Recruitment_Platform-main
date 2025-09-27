@@ -2,16 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDb from "@/app/lib/db";
 import { authenticateRequest, authorizeRoles } from "@/app/lib/auth";
 import { UserRole } from "@/app/models/User";
+import Settings from "@/app/models/Settings";
 import {
   getAllEmailNotificationSettings,
   updateEmailNotificationSettings,
   EMAIL_NOTIFICATION_SETTINGS,
+  initializeEmailNotificationSettings,
 } from "@/app/lib/emailNotificationSettings";
 
 // GET - Fetch email notification settings
 export async function GET(request: NextRequest) {
   try {
     await connectDb();
+
+    const userData = authenticateRequest(request);
+    if (!userData) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
     // Check if user is admin
     if (!authorizeRoles(request, [UserRole.ADMIN])) {
@@ -22,6 +32,16 @@ export async function GET(request: NextRequest) {
     }
 
     const settings = await getAllEmailNotificationSettings();
+
+    // Initialize default settings if they don't exist
+    const settingKeys = Object.values(EMAIL_NOTIFICATION_SETTINGS);
+    const existingSettings = await Settings.find({ key: { $in: settingKeys } });
+    if (existingSettings.length === 0) {
+      await initializeEmailNotificationSettings(userData.userId);
+      // Re-fetch after initialization
+      const updatedSettings = await getAllEmailNotificationSettings();
+      return NextResponse.json({ settings: updatedSettings });
+    }
 
     return NextResponse.json({ settings });
   } catch (error) {

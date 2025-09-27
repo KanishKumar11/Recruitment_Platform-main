@@ -3,9 +3,14 @@ import connectDb from "@/app/lib/db";
 import EmailNotification from "@/app/models/EmailNotification";
 import User from "@/app/models/User";
 import Job from "@/app/models/Job";
+import Settings from "@/app/models/Settings";
 import { authenticateRequest, authorizeRoles } from "@/app/lib/auth";
 import { UserRole } from "@/app/models/User";
-import { getAllEmailNotificationSettings } from "@/app/lib/emailNotificationSettings";
+import {
+  getAllEmailNotificationSettings,
+  EMAIL_NOTIFICATION_SETTINGS,
+  initializeEmailNotificationSettings,
+} from "@/app/lib/emailNotificationSettings";
 import { addEmailNotificationJob } from "@/app/lib/jobQueue";
 
 // GET - Fetch email notification statistics for admin panel
