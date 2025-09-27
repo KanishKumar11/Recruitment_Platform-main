@@ -94,7 +94,11 @@ export default function EmailNotificationsPage() {
   };
 
   const handleManualSend = async () => {
-    if (!confirm("Are you sure you want to send manual bulk emails to all recruiters? This will send today's job summaries to all active recruiters.")) {
+    if (
+      !confirm(
+        "Are you sure you want to send manual bulk emails to all recruiters? This will send today's job summaries to all active recruiters."
+      )
+    ) {
       return;
     }
 
@@ -110,10 +114,14 @@ export default function EmailNotificationsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(`Manual emails sent successfully! Sent to ${data.recipientCount} recruiters with ${data.jobCount} jobs.`);
+        toast.success(
+          `Manual emails sent successfully! Sent to ${data.recipientCount} recruiters with ${data.jobCount} jobs.`
+        );
         refetch(); // Refresh the stats
       } else {
-        toast.error(`Failed to send manual emails: ${data.error || data.message}`);
+        toast.error(
+          `Failed to send manual emails: ${data.error || data.message}`
+        );
       }
     } catch (error) {
       console.error("Error sending manual emails:", error);
