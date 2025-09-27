@@ -294,13 +294,38 @@ class JobQueue {
 
       if (recruiter) {
         // Create or update notification record for end-of-day summary
-        await EmailNotification.createOrUpdate(
-          recruiter._id.toString(),
-          "JOB_NOTIFICATION", // Use same type as regular notifications
-          jobs.length,
-          [], // No specific job IDs for end-of-day summaries
-          1
-        );
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const existingNotification = await EmailNotification.findOne({
+          recruiterId: recruiter._id,
+          emailType: "JOB_NOTIFICATION",
+          sentDate: {
+            $gte: today,
+            $lt: tomorrow,
+          },
+        });
+
+        if (existingNotification) {
+          // Update existing notification
+          existingNotification.jobCount = jobs.length;
+          await existingNotification.save();
+        } else {
+          // Create new notification
+          await EmailNotification.create({
+            recruiterId: recruiter._id,
+            emailType: "JOB_NOTIFICATION",
+            jobCount: jobs.length,
+            jobIds: [],
+            sentDate: new Date(),
+            emailSent: false,
+            recipientCount: 1,
+            status: "pending",
+            retryCount: 0,
+          });
+        }
       }
 
       console.log(
