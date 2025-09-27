@@ -57,7 +57,7 @@ interface EmailNotificationStats {
 }
 
 export default function EmailNotificationsPage() {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, token } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
   const [timeFrame, setTimeFrame] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,6 +108,7 @@ export default function EmailNotificationsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
       });
 
