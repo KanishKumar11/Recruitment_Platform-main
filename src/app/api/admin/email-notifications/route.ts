@@ -296,7 +296,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Send emails immediately for manual bulk notifications
-    const { sendEndOfDayNotificationEmail } = await import("@/app/lib/recruiterEmailService");
+    const { sendEndOfDayNotificationEmail } = await import(
+      "@/app/lib/recruiterEmailService"
+    );
 
     const emailPromises = recruiters.map(async (recruiter) => {
       try {
@@ -320,7 +322,7 @@ export async function POST(request: NextRequest) {
             emailType: "JOB_NOTIFICATION",
             type: "end_of_day_summary",
             jobCount: todaysJobs.length,
-            jobIds: todaysJobs.map(job => job._id),
+            jobIds: todaysJobs.map((job) => job._id),
             sentDate: new Date(),
             emailSent: true,
             emailSentAt: new Date(),
@@ -331,7 +333,10 @@ export async function POST(request: NextRequest) {
 
         return success;
       } catch (error) {
-        console.error(`Failed to send manual email to ${recruiter.email}:`, error);
+        console.error(
+          `Failed to send manual email to ${recruiter.email}:`,
+          error
+        );
         return false;
       }
     });

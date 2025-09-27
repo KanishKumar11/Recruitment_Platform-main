@@ -287,7 +287,9 @@ class JobQueue {
 
       // Skip processing if no jobs to report
       if (jobs.length === 0) {
-        console.log(`Skipping end-of-day email to ${recipientEmail} - no jobs to report`);
+        console.log(
+          `Skipping end-of-day email to ${recipientEmail} - no jobs to report`
+        );
         return; // Mark as successful
       }
 
