@@ -25,16 +25,24 @@ export const initializeEmailNotificationSettings = async (
   try {
     const settingKeys = Object.values(EMAIL_NOTIFICATION_SETTINGS);
     const existingSettings = await Settings.find({ key: { $in: settingKeys } });
-    const existingKeys = existingSettings.map(setting => setting.key);
+    const existingKeys = existingSettings.map((setting) => setting.key);
 
-    const settingsToCreate = settingKeys.filter(key => !existingKeys.includes(key));
+    const settingsToCreate = settingKeys.filter(
+      (key) => !existingKeys.includes(key)
+    );
 
     if (settingsToCreate.length > 0) {
-      const createPromises = settingsToCreate.map(key => {
+      const createPromises = settingsToCreate.map((key) => {
         const constName = Object.keys(EMAIL_NOTIFICATION_SETTINGS).find(
-          name => EMAIL_NOTIFICATION_SETTINGS[name as keyof typeof EMAIL_NOTIFICATION_SETTINGS] === key
+          (name) =>
+            EMAIL_NOTIFICATION_SETTINGS[
+              name as keyof typeof EMAIL_NOTIFICATION_SETTINGS
+            ] === key
         );
-        const defaultValue = DEFAULT_EMAIL_NOTIFICATION_SETTINGS[constName as keyof typeof DEFAULT_EMAIL_NOTIFICATION_SETTINGS];
+        const defaultValue =
+          DEFAULT_EMAIL_NOTIFICATION_SETTINGS[
+            constName as keyof typeof DEFAULT_EMAIL_NOTIFICATION_SETTINGS
+          ];
 
         return Settings.create({
           key,
@@ -45,7 +53,9 @@ export const initializeEmailNotificationSettings = async (
       });
 
       await Promise.all(createPromises);
-      console.log(`Initialized ${settingsToCreate.length} default email notification settings`);
+      console.log(
+        `Initialized ${settingsToCreate.length} default email notification settings`
+      );
     }
   } catch (error) {
     console.error("Error initializing email notification settings:", error);
@@ -69,9 +79,11 @@ export const getAllEmailNotificationSettings = async (): Promise<
 
     // Create reverse mapping from database key to constant name
     const keyMapping: Record<string, string> = {};
-    Object.entries(EMAIL_NOTIFICATION_SETTINGS).forEach(([constName, dbKey]) => {
-      keyMapping[dbKey] = constName;
-    });
+    Object.entries(EMAIL_NOTIFICATION_SETTINGS).forEach(
+      ([constName, dbKey]) => {
+        keyMapping[dbKey] = constName;
+      }
+    );
 
     // Override with actual settings from database
     settings.forEach((setting) => {

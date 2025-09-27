@@ -88,10 +88,15 @@ export async function PUT(request: NextRequest) {
     const validationErrors: Record<string, string> = {};
 
     // Validate job notification frequency
-    if (settings[EMAIL_NOTIFICATION_SETTINGS.JOB_NOTIFICATION_FREQUENCY] !== undefined) {
-      const frequency = settings[EMAIL_NOTIFICATION_SETTINGS.JOB_NOTIFICATION_FREQUENCY];
+    if (
+      settings[EMAIL_NOTIFICATION_SETTINGS.JOB_NOTIFICATION_FREQUENCY] !==
+      undefined
+    ) {
+      const frequency =
+        settings[EMAIL_NOTIFICATION_SETTINGS.JOB_NOTIFICATION_FREQUENCY];
       if (!Number.isInteger(frequency) || frequency < 1 || frequency > 50) {
-        validationErrors.job_notification_frequency = "Frequency must be an integer between 1 and 50";
+        validationErrors.job_notification_frequency =
+          "Frequency must be an integer between 1 and 50";
       }
     }
 
@@ -110,8 +115,12 @@ export async function PUT(request: NextRequest) {
     // Validate end-of-day time format
     if (settings[EMAIL_NOTIFICATION_SETTINGS.END_OF_DAY_TIME] !== undefined) {
       const time = settings[EMAIL_NOTIFICATION_SETTINGS.END_OF_DAY_TIME];
-      if (typeof time !== "string" || !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
-        validationErrors.end_of_day_time = "Time must be in HH:MM format (24-hour)";
+      if (
+        typeof time !== "string" ||
+        !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)
+      ) {
+        validationErrors.end_of_day_time =
+          "Time must be in HH:MM format (24-hour)";
       }
     }
 
@@ -134,14 +143,11 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error updating email notification settings:", error);
-    
+
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    
+
     return NextResponse.json(
       { error: "Failed to update email notification settings" },
       { status: 500 }
