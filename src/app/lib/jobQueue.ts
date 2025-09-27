@@ -287,7 +287,10 @@ class JobQueue {
 
       // Find recruiter by email to get recruiterId
       const User = (await import("../models/User")).default;
-      const recruiter = await User.findOne({ email: recipientEmail, role: "RECRUITER" });
+      const recruiter = await User.findOne({
+        email: recipientEmail,
+        role: "RECRUITER",
+      });
 
       if (recruiter) {
         // Create or update notification record for end-of-day summary
