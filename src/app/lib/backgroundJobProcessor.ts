@@ -230,23 +230,6 @@ class BackgroundJobProcessor {
     }
   }
 
-  // Get processor status
-  public getStatus(): {
-    isProcessing: boolean;
-    queueSize: number;
-    completedJobs: number;
-    failedJobs: number;
-  } {
-    const jobQueue = JobQueue.getInstance();
-    const queueStatus = jobQueue.getQueueStatus();
-    return {
-      isProcessing: this.isProcessing,
-      queueSize: queueStatus.pending,
-      completedJobs: queueStatus.completed,
-      failedJobs: queueStatus.failed,
-    };
-  }
-
   // Add email notification job to queue
   public async addEmailNotificationJob(
     recruiterId: string,
@@ -296,6 +279,31 @@ class BackgroundJobProcessor {
     }
 
     await this.processJobs();
+  }
+
+  // Get processor status
+  public getStatus(): {
+    isProcessing: boolean;
+    processingInterval: boolean;
+    retryInterval: boolean;
+    queueSize: number;
+    completedJobs: number;
+    failedJobs: number;
+    activeJobs: number;
+    totalJobs: number;
+  } {
+    const jobQueue = JobQueue.getInstance();
+    const queueStatus = jobQueue.getQueueStatus();
+    return {
+      isProcessing: this.isProcessing,
+      processingInterval: this.processingInterval ? true : false,
+      retryInterval: this.retryInterval ? true : false,
+      queueSize: queueStatus.pending,
+      completedJobs: queueStatus.completed,
+      failedJobs: queueStatus.failed,
+      activeJobs: queueStatus.activeJobs,
+      totalJobs: queueStatus.total,
+    };
   }
 
   // Clean up old completed and failed jobs

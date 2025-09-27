@@ -618,6 +618,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Set job status to ACTIVE by default when posted
+    jobData.status = "ACTIVE";
+
     // Create the job - the model's pre-save hook will handle final commission calculations
     const job = new Job(jobData);
     await job.save();

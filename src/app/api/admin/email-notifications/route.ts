@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDb from "@/app/lib/db";
 import EmailNotification from "@/app/models/EmailNotification";
 import User from "@/app/models/User";
+import Job from "@/app/models/Job";
 import { authenticateRequest, authorizeRoles } from "@/app/lib/auth";
 import { UserRole } from "@/app/models/User";
+import { getAllEmailNotificationSettings } from "@/app/lib/emailNotificationSettings";
+import { addEmailNotificationJob } from "@/app/lib/jobQueue";
 
 // GET - Fetch email notification statistics for admin panel
 export async function GET(request: NextRequest) {
@@ -205,6 +208,136 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching email notification stats:", error);
     return NextResponse.json(
       { error: "Failed to fetch email notification statistics" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Manually trigger bulk email notifications to all recruiters
+export async function POST(request: NextRequest) {
+  try {
+    // Authenticate and authorize admin access
+    const authResult = authenticateRequest(request);
+    if (!authResult) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const hasAdminAccess = authorizeRoles(request, [
+      UserRole.ADMIN,
+      UserRole.INTERNAL,
+    ]);
+    if (!hasAdminAccess) {
+      return NextResponse.json(
+        { error: "Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    await connectDb();
+
+    // Get email notification settings
+    const settings = await getAllEmailNotificationSettings();
+
+    // Check if notifications are enabled
+    if (!settings.NOTIFICATION_ENABLED) {
+      return NextResponse.json(
+        {
+          error: "Email notifications are disabled in settings",
+          sent: false,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get today's date range
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Find jobs posted today that are active
+    const todaysJobs = await Job.find({
+      createdAt: {
+        $gte: startOfDay,
+        $lt: endOfDay,
+      },
+      status: "active",
+    }).populate("company", "name");
+
+    // Get all active recruiters
+    const recruiters = await User.find({
+      role: "RECRUITER",
+      isActive: true,
+    }).select("email name");
+
+    if (recruiters.length === 0) {
+      return NextResponse.json(
+        {
+          error: "No active recruiters found",
+          sent: false,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create email notification record for manual send
+    const emailNotification = new EmailNotification({
+      type: "end_of_day_summary",
+      jobIds: todaysJobs.map((job) => job._id),
+      recipientCount: recruiters.length,
+      status: "pending",
+    });
+    await emailNotification.save();
+
+    // Add email job to queue for each recruiter
+    const emailPromises = recruiters.map((recruiter) =>
+      addEmailNotificationJob({
+        type: "end_of_day_summary",
+        recipientEmail: recruiter.email,
+        recipientName: recruiter.name,
+        jobs: todaysJobs.map((job) => ({
+          title: job.title,
+          company: job.company?.name || "Unknown Company",
+          location: job.location,
+          type: job.type,
+          postedAt: job.createdAt,
+        })),
+        notificationId: emailNotification._id.toString(),
+      })
+    );
+
+    await Promise.all(emailPromises);
+
+    // Update notification status
+    emailNotification.status = "sent";
+    emailNotification.sentAt = new Date();
+    await emailNotification.save();
+
+    return NextResponse.json({
+      message: `Manual bulk email notifications sent successfully`,
+      jobCount: todaysJobs.length,
+      recipientCount: recruiters.length,
+      sent: true,
+      emailType: "end_of_day_summary",
+      notificationId: emailNotification._id,
+    });
+  } catch (error) {
+    console.error("Error sending manual bulk emails:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to send manual bulk emails",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

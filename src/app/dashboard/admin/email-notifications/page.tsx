@@ -19,6 +19,7 @@ import {
   CalendarIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface EmailNotificationStats {
   overview: {
@@ -60,6 +61,7 @@ export default function EmailNotificationsPage() {
   const router = useRouter();
   const [timeFrame, setTimeFrame] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sendingManual, setSendingManual] = useState(false);
 
   // RTK Query hook for fetching email notification statistics
   const {
@@ -89,6 +91,36 @@ export default function EmailNotificationsPage() {
 
   const handleRefresh = () => {
     refetch();
+  };
+
+  const handleManualSend = async () => {
+    if (!confirm("Are you sure you want to send manual bulk emails to all recruiters? This will send today's job summaries to all active recruiters.")) {
+      return;
+    }
+
+    setSendingManual(true);
+    try {
+      const response = await fetch("/api/admin/email-notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Manual emails sent successfully! Sent to ${data.recipientCount} recruiters with ${data.jobCount} jobs.`);
+        refetch(); // Refresh the stats
+      } else {
+        toast.error(`Failed to send manual emails: ${data.error || data.message}`);
+      }
+    } catch (error) {
+      console.error("Error sending manual emails:", error);
+      toast.error("Failed to send manual emails. Please try again.");
+    } finally {
+      setSendingManual(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -151,6 +183,14 @@ export default function EmailNotificationsPage() {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleManualSend}
+                  disabled={sendingManual}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  <EnvelopeIcon className="w-4 h-4 mr-2" />
+                  {sendingManual ? "Sending..." : "Send Manual Emails"}
+                </button>
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}
