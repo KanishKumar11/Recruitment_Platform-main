@@ -324,8 +324,8 @@ export async function GET(req: NextRequest) {
         });
       }
     } else if (userData.role === UserRole.RECRUITER) {
-      // Recruiters can see all active jobs with reduced commission
-      jobs = await Job.find({ status: "ACTIVE" })
+      // Recruiters can see all active and paused jobs with reduced commission
+      jobs = await Job.find({ status: { $in: ["ACTIVE", "PAUSED"] } })
         .populate("postedBy", "name companyName")
         .sort({ createdAt: -1 });
 
