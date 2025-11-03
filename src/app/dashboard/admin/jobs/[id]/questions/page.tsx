@@ -19,6 +19,7 @@ interface ScreeningQuestion {
   question: string;
   questionType: string;
   required: boolean;
+  options?: string[];
 }
 
 export default function AdminJobQuestionsPage() {
@@ -37,6 +38,7 @@ export default function AdminJobQuestionsPage() {
     question: '',
     questionType: 'TEXT',
     required: false,
+    options: [] as string[],
   });
 
   // State for managing the currently editing question
@@ -45,6 +47,7 @@ export default function AdminJobQuestionsPage() {
     question: '',
     questionType: '',
     required: false,
+    options: [] as string[],
   });
 
   // State for delete confirmation
@@ -74,8 +77,80 @@ export default function AdminJobQuestionsPage() {
       case 'TEXT': return 'Text Response';
       case 'NUMERIC': return 'Number';
       case 'YES_NO': return 'Yes/No';
+      case 'MCQ': return 'Multiple Choice';
+      case 'MULTI_SELECT': return 'Multi-Select';
       default: return type;
     }
+  };
+
+  // Helper functions for options handling
+  const handleQuestionTypeChange = (type: string) => {
+    setNewQuestion({
+      ...newQuestion,
+      questionType: type,
+      options: requiresOptions(type) ? ["", ""] : [],
+    });
+  };
+
+  const handleEditingQuestionTypeChange = (type: string) => {
+    setEditingQuestion({
+      ...editingQuestion,
+      questionType: type,
+      options: requiresOptions(type) ? ["", ""] : [],
+    });
+  };
+
+  const requiresOptions = (type: string): boolean => {
+    return type === "MCQ" || type === "MULTI_SELECT";
+  };
+
+  const addOption = () => {
+    setNewQuestion({
+      ...newQuestion,
+      options: [...newQuestion.options, ""],
+    });
+  };
+
+  const updateOption = (index: number, value: string) => {
+    const updatedOptions = [...newQuestion.options];
+    updatedOptions[index] = value;
+    setNewQuestion({
+      ...newQuestion,
+      options: updatedOptions,
+    });
+  };
+
+  const removeOption = (index: number) => {
+    const updatedOptions = newQuestion.options.filter((_, i) => i !== index);
+    setNewQuestion({
+      ...newQuestion,
+      options: updatedOptions,
+    });
+  };
+
+  // Editing question option management
+  const addEditingOption = () => {
+    setEditingQuestion({
+      ...editingQuestion,
+      options: [...editingQuestion.options, ""],
+    });
+  };
+
+  const updateEditingOption = (index: number, value: string) => {
+    const updatedOptions = [...editingQuestion.options];
+    updatedOptions[index] = value;
+    setEditingQuestion({
+      ...editingQuestion,
+      options: updatedOptions,
+    });
+  };
+
+  const removeEditingOption = (index: number) => {
+    const updatedOptions = editingQuestion.options.filter((_, i) => i !== index);
+    setEditingQuestion({
+      ...editingQuestion,
+      options: updatedOptions,
+    });
   };
 
   // Redirect to appropriate dashboard based on role
@@ -92,14 +167,21 @@ export default function AdminJobQuestionsPage() {
       return;
     }
     
+    // Validate options for MCQ and MULTI_SELECT
+    if (requiresOptions(newQuestion.questionType) && newQuestion.options.length === 0) {
+      alert('Please add at least one option for this question type');
+      return;
+    }
+    
     try {
       await addScreeningQuestion({
           jobId: id,
           question: newQuestion.question,
           questionType: newQuestion.questionType,
-          required: newQuestion.required
+          required: newQuestion.required,
+          ...(requiresOptions(newQuestion.questionType) && { options: newQuestion.options })
       }).unwrap();
-      setNewQuestion({ question: '', questionType: 'TEXT', required: false });
+      setNewQuestion({ question: '', questionType: 'TEXT', required: false, options: [] });
     } catch (error) {
       console.error('Failed to add screening question:', error);
       alert('Failed to add question. Please try again.');
@@ -112,7 +194,8 @@ export default function AdminJobQuestionsPage() {
     setEditingQuestion({
       question: question.question,
       questionType: question.questionType,
-      required: question.required
+      required: question.required,
+      options: question.options || [],
     });
   };
 
@@ -128,13 +211,20 @@ export default function AdminJobQuestionsPage() {
       return;
     }
     
+    // Validate options for MCQ and MULTI_SELECT
+    if (requiresOptions(editingQuestion.questionType) && editingQuestion.options.length === 0) {
+      alert('Please add at least one option for this question type');
+      return;
+    }
+    
     try {
       await updateScreeningQuestion({
         jobId: id,
         questionId,
         question: editingQuestion.question,
         questionType: editingQuestion.questionType,
-        required: editingQuestion.required
+        required: editingQuestion.required,
+        ...(requiresOptions(editingQuestion.questionType) && { options: editingQuestion.options })
       }).unwrap();
       setEditingQuestionId(null);
     } catch (error) {
@@ -265,12 +355,14 @@ export default function AdminJobQuestionsPage() {
                         id="questionType"
                         name="questionType"
                         value={newQuestion.questionType}
-                        onChange={(e) => setNewQuestion({ ...newQuestion, questionType: e.target.value })}
+                        onChange={(e) => handleQuestionTypeChange(e.target.value)}
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200 bg-white text-gray-700 appearance-none"
                       >
                         <option value="TEXT">📝 Text Response</option>
                         <option value="NUMERIC">🔢 Number</option>
                         <option value="YES_NO">✅ Yes/No</option>
+                        <option value="MCQ">🔘 Multiple Choice (Single)</option>
+                        <option value="MULTI_SELECT">☑️ Multi-Select (Multiple)</option>
                       </select>
                     </div>
                   </div>
@@ -301,6 +393,50 @@ export default function AdminJobQuestionsPage() {
                     </label>
                   </div>
                 </div>
+
+                {/* Options for MCQ and MULTI_SELECT */}
+                {requiresOptions(newQuestion.questionType) && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Answer Options
+                    </label>
+                    <div className="space-y-3">
+                      {newQuestion.options.map((option, index) => (
+                        <div key={index} className="flex items-center space-x-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-indigo-600">
+                              {String.fromCharCode(65 + index)}
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => updateOption(index, e.target.value)}
+                            placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                            className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all duration-200 text-gray-700 placeholder-gray-400"
+                          />
+                          {newQuestion.options.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => removeOption(index)}
+                              className="flex-shrink-0 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addOption}
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Option
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex justify-end pt-4 border-t border-gray-100">
                   <button
@@ -361,12 +497,14 @@ export default function AdminJobQuestionsPage() {
                             <select
                               id={`edit-type-${question._id}`}
                               value={editingQuestion.questionType}
-                              onChange={(e) => setEditingQuestion({ ...editingQuestion, questionType: e.target.value })}
+                              onChange={(e) => handleEditingQuestionTypeChange(e.target.value)}
                               className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200"
                             >
                               <option value="TEXT">📝 Text Response</option>
                               <option value="NUMERIC">🔢 Number</option>
                               <option value="YES_NO">✅ Yes/No</option>
+                              <option value="MCQ">🔘 Multiple Choice</option>
+                              <option value="MULTI_SELECT">☑️ Multi-Select</option>
                             </select>
                           </div>
                           
@@ -383,6 +521,43 @@ export default function AdminJobQuestionsPage() {
                             </label>
                           </div>
                         </div>
+                        
+                        {requiresOptions(editingQuestion.questionType) && (
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Options
+                            </label>
+                            <div className="space-y-2">
+                              {editingQuestion.options.map((option, index) => (
+                                <div key={index} className="flex items-center space-x-2">
+                                  <input
+                                    type="text"
+                                    value={option}
+                                    onChange={(e) => updateEditingOption(index, e.target.value)}
+                                    placeholder={`Option ${index + 1}`}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeEditingOption(index)}
+                                    className="text-red-500 hover:text-red-700 p-1"
+                                    disabled={editingQuestion.options.length <= 1}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={addEditingOption}
+                                className="inline-flex items-center px-3 py-1 text-sm text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                Add Option
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="flex space-x-3 pt-4">
                           <button

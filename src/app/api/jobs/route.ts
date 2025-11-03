@@ -640,7 +640,7 @@ export async function POST(req: NextRequest) {
     // Transform the created job based on user role before returning
     const transformedJob = transformJobForUser(jobObj, userData.role);
 
-    // Trigger email notifications for recruiters (non-blocking)
+    // Trigger email notifications for recruiters (non-blocking) - AFTER job is saved
     try {
       // Check if we should send notifications (every 5 jobs)
       const notificationCheck = await shouldSendGlobalNotification();

@@ -51,13 +51,29 @@ export async function GET(request: NextRequest) {
     // Filter out any settings where userId population failed (non-recruiter users)
     const validPayoutSettings = payoutSettings.filter(setting => setting.userId);
 
+    // Transform data to match frontend expectations
+    const transformedSettings = validPayoutSettings.map(setting => ({
+      _id: setting._id,
+      userId: setting.userId._id,
+      paymentMethod: setting.preferredPaymentMethod,
+      bankDetails: setting.bankTransferDetails,
+      paypalDetails: setting.paypalDetails,
+      wiseDetails: setting.wiseDetails,
+      veemDetails: setting.veemDetails,
+      createdAt: setting.createdAt,
+      updatedAt: setting.updatedAt,
+      user: setting.userId,
+      lastUpdatedBy: setting.lastUpdatedBy,
+      isActive: setting.isActive
+    }));
+
     const totalCount = await PayoutSettings.countDocuments({
       userId: { $in: await User.find({ role: UserRole.RECRUITER }).distinct('_id') }
     });
 
     return NextResponse.json({
       success: true,
-      data: validPayoutSettings,
+      payoutSettings: transformedSettings,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(totalCount / limit),
