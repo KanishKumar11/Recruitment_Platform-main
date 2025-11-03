@@ -25,7 +25,10 @@ export async function GET(request: NextRequest) {
     const user = await User.findById(decoded.userId);
 
     if (!user || user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Unauthorized - Admin access required" },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -38,21 +41,23 @@ export async function GET(request: NextRequest) {
       .populate({
         path: "userId",
         select: "name email phone recruitmentFirmName country state city",
-        match: { role: UserRole.RECRUITER }
+        match: { role: UserRole.RECRUITER },
       })
       .populate({
         path: "lastUpdatedBy",
-        select: "name email"
+        select: "name email",
       })
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limit);
 
     // Filter out any settings where userId population failed (non-recruiter users)
-    const validPayoutSettings = payoutSettings.filter(setting => setting.userId);
+    const validPayoutSettings = payoutSettings.filter(
+      (setting) => setting.userId
+    );
 
     // Transform data to match frontend expectations
-    const transformedSettings = validPayoutSettings.map(setting => ({
+    const transformedSettings = validPayoutSettings.map((setting) => ({
       _id: setting._id,
       userId: setting.userId._id,
       paymentMethod: setting.preferredPaymentMethod,
@@ -64,11 +69,13 @@ export async function GET(request: NextRequest) {
       updatedAt: setting.updatedAt,
       user: setting.userId,
       lastUpdatedBy: setting.lastUpdatedBy,
-      isActive: setting.isActive
+      isActive: setting.isActive,
     }));
 
     const totalCount = await PayoutSettings.countDocuments({
-      userId: { $in: await User.find({ role: UserRole.RECRUITER }).distinct('_id') }
+      userId: {
+        $in: await User.find({ role: UserRole.RECRUITER }).distinct("_id"),
+      },
     });
 
     return NextResponse.json({
@@ -111,14 +118,17 @@ export async function POST(request: NextRequest) {
     const user = await User.findById(decoded.userId);
 
     if (!user || user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Unauthorized - Admin access required" },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();
     const { recruiterId } = body;
 
     // Validate recruiter ID
-    if (!recruiterId || typeof recruiterId !== 'string') {
+    if (!recruiterId || typeof recruiterId !== "string") {
       return NextResponse.json(
         { error: "Valid recruiter ID is required" },
         { status: 400 }
@@ -145,7 +155,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     if (!recruiter || recruiter.role !== UserRole.RECRUITER) {
       return NextResponse.json(
         { error: "Recruiter not found" },
@@ -155,8 +165,9 @@ export async function POST(request: NextRequest) {
 
     let payoutSettings;
     try {
-      payoutSettings = await PayoutSettings.findOne({ userId: recruiterId })
-        .populate('userId', 'firstName lastName email');
+      payoutSettings = await PayoutSettings.findOne({
+        userId: recruiterId,
+      }).populate("userId", "firstName lastName email");
     } catch (dbError) {
       console.error("Database error finding payout settings:", dbError);
       return NextResponse.json(
@@ -164,14 +175,14 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     if (!payoutSettings) {
       return NextResponse.json(
         { error: "Payout settings not found for this recruiter" },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json({
       success: true,
       data: payoutSettings,
