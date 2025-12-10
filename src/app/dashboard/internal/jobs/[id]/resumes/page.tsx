@@ -29,7 +29,7 @@ import {
 import ErrorAlert from "@/app/components/ui/ErrorAlert";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 export default function InternalJobResumesPage() {
   const router = useRouter();
@@ -184,62 +184,65 @@ export default function InternalJobResumesPage() {
     setDownloadDropdownOpen(null);
   };
 
-  // Function to download as Excel
-  const downloadAsExcel = (resume: any) => {
+  const downloadWorkbook = async (workbook: ExcelJS.Workbook, fileName: string) => {
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Function to download as Excel (using ExcelJS)
+  const downloadAsExcel = async (resume: any) => {
     const candidateData = prepareCandidateDataForDownload(resume);
 
-    // Create a new workbook
-    const wb = XLSX.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("Candidate Details");
 
-    // Convert data to worksheet format
-    const wsData = [Object.keys(candidateData), Object.values(candidateData)];
-
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-    // Set column widths for better readability
-    const colWidths = Object.keys(candidateData).map((key) => ({
-      wch: Math.max(
+    const headers = Object.keys(candidateData);
+    ws.columns = headers.map((key) => ({
+      header: key,
+      key,
+      width: Math.max(
         key.length,
         String(candidateData[key as keyof typeof candidateData]).length,
         15
       ),
     }));
-    ws["!cols"] = colWidths;
 
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Candidate Details");
+    ws.addRow(candidateData);
 
-    // Save the file
-    const fileName = `candidate_${resume.candidateName.replace(
-      /\s+/g,
-      "_"
-    )}_${new Date().getTime()}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    const fileName = `candidate_${resume.candidateName.replace(/\s+/g, "_")}_${new Date().getTime()}.xlsx`;
+    await downloadWorkbook(workbook, fileName);
 
     setDownloadDropdownOpen(null);
   };
 
   // Function to download all candidates as Excel
-  const downloadAllCandidatesAsExcel = () => {
+  const downloadAllCandidatesAsExcel = async () => {
     if (!resumes || resumes.length === 0) return;
 
     const allCandidatesData = resumes.map((resume) =>
       prepareCandidateDataForDownload(resume)
     );
 
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(allCandidatesData);
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("All Candidates");
 
-    // Set column widths
-    const colWidths = Object.keys(allCandidatesData[0]).map((key) => ({
-      wch: Math.max(key.length, 20),
-    }));
-    ws["!cols"] = colWidths;
-
-    XLSX.utils.book_append_sheet(wb, ws, "All Candidates");
+    const headers = Object.keys(allCandidatesData[0]);
+    ws.columns = headers.map((key) => ({ header: key, key, width: Math.max(key.length, 20) }));
+    allCandidatesData.forEach((row) => ws.addRow(row));
 
     const fileName = `all_candidates_job_${jobId}_${new Date().getTime()}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    await downloadWorkbook(workbook, fileName);
   };
 
   // Function to download all candidates as CSV
