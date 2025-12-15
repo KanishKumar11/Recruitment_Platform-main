@@ -246,7 +246,7 @@ export default function Home() {
             >
               <div className="relative w-full h-[400px] md:h-[450px] shadow-2xl rounded-lg overflow-hidden">
                 <img
-                  src="/img1.png"
+                  src="/img1.webp"
                   alt="SourcingScreen Dashboard Preview"
                   className="w-full h-full object-cover"
                 />
