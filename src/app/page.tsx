@@ -250,6 +250,7 @@ export default function Home() {
                   alt="SourcingScreen Dashboard Preview"
                   fill
                   className="object-cover"
+                  unoptimized
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-gray-800/90 p-4 rounded-lg shadow-lg">
@@ -367,6 +368,7 @@ export default function Home() {
                       height={320}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                      unoptimized
                     />
                   </div>
                 </div>
@@ -601,6 +603,7 @@ export default function Home() {
                       alt={`${roles[activeFeature].title} Dashboard`}
                       fill
                       className="object-contain"
+                      unoptimized
                     />
                   </div>
                 </div>
