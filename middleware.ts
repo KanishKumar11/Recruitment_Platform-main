@@ -16,6 +16,11 @@ const publicPaths = [
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Allow direct access to static assets (public/) so images, icons, etc. are not gated by auth
+  if (/\.(?:png|jpe?g|webp|gif|svg|ico)$/i.test(pathname)) {
+    return NextResponse.next();
+  }
   
   // Check if the path is a public path
   const isPublicPath = publicPaths.some(path => 
