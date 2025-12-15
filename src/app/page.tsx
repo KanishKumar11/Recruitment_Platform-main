@@ -245,10 +245,11 @@ export default function Home() {
               className="relative"
             >
               <div className="relative w-full h-[400px] md:h-[450px] shadow-2xl rounded-lg overflow-hidden">
-                <img
-                  src="/img1.webp"
+                <Image
+                  src="/img1.png"
                   alt="SourcingScreen Dashboard Preview"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-gray-800/90 p-4 rounded-lg shadow-lg">
@@ -359,9 +360,12 @@ export default function Home() {
                 <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl transform rotate-2 opacity-20"></div>
                 <div className="relative bg-white rounded-2xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1">
                   <div className="w-full h-80 rounded-xl overflow-hidden">
-                    <img
+                    <Image
                       src="/aboutUs.jpg"
                       alt="SourcingScreen Team"
+                      width={400}
+                      height={320}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                     />
                   </div>
@@ -592,10 +596,11 @@ export default function Home() {
                 </div>
                 <div className="bg-indigo-50 dark:bg-gray-700 p-6 flex items-center justify-center">
                   <div className="relative w-full h-64 md:h-full max-h-80">
-                    <img
+                    <Image
                       src="/recruiter-dashboard1.jpg"
                       alt={`${roles[activeFeature].title} Dashboard`}
-                      className="w-full h-full object-contain"
+                      fill
+                      className="object-contain"
                     />
                   </div>
                 </div>
