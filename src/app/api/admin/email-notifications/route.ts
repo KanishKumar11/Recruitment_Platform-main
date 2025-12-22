@@ -326,6 +326,7 @@ export async function POST(request: NextRequest) {
             sentDate: new Date(),
             emailSent: true,
             emailSentAt: new Date(),
+            sentAt: new Date(),
             recipientCount: 1,
             status: "sent",
           });

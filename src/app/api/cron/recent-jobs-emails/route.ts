@@ -3,8 +3,8 @@ import connectDb from "@/app/lib/db";
 import { getAllEmailNotificationSettings, EMAIL_NOTIFICATION_SETTINGS } from "@/app/lib/emailNotificationSettings";
 import Job, { JobStatus } from "@/app/models/Job";
 import User, { UserRole } from "@/app/models/User";
-import { addEmailNotificationJob } from "@/app/lib/jobQueue";
 import { transformJobForUser } from "@/app/lib/jobUtils";
+import EmailNotification from "@/app/models/EmailNotification";
 
 const runRecentJobBlast = async (days: number) => {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -46,20 +46,48 @@ const runRecentJobBlast = async (days: number) => {
   });
 
   const notificationType = "end_of_day_summary";
+  const { sendEndOfDayNotificationEmail } = await import("@/app/lib/recruiterEmailService");
+
+  let sentCount = 0;
+  let failCount = 0;
+  const jobIds = jobs.map((job) => job._id);
 
   await Promise.all(
-    recruiters.map((recruiter) =>
-      addEmailNotificationJob({
-        type: notificationType,
-        recipientEmail: recruiter.email,
-        recipientName: recruiter.name,
-        jobs: jobPayloads,
-        notificationId: undefined,
-      })
-    )
+    recruiters.map(async (recruiter) => {
+      try {
+        const success = await sendEndOfDayNotificationEmail(
+          recruiter.email,
+          recruiter.name,
+          jobPayloads,
+          undefined
+        );
+
+        if (success) {
+          sentCount += 1;
+          await EmailNotification.create({
+            recruiterId: recruiter._id,
+            emailType: "JOB_NOTIFICATION",
+            type: notificationType,
+            jobCount: jobPayloads.length,
+            jobIds,
+            sentDate: new Date(),
+            emailSent: true,
+            emailSentAt: new Date(),
+            sentAt: new Date(),
+            recipientCount: 1,
+            status: "sent",
+          });
+        } else {
+          failCount += 1;
+        }
+      } catch (err) {
+        console.error("Failed to send recent jobs cron email", err);
+        failCount += 1;
+      }
+    })
   );
 
-  return { sent: true, jobCount: jobPayloads.length, recipientCount: recruiters.length };
+  return { sent: sentCount > 0, jobCount: jobPayloads.length, recipientCount: recruiters.length, failedCount: failCount };
 };
 
 export async function POST(_request: NextRequest) {

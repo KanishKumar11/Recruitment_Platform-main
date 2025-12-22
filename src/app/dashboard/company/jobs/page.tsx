@@ -301,24 +301,24 @@ export default function JobsListPage() {
                         <TableRow key={job._id as string}>
                           <TableCell className="align-top">
                             <div className="flex flex-col gap-2 py-2">
-                              <div className="flex flex-wrap gap-1">
+                              <div className="flex flex-row gap-2 bg-gray-50 rounded-md p-2">
                                 <Link
                                   href={`/dashboard/company/jobs/${job._id}`}
-                                  className="flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors"
+                                  className="inline-flex items-center justify-center w-9 h-8 rounded-md border border-indigo-500 text-indigo-700 bg-indigo-50"
                                   title="View Job"
                                 >
                                   <EyeIcon className="h-4 w-4" />
                                 </Link>
                                 <Link
                                   href={`/dashboard/company/jobs/${job._id}/edit`}
-                                  className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                  className="inline-flex items-center justify-center w-9 h-8 rounded-md border border-sky-500 text-sky-700 bg-sky-50"
                                   title="Edit Job"
                                 >
                                   <PencilIcon className="h-4 w-4" />
                                 </Link>
                                 <Link
                                   href={`/dashboard/company/jobs/${job._id}/questions`}
-                                  className="flex items-center justify-center w-8 h-8 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition-colors"
+                                  className="inline-flex items-center justify-center w-9 h-8 rounded-md border border-fuchsia-500 text-fuchsia-700 bg-fuchsia-50"
                                   title="Job Questions"
                                 >
                                   <QuestionMarkCircleIcon className="h-4 w-4" />
@@ -331,7 +331,7 @@ export default function JobsListPage() {
                                     `/dashboard/company/jobs/${job._id}/resumes`
                                   )
                                 }
-                                className="w-full text-xs bg-green-600 hover:bg-green-700 text-white"
+                                className="w-full text-xs font-semibold bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-sm"
                                 title="View Resumes"
                               >
                                 <DocumentTextIcon className="h-3 w-3 mr-1" />

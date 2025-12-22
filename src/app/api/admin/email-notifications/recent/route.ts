@@ -4,11 +4,8 @@ import { authenticateRequest, authorizeRoles } from "@/app/lib/auth";
 import { UserRole } from "@/app/models/User";
 import Job, { JobStatus } from "@/app/models/Job";
 import User from "@/app/models/User";
-import { addEmailNotificationJob } from "@/app/lib/jobQueue";
-import {
-  getAllEmailNotificationSettings,
-  EMAIL_NOTIFICATION_SETTINGS,
-} from "@/app/lib/emailNotificationSettings";
+import EmailNotification from "@/app/models/EmailNotification";
+import { getAllEmailNotificationSettings } from "@/app/lib/emailNotificationSettings";
 import { transformJobForUser } from "@/app/lib/jobUtils";
 
 const DAYS_OPTIONS = [1, 3];
@@ -84,27 +81,56 @@ export async function POST(request: NextRequest) {
     });
 
     const notificationType = "end_of_day_summary";
+    const { sendEndOfDayNotificationEmail } = await import("@/app/lib/recruiterEmailService");
 
     const jobsToSend = jobPayloads;
+    const jobIds = jobs.map((job) => job._id);
 
-    const emailPromises = recruiters.map((recruiter) =>
-      addEmailNotificationJob({
-        type: notificationType,
-        recipientEmail: recruiter.email,
-        recipientName: recruiter.name,
-        jobs: jobsToSend,
-        notificationId: undefined,
+    let sentCount = 0;
+    let failCount = 0;
+
+    await Promise.all(
+      recruiters.map(async (recruiter) => {
+        try {
+          const success = await sendEndOfDayNotificationEmail(
+            recruiter.email,
+            recruiter.name,
+            jobsToSend,
+            undefined
+          );
+
+          if (success) {
+            sentCount += 1;
+            await EmailNotification.create({
+              recruiterId: recruiter._id,
+              emailType: "JOB_NOTIFICATION",
+              type: notificationType,
+              jobCount: jobsToSend.length,
+              jobIds,
+              sentDate: new Date(),
+              emailSent: true,
+              emailSentAt: new Date(),
+              sentAt: new Date(),
+              recipientCount: 1,
+              status: "sent",
+            });
+          } else {
+            failCount += 1;
+          }
+        } catch (err) {
+          console.error("Failed to send recent jobs email", err);
+          failCount += 1;
+        }
       })
     );
 
-    await Promise.all(emailPromises);
-
     return NextResponse.json({
-      message: `Queued ${jobsToSend.length} jobs to ${recruiters.length} recruiters`,
-      sent: true,
+      message: `Sent ${sentCount} of ${recruiters.length} recruiters`,
+      sent: sentCount > 0,
       days,
       jobCount: jobsToSend.length,
       recipientCount: recruiters.length,
+      failedCount: failCount,
     });
   } catch (error) {
     console.error("Error sending recent jobs emails:", error);

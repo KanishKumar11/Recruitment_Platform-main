@@ -177,6 +177,7 @@ export default function EmailNotificationsPage() {
         toast.success(
           `Queued ${data.jobCount || 0} jobs to ${data.recipientCount || 0} recruiters (${recentWindow}-day window)`
         );
+        refetch();
       } else {
         toast.error(data.error || "Failed to queue emails");
       }

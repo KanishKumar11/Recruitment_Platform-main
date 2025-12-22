@@ -1,5 +1,6 @@
 // Simple in-memory job queue system for background processing
 import EmailNotification from "../models/EmailNotification";
+import connectDb from "./db";
 
 interface QueueJob {
   id: string;
@@ -260,6 +261,8 @@ class JobQueue {
 
   // Process email notification job
   private async processEmailNotificationJob(job: QueueJob): Promise<void> {
+    await connectDb();
+
     const data = job.data as EmailNotificationJobData;
     const emailType = data.type || "job_batch";
 
@@ -301,40 +304,16 @@ class JobQueue {
         role: "RECRUITER",
       });
 
+      let notificationRecord: any = null;
+
       if (recruiter) {
-        // Create or update notification record for end-of-day summary
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        const existingNotification = await EmailNotification.findOne({
-          recruiterId: recruiter._id,
-          emailType: "JOB_NOTIFICATION",
-          sentDate: {
-            $gte: today,
-            $lt: tomorrow,
-          },
-        });
-
-        if (existingNotification) {
-          // Update existing notification
-          existingNotification.jobCount = jobs.length;
-          await existingNotification.save();
-        } else {
-          // Create new notification
-          await EmailNotification.create({
-            recruiterId: recruiter._id,
-            emailType: "JOB_NOTIFICATION",
-            jobCount: jobs.length,
-            jobIds: [],
-            sentDate: new Date(),
-            emailSent: false,
-            recipientCount: 1,
-            status: "pending",
-            retryCount: 0,
-          });
-        }
+        notificationRecord = await EmailNotification.createOrUpdate(
+          recruiter._id.toString(),
+          "JOB_NOTIFICATION",
+          jobs.length,
+          [],
+          1
+        );
       }
 
       console.log(
@@ -346,6 +325,14 @@ class JobQueue {
         jobs,
         notificationId
       );
+
+      if (notificationRecord) {
+        if (success) {
+          await notificationRecord.markAsSent();
+        } else {
+          await notificationRecord.markAsFailed("End-of-day email failed to send");
+        }
+      }
     } else {
       // Handle regular job batch emails (legacy)
       const {
@@ -378,6 +365,20 @@ class JobQueue {
         `Sending job batch email to ${recruiterEmail} for ${totalJobCount} jobs`
       );
 
+      // Create or update tracking record before sending
+      let notificationRecord: any = null;
+      try {
+        notificationRecord = await EmailNotification.createOrUpdate(
+          recruiterId,
+          "JOB_NOTIFICATION",
+          totalJobCount,
+          jobIds,
+          1
+        );
+      } catch (err) {
+        console.error("Failed to create/update EmailNotification record", err);
+      }
+
       success = await sendRecruiterJobNotificationEmail(
         recruiterId,
         recruiterName,
@@ -385,6 +386,14 @@ class JobQueue {
         jobIds,
         totalJobCount
       );
+
+      if (notificationRecord) {
+        if (success) {
+          await notificationRecord.markAsSent();
+        } else {
+          await notificationRecord.markAsFailed("Job batch email failed to send");
+        }
+      }
     }
 
     if (!success) {
