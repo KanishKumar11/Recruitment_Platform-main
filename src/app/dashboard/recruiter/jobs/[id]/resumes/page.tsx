@@ -120,7 +120,7 @@ export default function RecruiterJobResumesPage() {
       }
     });
 
-  const fromTab = searchParams.get('from') || 'saved';
+  const fromTab = searchParams.get('from') || 'live';
 
   const handleBack = () => {
     router.push(`/dashboard/recruiter/jobs?active=${fromTab}`);

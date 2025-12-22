@@ -29,7 +29,7 @@ export default function RecruiterJobDetailsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params?.id as string;
-  const fromTab = searchParams.get("from") || "saved";
+  const fromTab = searchParams.get("from") || "live";
 
   // const { user } = useSelector((state: RootState) => state.auth);
   const { data: job, isLoading } = useGetJobByIdQuery(id);

@@ -99,7 +99,7 @@ export default function RecruiterJobApplyPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const fromTab = searchParams.get("from") || "saved";
+  const fromTab = searchParams.get("from") || "live";
   const id = params?.id as string;
 
   const { data: job, isLoading } = useGetJobByIdQuery(id);
