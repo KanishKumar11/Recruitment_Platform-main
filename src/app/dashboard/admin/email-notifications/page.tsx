@@ -5,6 +5,10 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { RootState } from "@/app/store/index";
 import { useGetEmailNotificationStatsQuery } from "@/app/store/services/emailNotificationsApi";
+import {
+  useGetEmailSettingsQuery,
+  useUpdateEmailSettingsMutation,
+} from "@/app/store/services/adminApi";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
@@ -62,6 +66,10 @@ export default function EmailNotificationsPage() {
   const [timeFrame, setTimeFrame] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sendingManual, setSendingManual] = useState(false);
+  const [sendingRecent, setSendingRecent] = useState(false);
+  const [recentWindow, setRecentWindow] = useState<"1" | "3">("1");
+  const [auto1d, setAuto1d] = useState(false);
+  const [auto3d, setAuto3d] = useState(false);
 
   // RTK Query hook for fetching email notification statistics
   const {
@@ -70,13 +78,25 @@ export default function EmailNotificationsPage() {
     error,
     refetch,
     isFetching: refreshing,
-  } = useGetEmailNotificationStatsQuery({
-    timeFrame,
-    page: currentPage,
-    limit: 10,
-  });
+  } = useGetEmailNotificationStatsQuery(
+    {
+      timeFrame,
+      page: currentPage,
+      limit: 10,
+    },
+    {
+      pollingInterval: 10000,
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    }
+  );
 
   const stats = statsResponse?.data || null;
+
+  const { data: emailSettingsData } = useGetEmailSettingsQuery();
+  const [updateEmailSettings, { isLoading: savingSettings }]
+    = useUpdateEmailSettingsMutation();
 
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -84,6 +104,13 @@ export default function EmailNotificationsPage() {
       router.push(`/dashboard/${user.role.toLowerCase()}`);
     }
   }, [user, router]);
+
+  useEffect(() => {
+    if (emailSettingsData?.settings) {
+      setAuto1d(Boolean(emailSettingsData.settings.RECENT_JOBS_AUTO_1D));
+      setAuto3d(Boolean(emailSettingsData.settings.RECENT_JOBS_AUTO_3D));
+    }
+  }, [emailSettingsData]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -129,6 +156,50 @@ export default function EmailNotificationsPage() {
       toast.error("Failed to send manual emails. Please try again.");
     } finally {
       setSendingManual(false);
+    }
+  };
+
+  const handleRecentSend = async () => {
+    setSendingRecent(true);
+    try {
+      const response = await fetch("/api/admin/email-notifications/recent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ days: Number(recentWindow) }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(
+          `Queued ${data.jobCount || 0} jobs to ${data.recipientCount || 0} recruiters (${recentWindow}-day window)`
+        );
+      } else {
+        toast.error(data.error || "Failed to queue emails");
+      }
+    } catch (error) {
+      console.error("Error sending recent job emails:", error);
+      toast.error("Failed to queue recent job emails");
+    } finally {
+      setSendingRecent(false);
+    }
+  };
+
+  const handleSaveToggles = async () => {
+    try {
+      await updateEmailSettings({
+        settings: {
+          recent_jobs_auto_1d: auto1d,
+          recent_jobs_auto_3d: auto3d,
+        },
+      }).unwrap();
+      toast.success("Recent job email settings saved");
+    } catch (error: any) {
+      console.error("Error saving email settings", error);
+      toast.error(error?.data?.error || "Failed to save settings");
     }
   };
 
@@ -200,6 +271,23 @@ export default function EmailNotificationsPage() {
                   <EnvelopeIcon className="w-4 h-4 mr-2" />
                   {sendingManual ? "Sending..." : "Send Manual Emails"}
                 </button>
+                <div className="flex items-center space-x-2">
+                  <select
+                    value={recentWindow}
+                    onChange={(e) => setRecentWindow(e.target.value as "1" | "3")}
+                    className="rounded-md border-gray-300 text-sm"
+                  >
+                    <option value="1">Last 1 day</option>
+                    <option value="3">Last 3 days</option>
+                  </select>
+                  <button
+                    onClick={handleRecentSend}
+                    disabled={sendingRecent}
+                    className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+                  >
+                    {sendingRecent ? "Queuing..." : "Send Recent"}
+                  </button>
+                </div>
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}
@@ -210,7 +298,7 @@ export default function EmailNotificationsPage() {
                       refreshing ? "animate-spin" : ""
                     }`}
                   />
-                  Refresh
+                  {refreshing ? "Syncing..." : "Refresh"}
                 </button>
                 <Link
                   href="/dashboard/admin"
@@ -245,6 +333,74 @@ export default function EmailNotificationsPage() {
                     {option.label}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Recent Jobs Auto/Manual Controls */}
+            <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Auto recent job emails</p>
+                    <p className="text-xs text-gray-500">Send daily/3-day blasts automatically</p>
+                  </div>
+                  <button
+                    onClick={handleSaveToggles}
+                    disabled={savingSettings}
+                    className="px-3 py-1.5 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {savingSettings ? "Saving..." : "Save"}
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  <label className="flex items-start space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                      checked={auto1d}
+                      onChange={(e) => setAuto1d(e.target.checked)}
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Last 1 day (daily)</p>
+                      <p className="text-xs text-gray-500">Send recruiters jobs posted in the last 24 hours automatically.</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                      checked={auto3d}
+                      onChange={(e) => setAuto3d(e.target.checked)}
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Last 3 days (every run)</p>
+                      <p className="text-xs text-gray-500">Send recruiters jobs posted in the last 3 days when the cron runs.</p>
+                    </div>
+                  </label>
+                  <p className="text-xs text-gray-500">Cron endpoint: /api/cron/recent-jobs-emails</p>
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p className="text-sm font-semibold text-gray-900 mb-2">Manual recent job blast</p>
+                <p className="text-xs text-gray-500 mb-4">Send jobs posted in the chosen window with title, location, and recruiter commission.</p>
+                <div className="flex items-center space-x-3">
+                  <select
+                    value={recentWindow}
+                    onChange={(e) => setRecentWindow(e.target.value as "1" | "3")}
+                    className="rounded-md border-gray-300 text-sm"
+                  >
+                    <option value="1">Last 1 day</option>
+                    <option value="3">Last 3 days</option>
+                  </select>
+                  <button
+                    onClick={handleRecentSend}
+                    disabled={sendingRecent}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+                  >
+                    {sendingRecent ? "Queuing..." : "Send now"}
+                  </button>
+                </div>
               </div>
             </div>
 

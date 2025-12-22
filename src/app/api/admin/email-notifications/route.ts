@@ -276,7 +276,7 @@ export async function POST(request: NextRequest) {
         $gte: startOfDay,
         $lt: endOfDay,
       },
-      status: "active",
+      status: { $in: ["ACTIVE", "PAUSED"] },
     }).populate("company", "name");
 
     // Get all active recruiters

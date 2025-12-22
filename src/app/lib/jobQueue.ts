@@ -30,6 +30,7 @@ interface EmailNotificationJobData {
     location: string;
     type: string;
     postedAt: Date;
+    commission?: string;
   }>;
   totalJobCount?: number;
   notificationId?: string;

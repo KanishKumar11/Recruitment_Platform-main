@@ -595,6 +595,7 @@ const getEndOfDayNotificationTemplate = (
     location: string;
     type: string;
     postedAt: Date;
+    commission?: string;
   }>
 ) => {
   const jobCount = jobs.length;
@@ -661,6 +662,7 @@ const getEndOfDayNotificationTemplate = (
                   <div class="job-title">${job.title}</div>
                   <div class="job-details">🏢 ${job.company}</div>
                   <div class="job-details">📍 ${job.location}</div>
+                  ${job.commission ? `<div class="job-details">💰 ${job.commission}</div>` : ""}
                   <div class="job-meta">
                     <span class="job-type">${job.type}</span>
                     <span class="posted-time">Posted: ${new Date(
@@ -710,6 +712,7 @@ const getEndOfDayNotificationTemplate = (
       • ${job.title}
         Company: ${job.company}
         Location: ${job.location}
+        ${job.commission ? `Commission: ${job.commission}` : ""}
         Type: ${job.type}
         Posted: ${new Date(job.postedAt).toLocaleDateString()}
       `

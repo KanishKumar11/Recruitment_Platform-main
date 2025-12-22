@@ -104,6 +104,8 @@ export async function PUT(request: NextRequest) {
     const booleanSettings = [
       EMAIL_NOTIFICATION_SETTINGS.END_OF_DAY_NOTIFICATIONS,
       EMAIL_NOTIFICATION_SETTINGS.NOTIFICATION_ENABLED,
+      EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_1D,
+      EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_3D,
     ];
 
     booleanSettings.forEach((key) => {

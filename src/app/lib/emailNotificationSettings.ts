@@ -6,6 +6,8 @@ export const EMAIL_NOTIFICATION_SETTINGS = {
   END_OF_DAY_NOTIFICATIONS: "end_of_day_notifications",
   END_OF_DAY_TIME: "end_of_day_time", // Time to send end-of-day emails (24-hour format)
   NOTIFICATION_ENABLED: "email_notifications_enabled",
+  RECENT_JOBS_AUTO_1D: "recent_jobs_auto_1d",
+  RECENT_JOBS_AUTO_3D: "recent_jobs_auto_3d",
 } as const;
 
 // Default email notification settings
@@ -14,6 +16,8 @@ export const DEFAULT_EMAIL_NOTIFICATION_SETTINGS = {
   [EMAIL_NOTIFICATION_SETTINGS.END_OF_DAY_NOTIFICATIONS]: true, // Enable end-of-day emails
   [EMAIL_NOTIFICATION_SETTINGS.END_OF_DAY_TIME]: "18:00", // 6 PM
   [EMAIL_NOTIFICATION_SETTINGS.NOTIFICATION_ENABLED]: true, // Enable all notifications
+  [EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_1D]: false, // Auto-send recent jobs (1 day)
+  [EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_3D]: false, // Auto-send recent jobs (3 days)
 };
 
 /**
@@ -179,6 +183,8 @@ function validateSettingValue(key: string, value: any): void {
       break;
     case EMAIL_NOTIFICATION_SETTINGS.END_OF_DAY_NOTIFICATIONS:
     case EMAIL_NOTIFICATION_SETTINGS.NOTIFICATION_ENABLED:
+    case EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_1D:
+    case EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_3D:
       if (typeof value !== "boolean") {
         throw new Error("Boolean value expected");
       }
@@ -209,6 +215,10 @@ function getSettingDescription(key: string): string {
       return "Time of day to send end-of-day notification emails (24-hour format HH:MM)";
     case EMAIL_NOTIFICATION_SETTINGS.NOTIFICATION_ENABLED:
       return "Whether email notifications to recruiters are enabled globally";
+    case EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_1D:
+      return "Automatically email recruiters about jobs posted in the last 1 day";
+    case EMAIL_NOTIFICATION_SETTINGS.RECENT_JOBS_AUTO_3D:
+      return "Automatically email recruiters about jobs posted in the last 3 days";
     default:
       return "Email notification system setting";
   }
