@@ -1,7 +1,7 @@
 // src/app/api/jobs/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "./../../../lib/db";
-import Job from "./../../../models/Job";
+import Job, { JobVisibility } from "./../../../models/Job";
 import User from "./../../../models/User";
 import ScreeningQuestion from "./../../../models/ScreeningQuestion";
 import {
@@ -67,12 +67,27 @@ async function hasAccessToJob(
     return true;
   }
 
-  // Recruiters can access active and paused jobs (but upload will be disabled for paused jobs)
-  if (
-    userData.role === UserRole.RECRUITER &&
-    (job.status === "ACTIVE" || job.status === "PAUSED")
-  ) {
-    return true;
+  // Recruiters can access active and paused jobs they are allowed to see
+  if (userData.role === UserRole.RECRUITER) {
+    if (!(job.status === "ACTIVE" || job.status === "PAUSED")) {
+      return false;
+    }
+
+    const recruiterId = new mongoose.Types.ObjectId(userData.userId)
+      .toString();
+    const visibility = (job as any).visibility || JobVisibility.ALL;
+
+    if (visibility === JobVisibility.SELECTED) {
+      const allowed = ((job as any).allowedRecruiters || []).map((id: any) =>
+        id?.toString()
+      );
+      return allowed.includes(recruiterId);
+    }
+
+    const blocked = ((job as any).blockedRecruiters || []).map((id: any) =>
+      id?.toString()
+    );
+    return !blocked.includes(recruiterId);
   }
 
   // Job creator always has access

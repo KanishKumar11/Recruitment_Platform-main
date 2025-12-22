@@ -20,6 +20,7 @@ import JobUpdatesModal from "@/components/JobUpdatesModal";
 import { MessageSquare, Users } from "lucide-react";
 import { useGetJobUpdatesQuery } from "../../../../store/services/jobUpdatesApi";
 import ShowRecruitersModal from "@/components/ShowRecruitersModal";
+import ManageJobAccessModal from "@/components/ManageJobAccessModal";
 
 export default function AdminJobDetailPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function AdminJobDetailPage() {
   const [updateJobStatus] = useUpdateJobStatusMutation();
   const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
   const [isRecruitersModalOpen, setIsRecruitersModalOpen] = useState(false);
+  const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
   const { data: updatesData } = useGetJobUpdatesQuery(id, { skip: !id });
   const updatesCount = updatesData?.data?.length || 0;
 
@@ -147,6 +149,12 @@ export default function AdminJobDetailPage() {
                           </span>
                         )}
                       </div>
+                      <button
+                        onClick={() => setIsAccessModalOpen(true)}
+                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        Manage Access
+                      </button>
                       <button
                         onClick={() => setIsRecruitersModalOpen(true)}
                         className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
@@ -508,6 +516,14 @@ export default function AdminJobDetailPage() {
           onClose={() => setIsRecruitersModalOpen(false)}
           jobId={id}
           jobTitle={job?.title || ""}
+        />
+
+        <ManageJobAccessModal
+          isOpen={isAccessModalOpen}
+          onClose={() => setIsAccessModalOpen(false)}
+          jobId={id}
+          jobTitle={job?.title || ""}
+          jobCode={job?.jobCode?.replace(/^job-/i, "")}
         />
       </DashboardLayout>
     </ProtectedLayout>

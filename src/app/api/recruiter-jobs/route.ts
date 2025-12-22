@@ -1,10 +1,31 @@
 // src/app/api/recruiter-jobs/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import RecruiterJob from "@/app/models/RecruiterJob";
-import Job from "@/app/models/Job";
+import Job, { JobVisibility } from "@/app/models/Job";
 import { authenticateRequest } from "@/app/lib/auth";
 import { UserRole } from "@/app/models/User";
 import connectDb from "@/app/lib/db";
+import mongoose from "mongoose";
+
+const hasJobAccess = (job: any, recruiterId: mongoose.Types.ObjectId) => {
+  if (!job) return false;
+  if (!["ACTIVE", "PAUSED"].includes(job.status)) return false;
+
+  const recruiterIdStr = recruiterId.toString();
+  const visibility = job.visibility || JobVisibility.ALL;
+
+  if (visibility === JobVisibility.ALL) {
+    const blocked = (job.blockedRecruiters || []).map((id: any) =>
+      id?.toString()
+    );
+    return !blocked.includes(recruiterIdStr);
+  }
+
+  const allowed = (job.allowedRecruiters || []).map((id: any) =>
+    id?.toString()
+  );
+  return allowed.includes(recruiterIdStr);
+};
 
 // GET - Get recruiter's saved jobs
 export async function GET(request: NextRequest) {
@@ -20,6 +41,8 @@ export async function GET(request: NextRequest) {
     if (userData.role !== UserRole.RECRUITER) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
+
+    const recruiterObjectId = new mongoose.Types.ObjectId(userData.userId);
 
     // Get recruiter's saved jobs with job details
     const recruiterJobs = await RecruiterJob.find({
@@ -39,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     // Filter out jobs that might have been deleted and extract the populated job data
     const savedJobs = recruiterJobs
-      .filter((rj) => rj.jobId)
+      .filter((rj) => rj.jobId && hasJobAccess(rj.jobId, recruiterObjectId))
       .map((rj) => rj.jobId);
 
     return NextResponse.json({ savedJobs }, { status: 200 });
@@ -77,9 +100,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if job exists
+    const recruiterObjectId = new mongoose.Types.ObjectId(userData.userId);
     const job = await Job.findById(jobId);
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+
+    if (!hasJobAccess(job, recruiterObjectId)) {
+      return NextResponse.json(
+        { error: "You do not have access to this job" },
+        { status: 403 }
+      );
     }
 
     // Check if already saved (upsert will handle this, but we want to return appropriate message)

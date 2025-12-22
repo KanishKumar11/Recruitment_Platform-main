@@ -1,7 +1,7 @@
 //src/app/api/jobs/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "./../../lib/db";
-import Job from "./../../models/Job";
+import Job, { JobVisibility } from "./../../models/Job";
 import User from "./../../models/User";
 import {
   authenticateRequest,
@@ -324,8 +324,28 @@ export async function GET(req: NextRequest) {
         });
       }
     } else if (userData.role === UserRole.RECRUITER) {
-      // Recruiters can see all active and paused jobs with reduced commission
-      jobs = await Job.find({ status: { $in: ["ACTIVE", "PAUSED"] } })
+      // Recruiters can see active and paused jobs they are allowed to access
+      const recruiterObjectId = new mongoose.Types.ObjectId(userData.userId);
+      jobs = await Job.find({
+        status: { $in: ["ACTIVE", "PAUSED"] },
+        $or: [
+          {
+            $and: [
+              {
+                $or: [
+                  { visibility: { $exists: false } },
+                  { visibility: JobVisibility.ALL },
+                ],
+              },
+              { blockedRecruiters: { $nin: [recruiterObjectId] } },
+            ],
+          },
+          {
+            visibility: JobVisibility.SELECTED,
+            allowedRecruiters: recruiterObjectId,
+          },
+        ],
+      })
         .populate("postedBy", "name companyName")
         .sort({ createdAt: -1 });
 

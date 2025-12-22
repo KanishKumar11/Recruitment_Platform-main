@@ -18,6 +18,11 @@ export enum JobType {
   INTERNSHIP = "INTERNSHIP",
 }
 
+export enum JobVisibility {
+  ALL = "ALL",
+  SELECTED = "SELECTED",
+}
+
 // Commission configuration - can be moved to a config file
 export const COMMISSION_CONFIG = {
   DEFAULT_REDUCTION_PERCENTAGE: 50, // 50% reduction by default
@@ -82,6 +87,9 @@ export interface IJob extends Document {
   postedByName?: string; // Name of the user who posted the job
   postedByCompany?: string;
   company?: string;
+  visibility?: JobVisibility;
+  allowedRecruiters?: mongoose.Types.ObjectId[];
+  blockedRecruiters?: mongoose.Types.ObjectId[];
 }
 
 const CommissionSchema = new Schema<IJobCommission>({
@@ -117,6 +125,29 @@ const JobSchema = new Schema<IJob>(
     postedDate: { type: Date, default: Date.now },
     country: { type: String, required: true },
     location: { type: String, required: true },
+    visibility: {
+      type: String,
+      enum: Object.values(JobVisibility),
+      default: JobVisibility.ALL,
+    },
+    allowedRecruiters: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
+    },
+    blockedRecruiters: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
+    },
     status: {
       type: String,
       enum: Object.values(JobStatus),
@@ -354,7 +385,17 @@ JobSchema.pre("save", async function (next) {
   next();
 });
 
-// Use modelName to avoid issues with hot reloading
+// Ensure the model is rebuilt if the schema changed (handles hot reload schema drift)
+const existingJobModel = mongoose.models.Job as mongoose.Model<IJob> | undefined;
+const jobSchemaHasAccessFields =
+  existingJobModel?.schema?.path("visibility") &&
+  existingJobModel?.schema?.path("allowedRecruiters") &&
+  existingJobModel?.schema?.path("blockedRecruiters");
+
+if (existingJobModel && !jobSchemaHasAccessFields) {
+  delete mongoose.models.Job;
+}
+
 const Job = mongoose.models.Job || mongoose.model<IJob>("Job", JobSchema);
 
 export default Job;

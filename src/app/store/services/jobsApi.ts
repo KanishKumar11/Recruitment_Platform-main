@@ -3,6 +3,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../index";
 import { IJob, JobStatus } from "../../models/Job";
 
+interface JobRecruiterAccessUser {
+  id: string;
+  name: string;
+  email: string;
+  companyName?: string;
+}
+
 // Updated interface to match the new commission structure
 interface JobFormData {
   title: string;
@@ -167,6 +174,42 @@ export const jobsApi = createApi({
       query: (jobId) => `/${jobId}/recruiters`,
       providesTags: ["Job"],
     }),
+    getJobAccessControl: builder.query<
+      {
+        jobId: string;
+        visibility: "ALL" | "SELECTED";
+        allowedRecruiters: JobRecruiterAccessUser[];
+        blockedRecruiters: JobRecruiterAccessUser[];
+      },
+      string
+    >({
+      query: (jobId) => `/${jobId}/access`,
+      providesTags: (_result, _error, id) => [{ type: "Job", id }],
+    }),
+    updateJobAccessControl: builder.mutation<
+      {
+        jobId: string;
+        visibility: "ALL" | "SELECTED";
+        allowedRecruiters: JobRecruiterAccessUser[];
+        blockedRecruiters: JobRecruiterAccessUser[];
+        message: string;
+      },
+      {
+        jobId: string;
+        visibility: "ALL" | "SELECTED";
+        allowedRecruiterIds: string[];
+        blockedRecruiterIds: string[];
+      }
+    >({
+      query: ({ jobId, ...body }) => ({
+        url: `/${jobId}/access`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { jobId }) => [
+        { type: "Job", id: jobId },
+      ],
+    }),
   }),
 });
 
@@ -182,6 +225,8 @@ export const {
   useUpdateJobStatusMutation,
   useGetResumeCountsQuery,
   useGetJobRecruitersQuery,
+  useGetJobAccessControlQuery,
+  useUpdateJobAccessControlMutation,
 } = jobsApi;
 
 // Separate API for recruiter jobs
