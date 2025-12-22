@@ -82,6 +82,13 @@ export default function JobsListPage() {
     return `${job.experienceLevel.min} - ${job.experienceLevel.max} years`;
   };
 
+  // Function to display job code (avoid exposing internal IDs)
+  const formatJobCode = (job: IJob) => {
+    const code = job.jobCode || (job as any).code;
+    if (!code) return "Not available";
+    return code.replace(/^job-/i, "");
+  };
+
   // Function to format commission
   const formatCommission = (job: IJob) => {
     // Check if commission type exists and is fixed
@@ -338,7 +345,7 @@ export default function JobsListPage() {
                                 {job.title}
                               </div>
                               <div className="text-sm text-gray-500">
-                                Code: {job.jobCode.replace(/^job-/i, "")}
+                                Code: {formatJobCode(job)}
                               </div>
                               <div className="text-sm text-gray-500">
                                 Posted:{" "}

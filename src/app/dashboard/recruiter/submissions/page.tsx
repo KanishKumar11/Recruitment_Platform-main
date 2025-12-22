@@ -451,6 +451,9 @@ function RecruiterSubmissionsPageContent() {
                             <div className="text-sm text-gray-500">
                               {resume.phone || "N/A"}
                             </div>
+                            <div className="text-sm text-gray-500">
+                              {resume.email || "N/A"}
+                            </div>
                           </button>
                         </td>
                         <td className="px-6 py-4">
@@ -473,16 +476,14 @@ function RecruiterSubmissionsPageContent() {
                                   Relevant Experience:{" "}
                                   {resume.relevantExperience || "N/A"}
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800" title={resume.noticePeriod || "N/A"}>
-                                  Notice: {resume.noticePeriod && resume.noticePeriod.length > 25 
-                                    ? `${resume.noticePeriod.substring(0, 25)}...` 
-                                    : resume.noticePeriod || "N/A"}
+                                <span
+                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                  title={resume.jobCode || "N/A"}
+                                >
+                                  Job Code: {resume.jobCode?.replace(/^job-/i, "") || "N/A"}
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  Current CTC: {resume.currentCTC || "N/A"}
-                                </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                  Expected CTC: {resume.expectedCTC || "N/A"}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                                  Location: {resume.location || "N/A"}
                                 </span>
                               </div>
                             </div>

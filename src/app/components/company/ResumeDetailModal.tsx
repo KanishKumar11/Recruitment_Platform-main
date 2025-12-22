@@ -434,7 +434,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2">
       <div className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[98vh] overflow-hidden flex flex-col resume-modal-compact">
         {/* Ultra Compact Header */}
-        <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50">
+        <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50 gap-4">
           <div className="flex items-center space-x-3">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
@@ -444,12 +444,31 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
             </div>
             <ResumeStatusBadge status={resume.status} />
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-white rounded-md"
-          >
-            <X className="h-4 w-4" />
-          </button>
+
+          <div className="flex items-center gap-3 text-right">
+            <div className="flex flex-col items-end space-y-1">
+              <span className="text-sm font-semibold text-gray-900">
+                {resume.jobTitle || "Unknown Job"}
+              </span>
+              <div className="flex flex-wrap justify-end gap-2">
+                <span
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-800"
+                  title={resume.jobCode || "N/A"}
+                >
+                  Job Code: {resume.jobCode?.replace(/^job-/i, "") || "N/A"}
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-teal-100 text-teal-800">
+                  {resume.location || "Location N/A"}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-white rounded-md"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Content */}

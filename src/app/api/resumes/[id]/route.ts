@@ -44,12 +44,19 @@ export async function GET(
       );
     }
 
+    const resumeWithJob = {
+      ...resume.toObject(),
+      jobTitle: job.title,
+      companyName: job.company,
+      jobCode: job.jobCode,
+    };
+
     // Admins/Internal can view all resumes
     if (
       userData.role === UserRole.ADMIN ||
       userData.role === UserRole.INTERNAL
     ) {
-      return NextResponse.json(resume);
+      return NextResponse.json(resumeWithJob);
     }
 
     // Company logic stays as-is
@@ -69,7 +76,7 @@ export async function GET(
       } else {
         if (job.postedBy.toString() !== currentUser._id.toString())
           return forbidden();
-        return NextResponse.json(resume);
+        return NextResponse.json(resumeWithJob);
       }
     }
 
@@ -79,7 +86,7 @@ export async function GET(
       if (!currentUser) return forbidden();
 
       // Allow any authenticated recruiter to view any resume
-      return NextResponse.json(resume);
+      return NextResponse.json(resumeWithJob);
     }
 
     // All other roles forbidden

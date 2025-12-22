@@ -79,6 +79,7 @@ export interface IResume extends Document {
   createdAt: Date;
   updatedAt: Date;
   jobTitle: string;
+  jobCode?: string;
 }
 
 const ResumeSchema = new Schema<IResume>(
@@ -170,6 +171,9 @@ const ResumeSchema = new Schema<IResume>(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+
+    // Optional job code to make job code available on resume responses
+    jobCode: { type: String },
   },
   { timestamps: true }
 );
