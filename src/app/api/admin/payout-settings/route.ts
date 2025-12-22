@@ -5,6 +5,22 @@ import connectDB from "@/app/lib/db";
 import User, { UserRole } from "@/app/models/User";
 import PayoutSettings from "@/app/models/PayoutSettings";
 
+const normalizePaymentMethod = (method?: string) => {
+  switch ((method || "").toUpperCase()) {
+    case "BANK_TRANSFER":
+    case "BANK TRANSFER":
+      return "Bank Transfer";
+    case "PAYPAL":
+      return "PayPal";
+    case "WISE":
+      return "Wise";
+    case "VEEM":
+      return "Veem";
+    default:
+      return method || "";
+  }
+};
+
 // GET - Retrieve all payout settings (admin only)
 export async function GET(request: NextRequest) {
   try {
@@ -57,20 +73,58 @@ export async function GET(request: NextRequest) {
     );
 
     // Transform data to match frontend expectations
-    const transformedSettings = validPayoutSettings.map((setting) => ({
-      _id: setting._id,
-      userId: setting.userId._id,
-      paymentMethod: setting.preferredPaymentMethod,
-      bankDetails: setting.bankTransferDetails,
-      paypalDetails: setting.paypalDetails,
-      wiseDetails: setting.wiseDetails,
-      veemDetails: setting.veemDetails,
-      createdAt: setting.createdAt,
-      updatedAt: setting.updatedAt,
-      user: setting.userId,
-      lastUpdatedBy: setting.lastUpdatedBy,
-      isActive: setting.isActive,
-    }));
+    const transformedSettings = validPayoutSettings.map((setting) => {
+      const paymentMethod = normalizePaymentMethod(
+        (setting as any).preferredPaymentMethod || (setting as any).paymentMethod
+      );
+
+      const bankDetails = setting.bankTransferDetails
+        ? {
+            ...setting.bankTransferDetails.toObject?.() ?? setting.bankTransferDetails,
+            branchCode: setting.bankTransferDetails.branchIfscSortCode,
+            accountNumber: setting.bankTransferDetails.accountNumberIban,
+            swiftCode: setting.bankTransferDetails.swiftBicCode,
+            referenceCode: setting.bankTransferDetails.internalTransferIdReference,
+          }
+        : undefined;
+
+      const paypalDetails = setting.paypalDetails
+        ? {
+            email: (setting.paypalDetails as any).paypalEmail || (setting.paypalDetails as any).email,
+          }
+        : undefined;
+
+      const wiseDetails = setting.wiseDetails
+        ? {
+            email:
+              (setting.wiseDetails as any).registeredEmailOrAccountId ||
+              (setting.wiseDetails as any).email,
+          }
+        : undefined;
+
+      const veemDetails = setting.veemDetails
+        ? {
+            email:
+              (setting.veemDetails as any).veemAccountEmailOrBusinessId ||
+              (setting.veemDetails as any).email,
+          }
+        : undefined;
+
+      return {
+        _id: setting._id,
+        userId: setting.userId._id,
+        paymentMethod,
+        bankDetails,
+        paypalDetails,
+        wiseDetails,
+        veemDetails,
+        createdAt: setting.createdAt,
+        updatedAt: setting.updatedAt,
+        user: setting.userId,
+        lastUpdatedBy: setting.lastUpdatedBy,
+        isActive: setting.isActive,
+      };
+    });
 
     const totalCount = await PayoutSettings.countDocuments({
       userId: {
@@ -183,9 +237,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const paymentMethod = normalizePaymentMethod(
+      (payoutSettings as any).preferredPaymentMethod || (payoutSettings as any).paymentMethod
+    );
+
+    const bankDetails = payoutSettings.bankTransferDetails
+      ? {
+          ...payoutSettings.bankTransferDetails.toObject?.() ?? payoutSettings.bankTransferDetails,
+          branchCode: payoutSettings.bankTransferDetails.branchIfscSortCode,
+          accountNumber: payoutSettings.bankTransferDetails.accountNumberIban,
+          swiftCode: payoutSettings.bankTransferDetails.swiftBicCode,
+          referenceCode: payoutSettings.bankTransferDetails.internalTransferIdReference,
+        }
+      : undefined;
+
+    const paypalDetails = payoutSettings.paypalDetails
+      ? {
+          email: (payoutSettings.paypalDetails as any).paypalEmail || (payoutSettings.paypalDetails as any).email,
+        }
+      : undefined;
+
+    const wiseDetails = payoutSettings.wiseDetails
+      ? {
+          email:
+            (payoutSettings.wiseDetails as any).registeredEmailOrAccountId ||
+            (payoutSettings.wiseDetails as any).email,
+        }
+      : undefined;
+
+    const veemDetails = payoutSettings.veemDetails
+      ? {
+          email:
+            (payoutSettings.veemDetails as any).veemAccountEmailOrBusinessId ||
+            (payoutSettings.veemDetails as any).email,
+        }
+      : undefined;
+
     return NextResponse.json({
       success: true,
-      data: payoutSettings,
+      data: {
+        ...payoutSettings.toObject(),
+        paymentMethod,
+        preferredPaymentMethod: paymentMethod,
+        bankDetails,
+        paypalDetails,
+        wiseDetails,
+        veemDetails,
+      },
     });
   } catch (error) {
     console.error("Error fetching recruiter payout settings:", error);

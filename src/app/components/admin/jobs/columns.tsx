@@ -93,31 +93,31 @@ export const createJobColumns = ({
 
       return (
         <div className="flex flex-col gap-2 py-2">
-          <div className="flex flex-wrap gap-1">
+          <div className="grid grid-cols-2 gap-2 w-full">
             <Link
               href={`/dashboard/admin/jobs/${job._id}`}
-              className="flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded transition-colors"
+              className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 hover:shadow-sm transition-all"
               title="View Job"
             >
               <EyeIcon className="h-4 w-4" />
             </Link>
             <Link
               href={`/dashboard/admin/jobs/${job._id}/edit`}
-              className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+              className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-blue-200 bg-blue-50 text-xs font-semibold text-blue-700 hover:bg-blue-100 hover:shadow-sm transition-all"
               title="Edit Job"
             >
               <PencilIcon className="h-4 w-4" />
             </Link>
             <Link
               href={`/dashboard/admin/jobs/${job._id}/questions`}
-              className="flex items-center justify-center w-8 h-8 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition-colors"
+              className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-purple-200 bg-purple-50 text-xs font-semibold text-purple-700 hover:bg-purple-100 hover:shadow-sm transition-all"
               title="Job Questions"
             >
               <QuestionMarkCircleIcon className="h-4 w-4" />
             </Link>
             <button
               onClick={() => onDeleteJob(job._id as string)}
-              className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+              className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100 hover:shadow-sm transition-all"
               title="Delete Job"
             >
               <TrashIcon className="h-4 w-4" />
@@ -126,7 +126,7 @@ export const createJobColumns = ({
           <Link href={`/dashboard/admin/jobs/${job._id}/resumes`}>
             <Button
               size="sm"
-              className="w-full text-xs bg-green-600 hover:bg-green-700 text-white"
+              className="w-full text-xs font-semibold bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-sm hover:shadow"
               title="View Resumes"
             >
               <DocumentTextIcon className="h-3 w-3 mr-1" />

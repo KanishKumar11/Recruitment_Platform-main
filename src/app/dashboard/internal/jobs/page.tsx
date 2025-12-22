@@ -61,34 +61,34 @@ export default function InternalJobsPage() {
         const job = row.original;
         return (
           <div className="flex flex-col space-y-2">
-            <div className="flex space-x-1">
+            <div className="grid grid-cols-4 gap-2 w-full">
               <Link
                 href={`/dashboard/internal/jobs/${job._id}`}
-                className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 hover:shadow-sm transition-all"
                 title="View Job"
               >
-                <EyeIcon className="h-4 w-4" />
+                <EyeIcon className="h-6 w-6" />
               </Link>
               <Link
                 href={`/dashboard/internal/jobs/${job._id}/edit`}
-                className="flex items-center justify-center w-8 h-8 text-green-600 hover:text-green-900 hover:bg-green-50 rounded transition-colors"
+                className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 hover:shadow-sm transition-all"
                 title="Edit Job"
               >
-                <PencilIcon className="h-4 w-4" />
+                <PencilIcon className="h-5 w-5" />
               </Link>
               <Link
                 href={`/dashboard/internal/jobs/${job._id}/questions`}
-                className="flex items-center justify-center w-8 h-8 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition-colors"
+                className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-purple-200 bg-purple-50 text-xs font-semibold text-purple-700 hover:bg-purple-100 hover:shadow-sm transition-all"
                 title="Job Questions"
               >
-                <QuestionMarkCircleIcon className="h-4 w-4" />
+                <QuestionMarkCircleIcon className="h-5 w-5" />
               </Link>
               <button
                 onClick={() => openDeleteModal(job._id as string)}
-                className="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100 hover:shadow-sm transition-all"
                 title="Delete Job"
               >
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon className="h-5 w-5" />
               </button>
             </div>
             <Button
@@ -96,7 +96,7 @@ export default function InternalJobsPage() {
               onClick={() =>
                 router.push(`/dashboard/internal/jobs/${job._id}/resumes`)
               }
-              className="w-full text-xs bg-green-600 hover:bg-green-700 text-white"
+              className="w-full text-xs font-semibold bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-sm hover:shadow"
               title="View Resumes"
             >
               <DocumentTextIcon className="h-3 w-3 mr-1" />
