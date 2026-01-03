@@ -31,6 +31,9 @@ export interface IUser extends Document {
   // Company-specific fields
   companySize?: string;
   designation?: string;
+  alternativePhone?: string;
+  companyOverview?: string;
+  companyLocation?: string;
 
   recruitmentFirmName?: string;
 
@@ -95,6 +98,9 @@ const UserSchema = new Schema<IUser>(
     companyName: { type: String, required: false },
     companySize: { type: String, required: false },
     designation: { type: String, required: false },
+    alternativePhone: { type: String, required: false }, // Added field
+    companyOverview: { type: String, required: false }, // Added field
+    companyLocation: { type: String, required: false }, // Added field
 
     recruitmentFirmName: { type: String, required: false },
 

@@ -17,6 +17,10 @@ interface UpdateProfileFormData {
   companyName?: string;
   companySize?: string;
   designation?: string;
+  alternativePhone?: string;
+  whatsappNumber?: string;
+  companyOverview?: string;
+  companyLocation?: string;
 
   // Recruiter-specific fields
   recruitmentFirmName?: string;
@@ -275,6 +279,10 @@ export default function UserProfile() {
       companyName: "",
       companySize: "",
       designation: "",
+      alternativePhone: "",
+      whatsappNumber: "",
+      companyOverview: "",
+      companyLocation: "",
     }),
     // Initialize recruiter fields
     ...(user?.role === "RECRUITER" && {
@@ -347,6 +355,10 @@ export default function UserProfile() {
               companyName: userData.companyName || "",
               companySize: userData.companySize || "",
               designation: userData.designation || "",
+              alternativePhone: userData.alternativePhone || "",
+              whatsappNumber: userData.whatsappNumber || "",
+              companyOverview: userData.companyOverview || "",
+              companyLocation: userData.companyLocation || "",
             }),
             // Include recruiter fields if user is RECRUITER role
             ...(userData.role === UserRole.RECRUITER && {
@@ -401,7 +413,7 @@ export default function UserProfile() {
     const file = e.target.files?.[0];
     if (file) {
       setProfilePictureError(""); // Clear previous errors
-      
+
       const validation = validateProfilePicture(file);
       if (!validation.isValid) {
         setProfilePictureError(validation.error!);
@@ -480,7 +492,7 @@ export default function UserProfile() {
     const file = e.target.files?.[0];
     if (file) {
       setResumeError(""); // Clear previous errors
-      
+
       const validation = validateCompanyProfile(file);
       if (!validation.isValid) {
         setResumeError(validation.error!);
@@ -589,6 +601,10 @@ export default function UserProfile() {
             companyName: updatedUserData.companyName || "",
             companySize: updatedUserData.companySize || "",
             designation: updatedUserData.designation || "",
+            alternativePhone: updatedUserData.alternativePhone || "",
+            whatsappNumber: updatedUserData.whatsappNumber || "",
+            companyOverview: updatedUserData.companyOverview || "",
+            companyLocation: updatedUserData.companyLocation || "",
           }),
           // Include recruiter fields if user is RECRUITER role
           ...(updatedUserData.role === "RECRUITER" && {
@@ -772,11 +788,10 @@ export default function UserProfile() {
       {/* Tabs Navigation */}
       <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
         <button
-          className={`flex-1 sm:flex-none px-6 py-4 font-medium text-sm sm:text-base transition-all ${
-            activeTab === "profile"
+          className={`flex-1 sm:flex-none px-6 py-4 font-medium text-sm sm:text-base transition-all ${activeTab === "profile"
               ? "border-b-2 border-indigo-600 text-indigo-600"
               : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-          }`}
+            }`}
           onClick={() => setActiveTab("profile")}
         >
           <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -796,11 +811,10 @@ export default function UserProfile() {
           </div>
         </button>
         <button
-          className={`flex-1 sm:flex-none px-6 py-4 font-medium text-sm sm:text-base transition-all ${
-            activeTab === "security"
+          className={`flex-1 sm:flex-none px-6 py-4 font-medium text-sm sm:text-base transition-all ${activeTab === "security"
               ? "border-b-2 border-indigo-600 text-indigo-600"
               : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-          }`}
+            }`}
           onClick={() => setActiveTab("security")}
         >
           <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -822,11 +836,10 @@ export default function UserProfile() {
         {/* Payout Settings Tab - Only for Recruiters */}
         {user?.role === "RECRUITER" && (
           <button
-            className={`flex-1 sm:flex-none px-6 py-4 font-medium text-sm sm:text-base transition-all ${
-              activeTab === "payout"
+            className={`flex-1 sm:flex-none px-6 py-4 font-medium text-sm sm:text-base transition-all ${activeTab === "payout"
                 ? "border-b-2 border-indigo-600 text-indigo-600"
                 : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-            }`}
+              }`}
             onClick={() => setActiveTab("payout")}
           >
             <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -1156,6 +1169,101 @@ export default function UserProfile() {
                             required
                           />
                         </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-gray-200">
+                    <div className="bg-indigo-50 p-5 rounded-lg mb-6">
+                      <h3 className="text-lg font-medium text-indigo-800 mb-2">
+                        Additional Contact Details
+                      </h3>
+                      <p className="text-indigo-600 text-sm">
+                        Provide alternative contact information.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Alternative Contact No
+                        </label>
+                        <input
+                          type="tel"
+                          value={profileData.alternativePhone || ""}
+                          onChange={(e) =>
+                            setProfileData({
+                              ...profileData,
+                              alternativePhone: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+                          placeholder="+1 234 567 8900"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          WhatsApp Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={profileData.whatsappNumber || ""}
+                          onChange={(e) =>
+                            setProfileData({
+                              ...profileData,
+                              whatsappNumber: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+                          placeholder="+1 234 567 8900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-gray-200">
+                    <div className="bg-indigo-50 p-5 rounded-lg mb-6">
+                      <h3 className="text-lg font-medium text-indigo-800 mb-2">
+                        Company Overview & Location
+                      </h3>
+                      <p className="text-indigo-600 text-sm">
+                        Tell us more about your company.
+                      </p>
+                    </div>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Company Location
+                        </label>
+                        <input
+                          type="text"
+                          value={profileData.companyLocation || ""}
+                          onChange={(e) =>
+                            setProfileData({
+                              ...profileData,
+                              companyLocation: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+                          placeholder="Headquarters City, Country"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Company Overview
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={profileData.companyOverview || ""}
+                          onChange={(e) =>
+                            setProfileData({
+                              ...profileData,
+                              companyOverview: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+                          placeholder="Brief description of your company..."
+                        />
                       </div>
                     </div>
                   </div>

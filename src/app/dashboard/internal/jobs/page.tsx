@@ -147,7 +147,7 @@ export default function InternalJobsPage() {
       cell: ({ row }) => {
         const job = row.original;
         return (
-          <div className="py-2">
+          <Link href={`/dashboard/internal/jobs/${job._id}/resumes`} className="block py-2 cursor-pointer">
             <div className="text-sm text-blue-600 text-center">
               {isLoadingCounts ? (
                 <span className="text-blue-600">Loading...</span>
@@ -162,7 +162,7 @@ export default function InternalJobsPage() {
                 ? "resume"
                 : "resumes"}
             </div>
-          </div>
+          </Link>
         );
       },
     },
@@ -217,15 +217,14 @@ export default function InternalJobsPage() {
                   e.target.value as JobStatus
                 )
               }
-              className={`p-1 text-xs font-medium rounded ${
-                job.status === JobStatus.ACTIVE
+              className={`p-1 text-xs font-medium rounded ${job.status === JobStatus.ACTIVE
                   ? "bg-green-100 text-green-800"
                   : job.status === JobStatus.PAUSED
-                  ? "bg-yellow-100 text-yellow-800"
-                  : job.status === JobStatus.CLOSED
-                  ? "bg-red-100 text-red-800"
-                  : "bg-gray-100 text-gray-800"
-              }`}
+                    ? "bg-yellow-100 text-yellow-800"
+                    : job.status === JobStatus.CLOSED
+                      ? "bg-red-100 text-red-800"
+                      : "bg-gray-100 text-gray-800"
+                }`}
             >
               {Object.values(JobStatus).map((status) => (
                 <option key={status} value={status}>
@@ -340,9 +339,8 @@ export default function InternalJobsPage() {
 
   // Function to format salary range
   const formatSalary = (job: IJob) => {
-    return `${
-      job.salary.currency
-    } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
+    return `${job.salary.currency
+      } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
   };
 
   // Function to format experience range
@@ -362,20 +360,17 @@ export default function InternalJobsPage() {
       const percentage =
         job.commission.originalPercentage || job.commissionPercentage;
       const amount = job.commission.originalAmount || job.commissionAmount;
-      return `${percentage}% (${
-        job.salary.currency
-      } ${amount.toLocaleString()})`;
+      return `${percentage}% (${job.salary.currency
+        } ${amount.toLocaleString()})`;
     }
     // Legacy fallback - determine based on commissionPercentage value
     else {
       if (job.commissionPercentage > 0) {
-        return `${job.commissionPercentage}% (${
-          job.salary.currency
-        } ${job.commissionAmount.toLocaleString()})`;
+        return `${job.commissionPercentage}% (${job.salary.currency
+          } ${job.commissionAmount.toLocaleString()})`;
       } else {
-        return `${
-          job.salary.currency
-        } ${job.commissionAmount.toLocaleString()} (Fixed)`;
+        return `${job.salary.currency
+          } ${job.commissionAmount.toLocaleString()} (Fixed)`;
       }
     }
   };
@@ -403,14 +398,14 @@ export default function InternalJobsPage() {
               </h1>
               {(user?.role === UserRole.ADMIN ||
                 user?.role === UserRole.INTERNAL) && (
-                <button
-                  onClick={() => router.push("/dashboard/internal/jobs/create")}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  Create New Job
-                </button>
-              )}
+                  <button
+                    onClick={() => router.push("/dashboard/internal/jobs/create")}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Create New Job
+                  </button>
+                )}
             </div>
           </div>
 
@@ -549,11 +544,10 @@ export default function InternalJobsPage() {
                   <button
                     onClick={() => handleDelete(jobToDelete!)}
                     disabled={isDeleting}
-                    className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
-                      isDeleting
+                    className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${isDeleting
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-red-600 hover:bg-red-700"
-                    }`}
+                      }`}
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </button>

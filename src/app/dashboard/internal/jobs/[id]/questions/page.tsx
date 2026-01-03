@@ -58,7 +58,7 @@ export default function InternalJobQuestionsPage() {
     error,
     refetch: refetchJob,
   } = useGetJobByIdQuery(jobId);
-  
+
   // Cast to PopulatedJob since the API populates screeningQuestions
   const job = jobData as PopulatedJob | undefined;
 
@@ -144,11 +144,11 @@ export default function InternalJobQuestionsPage() {
         questionType: newQuestion.questionType,
         required: newQuestion.required,
       };
-      
+
       if (requiresOptions(newQuestion.questionType)) {
         questionData.options = newQuestion.options;
       }
-      
+
       await addScreeningQuestion(questionData).unwrap();
 
       // Reset form
@@ -172,6 +172,44 @@ export default function InternalJobQuestionsPage() {
     setEditingQuestion({ ...question });
   };
 
+  const handleEditingQuestionTypeChange = (type: QuestionType) => {
+    if (!editingQuestion) return;
+    setEditingQuestion({
+      ...editingQuestion,
+      questionType: type,
+      options: requiresOptions(type) ? ["", ""] : [],
+    });
+  };
+
+  const addEditingOption = () => {
+    if (!editingQuestion) return;
+    setEditingQuestion({
+      ...editingQuestion,
+      options: [...(editingQuestion.options || []), ""],
+    });
+  };
+
+  const updateEditingOption = (index: number, value: string) => {
+    if (!editingQuestion) return;
+    const updatedOptions = [...(editingQuestion.options || [])];
+    updatedOptions[index] = value;
+    setEditingQuestion({
+      ...editingQuestion,
+      options: updatedOptions,
+    });
+  };
+
+  const removeEditingOption = (index: number) => {
+    if (!editingQuestion) return;
+    const updatedOptions = (editingQuestion.options || []).filter(
+      (_, i) => i !== index
+    );
+    setEditingQuestion({
+      ...editingQuestion,
+      options: updatedOptions,
+    });
+  };
+
   const cancelEditing = () => {
     setEditingQuestion(null);
   };
@@ -188,11 +226,11 @@ export default function InternalJobQuestionsPage() {
         questionType: editingQuestion.questionType,
         required: editingQuestion.required,
       };
-      
+
       if (requiresOptions(editingQuestion.questionType)) {
         updateData.options = editingQuestion.options;
       }
-      
+
       await updateScreeningQuestion(updateData).unwrap();
 
       setEditingQuestion(null);
@@ -538,7 +576,7 @@ export default function InternalJobQuestionsPage() {
                           </div>
                           <div className="flex-1">
                             {editingQuestion &&
-                            editingQuestion._id === question._id ? (
+                              editingQuestion._id === question._id ? (
                               <div className="space-y-4">
                                 <div>
                                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -546,7 +584,7 @@ export default function InternalJobQuestionsPage() {
                                   </label>
                                   <div className="relative">
                                     <textarea
-                                      rows={4}
+                                      rows={3}
                                       value={editingQuestion.question}
                                       onChange={(e) =>
                                         setEditingQuestion({
@@ -563,7 +601,133 @@ export default function InternalJobQuestionsPage() {
                                   </div>
                                 </div>
 
-                                <div className="flex items-center space-x-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {/* Edit Response Type */}
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                      Response Type
+                                    </label>
+                                    <div className="relative">
+                                      <select
+                                        value={editingQuestion.questionType}
+                                        onChange={(e) =>
+                                          handleEditingQuestionTypeChange(
+                                            e.target.value as QuestionType
+                                          )
+                                        }
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-200 text-gray-700 bg-white appearance-none cursor-pointer"
+                                      >
+                                        <option value="TEXT">
+                                          📝 Text Response
+                                        </option>
+                                        <option value="NUMERIC">
+                                          🔢 Numeric Response
+                                        </option>
+                                        <option value="YES_NO">✅ Yes/No</option>
+                                        <option value="MCQ">
+                                          🔘 Multiple Choice (Single)
+                                        </option>
+                                        <option value="MULTI_SELECT">
+                                          ☑️ Multiple Choice (Multi-Select)
+                                        </option>
+                                      </select>
+                                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                    </div>
+                                  </div>
+
+                                  {/* Edit Required Question */}
+                                  <div className="flex items-center">
+                                    <label className="flex items-center space-x-3 cursor-pointer group">
+                                      <input
+                                        type="checkbox"
+                                        checked={editingQuestion.required}
+                                        onChange={(e) =>
+                                          setEditingQuestion({
+                                            ...editingQuestion,
+                                            required: e.target.checked,
+                                          })
+                                        }
+                                        className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-indigo-100 transition-all duration-200"
+                                      />
+                                      <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors duration-200">
+                                        ⭐ Required Question
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+
+                                {/* Edit Options for MCQ and Multi-select */}
+                                {requiresOptions(
+                                  editingQuestion.questionType
+                                ) && (
+                                    <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                                      <div className="flex items-center justify-between">
+                                        <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                                          <span>📋</span>
+                                          <span>Answer Options</span>
+                                        </label>
+                                        <div className="flex items-center space-x-2">
+                                          <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">
+                                            {editingQuestion.options?.length || 0}{" "}
+                                            option(s)
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-3">
+                                        {editingQuestion.options &&
+                                          editingQuestion.options.map(
+                                            (option, index) => (
+                                              <div
+                                                key={index}
+                                                className="flex items-center space-x-3 bg-white rounded-lg p-3 border border-gray-200"
+                                              >
+                                                <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                                                  <span className="text-sm font-bold text-white">
+                                                    {index + 1}
+                                                  </span>
+                                                </div>
+                                                <input
+                                                  type="text"
+                                                  value={option}
+                                                  onChange={(e) =>
+                                                    updateEditingOption(
+                                                      index,
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  placeholder={`Enter option ${index + 1
+                                                    }...`}
+                                                  className="flex-1 px-3 py-2 border-0 bg-transparent focus:outline-none text-gray-700 placeholder-gray-400"
+                                                />
+                                                {editingQuestion.options &&
+                                                  editingQuestion.options.length >
+                                                  1 && (
+                                                    <button
+                                                      type="button"
+                                                      onClick={() =>
+                                                        removeEditingOption(index)
+                                                      }
+                                                      className="flex-shrink-0 w-8 h-8 bg-red-50 hover:bg-red-100 rounded-full flex items-center justify-center transition-all duration-200 group border border-red-200 hover:border-red-300"
+                                                    >
+                                                      <X className="w-4 h-4 text-red-500 group-hover:text-red-600" />
+                                                    </button>
+                                                  )}
+                                              </div>
+                                            )
+                                          )}
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={addEditingOption}
+                                        className="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-xl text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-200 flex items-center justify-center space-x-2 font-medium group"
+                                      >
+                                        <Plus className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                                        <span>Add Another Option</span>
+                                      </button>
+                                    </div>
+                                  )}
+
+                                <div className="flex items-center space-x-3 pt-2">
                                   <button
                                     onClick={() => saveQuestion(question._id)}
                                     disabled={isUpdating}

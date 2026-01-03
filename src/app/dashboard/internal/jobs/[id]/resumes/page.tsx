@@ -432,7 +432,7 @@ export default function InternalJobResumesPage() {
 
           {/* Results Count */}
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm text-gray-600" style={{color: 'green'}}>
+            <div className="text-sm text-gray-600" style={{ color: 'green' }}>
               Showing {filteredAndSortedResumes?.length || 0} of{" "}
               {resumes.length} candidates
             </div>
@@ -456,15 +456,13 @@ export default function InternalJobResumesPage() {
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 
+                          <h3
                             className="text-lg font-semibold text-gray-900 truncate cursor-pointer hover:text-indigo-600 transition-colors"
                             onClick={() => handleViewResume(resume._id as string)}
                           >
                             {resume.candidateName}
                           </h3>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {resume.qualification}
-                          </p>
+
                           <div className="flex items-center gap-4 text-sm text-gray-500">
                             <div className="flex items-center gap-1">
                               <Mail className="h-4 w-4" />
@@ -490,7 +488,7 @@ export default function InternalJobResumesPage() {
                           onClick={() => handleViewResume(resume._id as string)}
                           className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
                           title="View Details"
-                          style={{color: 'green'}}
+                          style={{ color: 'green' }}
                         >
                           View Details
                         </div>
@@ -535,15 +533,23 @@ export default function InternalJobResumesPage() {
                   {/* Details Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                     {/* Current Role */}
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-1 text-gray-500 mb-1">
                         <Briefcase className="h-4 w-4" />
                         <span className="font-medium">Current Role</span>
                       </div>
-                      <div className="text-gray-900 font-medium">
+                      <div
+                        className={`font-medium whitespace-nowrap overflow-hidden text-ellipsis ${(resume.currentDesignation?.length || 0) > 25 ? "text-xs" : "text-gray-900"
+                          }`}
+                        title={resume.currentDesignation || "Not specified"}
+                      >
                         {resume.currentDesignation || "Not specified"}
                       </div>
-                      <div className="text-gray-600">
+                      <div
+                        className={`text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis ${(resume.currentCompany?.length || 0) > 25 ? "text-xs" : ""
+                          }`}
+                        title={resume.currentCompany || "Not specified"}
+                      >
                         {resume.currentCompany || "Not specified"}
                       </div>
                     </div>

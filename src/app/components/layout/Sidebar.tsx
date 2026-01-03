@@ -89,11 +89,7 @@ export default function Sidebar() {
         label: "Email Statistics",
         icon: "mail",
       },
-      {
-        path: "/admin/email-analytics",
-        label: "Email Analytics",
-        icon: "chart-bar",
-      },
+
       {
         path: "/dashboard/admin/email-settings",
         label: "Email Settings",
@@ -173,11 +169,9 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full bg-slate-800 text-white z-50 transform transition-all duration-300 ease-in-out ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static md:flex-shrink-0 ${
-          isDesktopCollapsed ? "md:w-16" : "md:w-48"
-        } w-64`}
+        className={`fixed top-0 left-0 h-full bg-slate-800 text-white z-50 transform transition-all duration-300 ease-in-out ${isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0 md:static md:flex-shrink-0 ${isDesktopCollapsed ? "md:w-16" : "md:w-48"
+          } w-64`}
       >
         {/* Header */}
         <div className="p-4 border-b border-slate-600 flex items-center justify-between">
