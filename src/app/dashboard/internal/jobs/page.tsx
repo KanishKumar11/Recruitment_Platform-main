@@ -186,7 +186,7 @@ export default function InternalJobsPage() {
     },
     {
       accessorKey: "salary",
-      header: "Salary & Commission",
+      header: "Salary",
       cell: ({ row }) => {
         const job = row.original;
         return (
@@ -194,9 +194,6 @@ export default function InternalJobsPage() {
             <div className="text-sm text-gray-900">{formatSalary(job)}</div>
             <div className="text-sm text-gray-500">
               Exp: {formatExperience(job)}
-            </div>
-            <div className="text-sm text-gray-500">
-              Commission: {formatCommission(job)}
             </div>
           </div>
         );
@@ -218,12 +215,12 @@ export default function InternalJobsPage() {
                 )
               }
               className={`p-1 text-xs font-medium rounded ${job.status === JobStatus.ACTIVE
-                  ? "bg-green-100 text-green-800"
-                  : job.status === JobStatus.PAUSED
-                    ? "bg-yellow-100 text-yellow-800"
-                    : job.status === JobStatus.CLOSED
-                      ? "bg-red-100 text-red-800"
-                      : "bg-gray-100 text-gray-800"
+                ? "bg-green-100 text-green-800"
+                : job.status === JobStatus.PAUSED
+                  ? "bg-yellow-100 text-yellow-800"
+                  : job.status === JobStatus.CLOSED
+                    ? "bg-red-100 text-red-800"
+                    : "bg-gray-100 text-gray-800"
                 }`}
             >
               {Object.values(JobStatus).map((status) => (
@@ -545,8 +542,8 @@ export default function InternalJobsPage() {
                     onClick={() => handleDelete(jobToDelete!)}
                     disabled={isDeleting}
                     className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${isDeleting
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-red-600 hover:bg-red-700"
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-red-600 hover:bg-red-700"
                       }`}
                   >
                     {isDeleting ? "Deleting..." : "Delete"}

@@ -227,19 +227,19 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       formData.append('resumeId', resumeId);
 
       const response = await fetch('/api/resumes/update-file', {
-         method: 'POST',
-         headers: {
-           'Authorization': `Bearer ${token}`,
-         },
-         body: formData,
-       });
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       if (response.ok) {
-         // Refetch resume data to get updated file
-         refetch();
-         setIsEditingResume(false);
-         alert('Resume file updated successfully!');
-       } else {
+        // Refetch resume data to get updated file
+        refetch();
+        setIsEditingResume(false);
+        alert('Resume file updated successfully!');
+      } else {
         const errorData = await response.json();
         alert(`Failed to update resume: ${errorData.error || 'Unknown error'}`);
       }
@@ -273,18 +273,18 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
       formData.append('resumeId', resumeId);
 
       const response = await fetch('/api/resumes/add-document', {
-         method: 'POST',
-         headers: {
-           'Authorization': `Bearer ${token}`,
-         },
-         body: formData,
-       });
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       if (response.ok) {
-         // Refetch resume data to get updated documents
-         refetch();
-         alert('Document added successfully!');
-       } else {
+        // Refetch resume data to get updated documents
+        refetch();
+        alert('Document added successfully!');
+      } else {
         const errorData = await response.json();
         alert(`Failed to add document: ${errorData.error || 'Unknown error'}`);
       }
@@ -304,19 +304,19 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
 
     try {
       const response = await fetch('/api/resumes/remove-document', {
-         method: 'DELETE',
-         headers: {
-           'Content-Type': 'application/json',
-           'Authorization': `Bearer ${token}`,
-         },
-         body: JSON.stringify({ resumeId, filename }),
-       });
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ resumeId, filename }),
+      });
 
       if (response.ok) {
-         // Refetch resume data to get updated documents
-         refetch();
-         alert('Document removed successfully!');
-       } else {
+        // Refetch resume data to get updated documents
+        refetch();
+        alert('Document removed successfully!');
+      } else {
         const errorData = await response.json();
         alert(`Failed to remove document: ${errorData.error || 'Unknown error'}`);
       }
@@ -458,7 +458,7 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                   Job Code: {resume.jobCode?.replace(/^job-/i, "") || "N/A"}
                 </span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-teal-100 text-teal-800">
-                  {resume.location || "Location N/A"}
+                  {(resume as any).jobLocation || "Location N/A"}
                 </span>
               </div>
             </div>
@@ -510,13 +510,13 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                     </div>
                     {resume.alternativePhone && (
                       <div className="flex gap-2">
-                      <span className="text-gray-500 text-xs w-20 flex-shrink-0">
-                        Alt Phone:
-                      </span>
-                      <span className="text-gray-900 font-medium text-xs">
-                        {resume.alternativePhone}
-                      </span>
-                    </div>
+                        <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                          Alt Phone:
+                        </span>
+                        <span className="text-gray-900 font-medium text-xs">
+                          {resume.alternativePhone}
+                        </span>
+                      </div>
                     )}
                     <div className="flex gap-2">
                       <span className="text-gray-500 text-xs w-20 flex-shrink-0">
@@ -664,11 +664,11 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                           <div className="flex justify-between items-start">
                             <span className="text-xs font-medium text-gray-900">
                               {typeof note.userId === "object" &&
-                              note.userId &&
-                              "name" in note.userId
+                                note.userId &&
+                                "name" in note.userId
                                 ? note.userId.name ||
-                                  note.userId.email ||
-                                  "Unknown User"
+                                note.userId.email ||
+                                "Unknown User"
                                 : "Unknown User"}
                             </span>
                             <span className="text-xs text-gray-500">
@@ -887,8 +887,8 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                           <p className="text-xs text-gray-500 mt-1">
                             {doc.uploadedAt
                               ? new Date(
-                                  doc.uploadedAt
-                                ).toLocaleDateString()
+                                doc.uploadedAt
+                              ).toLocaleDateString()
                               : "Unknown"}
                           </p>
                         </div>
@@ -978,16 +978,16 @@ const ResumeDetailModal: React.FC<ResumeDetailModalProps> = ({
                       title={`Preview of ${previewDocument.originalName}`}
                     />
                   ) : previewDocument.filename
-                      .toLowerCase()
-                      .match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? (
+                    .toLowerCase()
+                    .match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? (
                     <img
                       src={getDocumentPreviewUrl(previewDocument.filename)}
                       alt={`Preview of ${previewDocument.originalName}`}
                       className="w-full h-full object-contain border border-gray-300 rounded-lg"
                     />
                   ) : previewDocument.filename
-                      .toLowerCase()
-                      .endsWith(".txt") ? (
+                    .toLowerCase()
+                    .endsWith(".txt") ? (
                     <iframe
                       src={getDocumentPreviewUrl(previewDocument.filename)}
                       className="w-full h-full border border-gray-300 rounded-lg"

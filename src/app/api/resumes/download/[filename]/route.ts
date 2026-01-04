@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-    
+
 
     const { filename } = await params;
 
@@ -22,9 +22,20 @@ export async function GET(
       return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
     }
 
-    // Construct file path
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    const filePath = path.join(uploadsDir, filename);
+    // Construct file paths - check both possible locations
+    const rootUploadsDir = path.join(process.cwd(), "uploads");
+    const srcAppUploadsDir = path.join(process.cwd(), "src", "app", "uploads");
+
+    // Check src/app/uploads first, then fallback to root uploads
+    let uploadsDir = srcAppUploadsDir;
+    let filePath = path.join(srcAppUploadsDir, filename);
+
+    // If file doesn't exist in src/app/uploads, try root uploads
+    const fs = require("fs");
+    if (!fs.existsSync(filePath)) {
+      uploadsDir = rootUploadsDir;
+      filePath = path.join(rootUploadsDir, filename);
+    }
 
     // Check if this is a download request or preview request
     const url = new URL(req.url);

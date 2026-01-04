@@ -49,6 +49,7 @@ export async function GET(
       jobTitle: job.title,
       companyName: job.company,
       jobCode: job.jobCode,
+      jobLocation: job.location,
     };
 
     // Admins/Internal can view all resumes
