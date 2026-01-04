@@ -279,6 +279,20 @@ export async function POST(request: NextRequest) {
       status: { $in: ["ACTIVE", "PAUSED"] },
     }).populate("company", "name");
 
+    console.log(`\n========== MANUAL EMAIL NOTIFICATIONS (TODAY'S JOBS) ==========`);
+    console.log(`Current time: ${new Date().toISOString()}`);
+    console.log(`Today range: ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
+    console.log(`Found ${todaysJobs.length} jobs posted today`);
+    if (todaysJobs.length === 0) {
+      console.log(`❌ No jobs posted today. Cannot send emails with 0 jobs.\n`);
+      return NextResponse.json({
+        message: "No jobs posted today",
+        sent: false,
+        jobCount: 0,
+      });
+    }
+    console.log(`========================================\n`);
+
     // Get all active recruiters
     const recruiters = await User.find({
       role: "RECRUITER",
