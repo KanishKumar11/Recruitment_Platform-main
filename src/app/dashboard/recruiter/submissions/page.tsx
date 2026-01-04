@@ -87,62 +87,62 @@ function RecruiterSubmissionsPageContent() {
   // Get unique job IDs and titles from resumes
   const uniqueJobs = resumes
     ? [...new Set(resumes.map((resume) => resume.jobId))].map((jobId) => {
-        const resume = resumes.find((r) => r.jobId === jobId);
-        return {
-          id: jobId.toString(),
-          title: resume?.jobTitle || "Unknown Job",
-        };
-      })
+      const resume = resumes.find((r) => r.jobId === jobId);
+      return {
+        id: jobId.toString(),
+        title: resume?.jobTitle || "Unknown Job",
+      };
+    })
     : [];
 
   // Get unique recruiters (only necessary for primary users)
   const uniqueRecruiters =
     isPrimary && resumes
       ? [...new Set(resumes.map((resume) => resume.submittedBy))].map(
-          (recruiterId) => {
-            const resume = resumes.find((r) => r.submittedBy === recruiterId);
-            return {
-              id: recruiterId ? recruiterId.toString() : "",
-              name: resume?.submittedBy || "Unknown Recruiter",
-            };
-          }
-        )
+        (recruiterId) => {
+          const resume = resumes.find((r) => r.submittedBy === recruiterId);
+          return {
+            id: recruiterId ? recruiterId.toString() : "",
+            name: resume?.submittedBy || "Unknown Recruiter",
+          };
+        }
+      )
       : [];
 
   // Filter resumes based on search term, status filter, job filter, and recruiter filter
   const filteredResumes = resumes
     ? resumes
-        .filter((resume) => {
-          const matchesSearch =
-            searchTerm === "" ||
-            resume.candidateName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            resume.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            resume.qualification
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            resume.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      .filter((resume) => {
+        const matchesSearch =
+          searchTerm === "" ||
+          resume.candidateName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          resume.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          resume.qualification
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          resume.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
-          const matchesStatus =
-            statusFilter === "" || resume.status === statusFilter;
+        const matchesStatus =
+          statusFilter === "" || resume.status === statusFilter;
 
-          const matchesJob =
-            jobFilter === "" || resume.jobId.toString() === jobFilter;
+        const matchesJob =
+          jobFilter === "" || resume.jobId.toString() === jobFilter;
 
-          const matchesRecruiter =
-            !isPrimary ||
-            recruiterFilter === "" ||
-            resume.submittedBy?.toString() === recruiterFilter;
+        const matchesRecruiter =
+          !isPrimary ||
+          recruiterFilter === "" ||
+          resume.submittedBy?.toString() === recruiterFilter;
 
-          return (
-            matchesSearch && matchesStatus && matchesJob && matchesRecruiter
-          );
-        })
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
+        return (
+          matchesSearch && matchesStatus && matchesJob && matchesRecruiter
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
     : [];
 
   // Stats calculation - now based on filtered resumes to match table display
@@ -468,14 +468,6 @@ function RecruiterSubmissionsPageContent() {
                             </div>
                             <div className="mt-2">
                               <div className="flex flex-wrap gap-2">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  Total Experience:{" "}
-                                  {resume.totalExperience || "N/A"}
-                                </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                  Relevant Experience:{" "}
-                                  {resume.relevantExperience || "N/A"}
-                                </span>
                                 <span
                                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
                                   title={resume.jobCode || "N/A"}
