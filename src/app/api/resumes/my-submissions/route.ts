@@ -58,14 +58,15 @@ export async function GET(req: NextRequest) {
     // Fetch job details for all related jobs in a single query
     const jobs = await Job.find({ 
       _id: { $in: jobIds } 
-    }).select('_id title company jobCode').lean();
+    }).select('_id title company jobCode location').lean();
     
     // Create a map of job IDs to titles for quick lookup
-    const jobMap = (jobs as any).reduce((map: Record<string, { title: string; company: string; jobCode?: string }>, job: any) => {
+    const jobMap = (jobs as any).reduce((map: Record<string, { title: string; company: string; jobCode?: string; location?: string }>, job: any) => {
       map[job._id.toString()] = {
         title: job.title,
         company: job.company,
         jobCode: job.jobCode,
+        location: job.location,
       };
       return map;
     }, {});
@@ -102,6 +103,7 @@ export async function GET(req: NextRequest) {
         jobTitle: jobMap[jobId]?.title || 'Unknown Job',
         companyName: jobMap[jobId]?.company || 'Unknown Company',
         jobCode: jobMap[jobId]?.jobCode,
+        jobLocation: jobMap[jobId]?.location,
         // Add submitter name if it's a primary user viewing
         ...(isPrimary && { submittedByName: recruiterMap[submittedById] || 'Unknown Recruiter' })
       };

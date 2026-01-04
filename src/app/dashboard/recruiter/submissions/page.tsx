@@ -475,7 +475,7 @@ function RecruiterSubmissionsPageContent() {
                                   Job Code: {resume.jobCode?.replace(/^job-/i, "") || "N/A"}
                                 </span>
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
-                                  Location: {resume.location || "N/A"}
+                                  Location: {(resume as any).jobLocation || "N/A"}
                                 </span>
                               </div>
                             </div>

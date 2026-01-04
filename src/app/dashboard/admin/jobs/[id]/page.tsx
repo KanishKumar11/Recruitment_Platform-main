@@ -107,15 +107,6 @@ export default function AdminJobDetailPage() {
             {/* Header with Title and Actions */}
             <div className="mb-6">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                <div className="flex-1">
-                  <h1 className="text-2xl font-semibold text-gray-900">
-                    Job Details
-                  </h1>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Manage and view job information
-                  </p>
-                </div>
-
                 {/* Actions Panel - Single Row Layout */}
                 <div className="flex-shrink-0">
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -125,20 +116,20 @@ export default function AdminJobDetailPage() {
                     <div className="flex flex-wrap gap-3">
                       <Link
                         href={`/dashboard/admin/jobs/${id}/edit`}
-                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                       >
                         Edit Job
                       </Link>
                       <Link
                         href={`/dashboard/admin/jobs/${id}/questions`}
-                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
                       >
                         Manage Questions
                       </Link>
                       <div className="relative">
                         <button
                           onClick={() => setIsUpdatesModalOpen(true)}
-                          className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                          className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors"
                         >
                           <MessageSquare className="mr-2 h-4 w-4" />
                           Job Updates
@@ -151,20 +142,20 @@ export default function AdminJobDetailPage() {
                       </div>
                       <button
                         onClick={() => setIsAccessModalOpen(true)}
-                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors"
                       >
                         Manage Access
                       </button>
                       <button
                         onClick={() => setIsRecruitersModalOpen(true)}
-                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-colors"
                       >
                         <Users className="mr-2 h-4 w-4" />
                         Show Recruiters
                       </button>
                       <Link
                         href={`/dashboard/admin/jobs/${id}/resumes`}
-                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                       >
                         View Resumes
                       </Link>

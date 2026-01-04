@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     // Fetch job and submitter information in separate queries
     const [jobs, submitters] = await Promise.all([
       Job.find({ _id: { $in: jobIds } })
-        .select("_id title")
+        .select("_id title jobCode location")
         .lean(),
       User.find({ _id: { $in: submitterIds } })
         .select("_id name")
@@ -51,9 +51,13 @@ export async function GET(req: NextRequest) {
 
     // Create mappings
     const jobMap = jobs.reduce((map, job) => {
-      map[(job._id as any).toString()] = job.title;
+      map[(job._id as any).toString()] = {
+        title: job.title,
+        jobCode: (job as any).jobCode,
+        location: (job as any).location,
+      };
       return map;
-    }, {} as Record<string, string>);
+    }, {} as Record<string, { title: string; jobCode?: string; location?: string }>);
 
     const submitterMap = submitters.reduce((map, user) => {
       map[(user._id as any).toString()] = user.name;
@@ -66,7 +70,9 @@ export async function GET(req: NextRequest) {
       jobId: resume.jobId
         ? {
             _id: resume.jobId,
-            title: jobMap[resume.jobId.toString()] || "Unknown Job",
+            title: jobMap[resume.jobId.toString()]?.title || "Unknown Job",
+            jobCode: jobMap[resume.jobId.toString()]?.jobCode,
+            location: jobMap[resume.jobId.toString()]?.location,
           }
         : null,
       submittedBy: resume.submittedBy

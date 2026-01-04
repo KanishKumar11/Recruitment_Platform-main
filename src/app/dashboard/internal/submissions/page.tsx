@@ -441,22 +441,15 @@ export default function InternalSubmissionsPage() {
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
                             <div className="flex flex-wrap gap-2">
-                              <span className="bg-yellow-50 px-2 py-1 rounded text-xs">
-                                T Exp: {resume.totalExperience || "N/A"}
-                              </span>
-                              <span className="bg-purple-50 px-2 py-1 rounded text-xs">
-                                Rel Exp: {resume.relevantExperience || "N/A"}
-                              </span>
-                              <span className="bg-green-50 px-2 py-1 rounded text-xs" title={resume.noticePeriod || "N/A"}>
-                                N: {resume.noticePeriod && resume.noticePeriod.length > 25 
-                                  ? `${resume.noticePeriod.substring(0, 25)}...` 
-                                  : resume.noticePeriod || "N/A"}
-                              </span>
                               <span className="bg-blue-50 px-2 py-1 rounded text-xs">
-                                C CTC: {resume.currentCTC || "N/A"}
+                                Job ID: {typeof resume.jobId === "object" && "jobCode" in (resume.jobId ?? {})
+                                  ? (resume.jobId as { jobCode?: string }).jobCode || "N/A"
+                                  : "N/A"}
                               </span>
-                              <span className="bg-orange-50 px-2 py-1 rounded text-xs">
-                                ECTC: {resume.expectedCTC || "N/A"}
+                              <span className="bg-green-50 px-2 py-1 rounded text-xs">
+                                Location: {typeof resume.jobId === "object" && "location" in (resume.jobId ?? {})
+                                  ? (resume.jobId as { location?: string }).location || "N/A"
+                                  : "N/A"}
                               </span>
                             </div>
                           </div>

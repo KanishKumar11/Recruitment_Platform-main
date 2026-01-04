@@ -488,10 +488,7 @@ export default function RecruiterJobResumesPage() {
                           >
                             {resume.candidateName}
                           </h3>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {resume.qualification}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
                             <div className="flex items-center gap-1">
                               <Mail className="h-4 w-4" />
                               <span className="truncate">{resume.email}</span>
