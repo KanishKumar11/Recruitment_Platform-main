@@ -18,7 +18,6 @@ interface UpdateProfileFormData {
   companySize?: string;
   designation?: string;
   alternativePhone?: string;
-  whatsappNumber?: string;
   companyOverview?: string;
   companyLocation?: string;
 
