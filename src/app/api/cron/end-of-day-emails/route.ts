@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDb from "@/app/lib/db";
-import Job from "@/app/models/Job";
+import Job, { JobStatus } from "@/app/models/Job";
 import User from "@/app/models/User";
 import EmailNotification from "@/app/models/EmailNotification";
 import { getAllEmailNotificationSettings } from "@/app/lib/emailNotificationSettings";
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         $gte: startOfDay,
         $lt: endOfDay,
       },
-      status: "active",
+      status: JobStatus.ACTIVE,
     }).populate("company", "name");
 
     if (todaysJobs.length === 0) {
