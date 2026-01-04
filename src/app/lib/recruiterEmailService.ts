@@ -622,12 +622,14 @@ const getEndOfDayNotificationTemplate = (
           .content { padding: 0 10px; }
           .greeting { font-size: 18px; margin-bottom: 20px; color: #2c3e50; }
           .job-summary { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
-          .job-item { background-color: #ffffff; margin: 15px 0; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          .job-item { background-color: #ffffff; margin: 15px 0; padding: 0; border-radius: 8px; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; }
+          .job-grid { display: table; width: 100%; border-collapse: collapse; }
+          .job-cell { display: table-cell; width: 50%; padding: 20px; vertical-align: top; border-right: 1px solid #e9ecef; }
+          .job-cell:last-child { border-right: none; }
+          .job-cell-header { font-size: 14px; font-weight: bold; color: #6c757d; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
           .job-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
-          .job-details { color: #6c757d; font-size: 14px; margin-bottom: 5px; }
-          .job-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-          .job-type { background-color: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-          .posted-time { color: #9e9e9e; font-size: 12px; }
+          .job-details { color: #495057; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; }
+          .job-details-icon { margin-right: 8px; }
           .cta-section { text-align: center; margin: 30px 0; }
           .cta-button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; transition: transform 0.2s; }
           .cta-button:hover { transform: translateY(-2px); }
@@ -659,15 +661,23 @@ const getEndOfDayNotificationTemplate = (
                 .map(
                   (job) => `
                 <div class="job-item">
-                  <div class="job-title">${job.title}</div>
-                  <div class="job-details">🏢 ${job.company}</div>
-                  <div class="job-details">📍 ${job.location}</div>
-                  ${job.commission ? `<div class="job-details">💰 ${job.commission}</div>` : ""}
-                  <div class="job-meta">
-                    <span class="job-type">${job.type}</span>
-                    <span class="posted-time">Posted: ${new Date(
-                      job.postedAt
-                    ).toLocaleDateString()}</span>
+                  <div class="job-grid">
+                    <div class="job-cell">
+                      <div class="job-cell-header">Role</div>
+                      <div class="job-title">${job.title}</div>
+                      <div class="job-details">
+                        <span class="job-details-icon">📍</span>
+                        <span>${job.location}</span>
+                      </div>
+                    </div>
+                    <div class="job-cell">
+                      <div class="job-cell-header">Incentive Details</div>
+                      ${job.commission ? `<div class="job-details"><span class="job-details-icon">💰</span><span><strong>Hiring Incentive:</strong> ${job.commission}</span></div>` : ""}
+                      <div class="job-details">
+                        <span class="job-details-icon">📅</span>
+                        <span><strong>Posted:</strong> ${new Date(job.postedAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               `
