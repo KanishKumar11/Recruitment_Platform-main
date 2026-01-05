@@ -163,38 +163,38 @@ export default function AdminSubmissionsPage() {
   // Get unique job IDs and titles from resumes
   const uniqueJobs = resumes
     ? [...new Set(resumes.map((resume) => resume.jobId?._id || ""))]
-        .filter((id) => id)
-        .map((jobId) => {
-          const resume = resumes.find((r) => r.jobId?._id === jobId);
-          return {
-            id: jobId,
-            title:
-              typeof resume?.jobId === "object" &&
+      .filter((id) => id)
+      .map((jobId) => {
+        const resume = resumes.find((r) => r.jobId?._id === jobId);
+        return {
+          id: jobId,
+          title:
+            typeof resume?.jobId === "object" &&
               "title" in (resume?.jobId ?? {})
-                ? (resume.jobId as { title?: string }).title || "Unknown Job"
-                : "Unknown Job",
-          };
-        })
+              ? (resume.jobId as { title?: string }).title || "Unknown Job"
+              : "Unknown Job",
+        };
+      })
     : [];
 
   // Get unique recruiters - Fixed to properly handle null/undefined values
   const uniqueRecruiters = resumes
     ? [...new Set(resumes.map((resume) => resume.submittedBy?._id || ""))]
-        .filter((id) => id)
-        .map((recruiterId) => {
-          const resume = resumes.find(
-            (r) => r.submittedBy?._id === recruiterId
-          );
-          return {
-            id: recruiterId,
-            name:
-              typeof resume?.submittedBy === "object" &&
+      .filter((id) => id)
+      .map((recruiterId) => {
+        const resume = resumes.find(
+          (r) => r.submittedBy?._id === recruiterId
+        );
+        return {
+          id: recruiterId,
+          name:
+            typeof resume?.submittedBy === "object" &&
               "name" in (resume?.submittedBy ?? {})
-                ? (resume.submittedBy as { name?: string }).name ||
-                  "Unknown Recruiter"
-                : "Unknown Recruiter",
-          };
-        })
+              ? (resume.submittedBy as { name?: string }).name ||
+              "Unknown Recruiter"
+              : "Unknown Recruiter",
+        };
+      })
     : [];
 
   const handleOpenModal = (resumeId: string) => {
@@ -210,45 +210,45 @@ export default function AdminSubmissionsPage() {
   // Filter resumes based on search term, status filter, job filter, and recruiter filter
   const filteredResumes = resumes
     ? resumes
-        .filter((resume) => {
-          const matchesSearch =
-            searchTerm === "" ||
-            resume.candidateName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            (typeof resume.jobId === "object" &&
+      .filter((resume) => {
+        const matchesSearch =
+          searchTerm === "" ||
+          resume.candidateName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (typeof resume.jobId === "object" &&
             "title" in (resume.jobId ?? {}) &&
             (resume.jobId as { title?: string }).title
-              ? ((resume.jobId as { title?: string }).title as string)
-                  .toLowerCase()
-                  .includes(searchTerm.toLowerCase())
-              : false) ||
-            resume.qualification
+            ? ((resume.jobId as { title?: string }).title as string)
               .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            (resume.email || "")
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase());
+              .includes(searchTerm.toLowerCase())
+            : false) ||
+          resume.qualification
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (resume.email || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
 
-          const matchesStatus =
-            statusFilter === "" || resume.status === statusFilter;
+        const matchesStatus =
+          statusFilter === "" || resume.status === statusFilter;
 
-          const matchesJob =
-            jobFilter === "" ||
-            (resume.jobId?._id?.toString() || "") === jobFilter;
+        const matchesJob =
+          jobFilter === "" ||
+          (resume.jobId?._id?.toString() || "") === jobFilter;
 
-          const matchesRecruiter =
-            recruiterFilter === "" ||
-            (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
+        const matchesRecruiter =
+          recruiterFilter === "" ||
+          (resume.submittedBy?._id?.toString() || "") === recruiterFilter;
 
-          return (
-            matchesSearch && matchesStatus && matchesJob && matchesRecruiter
-          );
-        })
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
+        return (
+          matchesSearch && matchesStatus && matchesJob && matchesRecruiter
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
     : [];
 
   // Stats calculation
@@ -532,22 +532,22 @@ export default function AdminSubmissionsPage() {
                   </p>
                 </div>
               ) : (
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-gray-200 table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[200px]">
                         Candidate
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[350px]">
                         Job Title
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[200px]">
                         Submitted By
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[80px]">
                         Actions
                       </th>
                     </tr>
@@ -559,23 +559,29 @@ export default function AdminSubmissionsPage() {
                         className="hover:bg-gray-50 cursor-pointer"
                         onClick={() => handleOpenModal(resume._id as string)}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                        <td className="px-6 py-4 w-[200px]">
+                          <div className="text-sm font-medium text-gray-900 truncate" title={resume.candidateName}>
                             {resume.candidateName}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 truncate">
                             {resume.phone || "N/A"}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 w-[350px]">
                           <div className="text-sm text-gray-900 flex items-center">
-                            {typeof resume.jobId === "object" &&
-                            "title" in (resume.jobId ?? {})
+                            <span className="truncate max-w-[280px]" title={typeof resume.jobId === "object" &&
+                              "title" in (resume.jobId ?? {})
                               ? (resume.jobId as { title?: string }).title ||
+                              "Unknown Job"
+                              : "Unknown Job"}>
+                              {typeof resume.jobId === "object" &&
+                                "title" in (resume.jobId ?? {})
+                                ? (resume.jobId as { title?: string }).title ||
                                 "Unknown Job"
-                              : "Unknown Job"}
+                                : "Unknown Job"}
+                            </span>
                             <Eye
-                              className="ml-2 h-4 w-4 text-indigo-500 cursor-pointer hover:text-indigo-700"
+                              className="ml-2 h-4 w-4 text-indigo-500 cursor-pointer hover:text-indigo-700 flex-shrink-0"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleOpenModal(resume._id as string);
@@ -590,9 +596,9 @@ export default function AdminSubmissionsPage() {
                               <span className="bg-purple-50 px-2 py-1 rounded text-xs">
                                 Rel Exp: {resume.relevantExperience || "N/A"}
                               </span>
-                              <span className="bg-green-50 px-2 py-1 rounded text-xs" title={resume.noticePeriod || "N/A"}>
-                                N: {resume.noticePeriod && resume.noticePeriod.length > 25 
-                                  ? `${resume.noticePeriod.substring(0, 25)}...` 
+                              <span className="bg-green-50 px-2 py-1 rounded text-xs truncate max-w-[100px]" title={resume.noticePeriod || "N/A"}>
+                                N: {resume.noticePeriod && resume.noticePeriod.length > 25
+                                  ? `${resume.noticePeriod.substring(0, 25)}...`
                                   : resume.noticePeriod || "N/A"}
                               </span>
                               <span className="bg-blue-50 px-2 py-1 rounded text-xs">
@@ -604,30 +610,32 @@ export default function AdminSubmissionsPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <SubmitterInfo
-                            submitterId={
-                              typeof resume.submittedBy === "object" &&
-                              resume.submittedBy &&
-                              "_id" in resume.submittedBy
-                                ? (resume.submittedBy as any)._id?.toString() ||
+                        <td className="px-6 py-4 w-[200px] text-sm text-gray-500">
+                          <div className="truncate">
+                            <SubmitterInfo
+                              submitterId={
+                                typeof resume.submittedBy === "object" &&
+                                  resume.submittedBy &&
+                                  "_id" in resume.submittedBy
+                                  ? (resume.submittedBy as any)._id?.toString() ||
                                   (resume.submittedBy as any)._id
-                                : (resume.submittedBy as string)?.toString() ||
+                                  : (resume.submittedBy as string)?.toString() ||
                                   resume.submittedBy
-                            }
-                            fallbackName={
-                              typeof resume.submittedBy === "object" &&
-                              resume.submittedBy &&
-                              "name" in resume.submittedBy
-                                ? (resume.submittedBy as { name?: string }).name
-                                : undefined
-                            }
-                          />
+                              }
+                              fallbackName={
+                                typeof resume.submittedBy === "object" &&
+                                  resume.submittedBy &&
+                                  "name" in resume.submittedBy
+                                  ? (resume.submittedBy as { name?: string }).name
+                                  : undefined
+                              }
+                            />
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 w-[100px]">
                           <ResumeStatusBadge status={resume.status} />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-6 py-4 w-[80px] text-sm font-medium">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

@@ -41,9 +41,8 @@ const getRecruiterJobNotificationTemplate = (
         commissionText = `$${job.commission.recruiterAmount.toLocaleString()}/hr`;
       }
 
-      const salaryRange = `${
-        job.salary.currency
-      } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
+      const salaryRange = `${job.salary.currency
+        } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
 
       return `
       <tr style="border-bottom: 1px solid #eee;">
@@ -57,9 +56,8 @@ const getRecruiterJobNotificationTemplate = (
     .join("");
 
   return {
-    subject: `${totalJobCount} New Job${
-      totalJobCount > 1 ? "s" : ""
-    } Available - Upload Candidates Now!`,
+    subject: `${totalJobCount} New Job${totalJobCount > 1 ? "s" : ""
+      } Available - Upload Candidates Now!`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -100,11 +98,9 @@ const getRecruiterJobNotificationTemplate = (
             </div>
             
             <div class="intro">
-              There ${
-                totalJobCount === 1 ? "is" : "are"
-              } <strong>${totalJobCount}</strong> recently posted job${
-      totalJobCount > 1 ? "s" : ""
-    } available for you!
+              There ${totalJobCount === 1 ? "is" : "are"
+      } <strong>${totalJobCount}</strong> recently posted job${totalJobCount > 1 ? "s" : ""
+      } available for you!
               <br><br>
               Please access your DASHBOARD and upload candidates to the relevant jobs. Please do not reply to this email.
             </div>
@@ -126,9 +122,8 @@ const getRecruiterJobNotificationTemplate = (
             <div class="cta-section">
               <h3 style="color: #333; margin-top: 0;">Ready to Start Earning?</h3>
               <p style="color: #666; margin-bottom: 20px;">Access your dashboard to view these opportunities and start uploading candidates.</p>
-              <a href="${
-                process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com"
-              }/dashboard/recruiter" class="cta-button">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com"
+      }/dashboard/recruiter" class="cta-button">
                 🚀 Access Dashboard
               </a>
             </div>
@@ -160,11 +155,9 @@ const getRecruiterJobNotificationTemplate = (
     text: `
       Hello ${recruiterName}!
       
-      There ${
-        totalJobCount === 1 ? "is" : "are"
-      } ${totalJobCount} recently posted job${
-      totalJobCount > 1 ? "s" : ""
-    } available for you!
+      There ${totalJobCount === 1 ? "is" : "are"
+      } ${totalJobCount} recently posted job${totalJobCount > 1 ? "s" : ""
+      } available for you!
       
       Please access your DASHBOARD and upload candidates to the relevant jobs. Please do not reply to this email.
       
@@ -180,9 +173,8 @@ const getRecruiterJobNotificationTemplate = (
             commissionText = `$${job.commission.recruiterAmount.toLocaleString()}/hr`;
           }
 
-          const salaryRange = `${
-            job.salary.currency
-          } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
+          const salaryRange = `${job.salary.currency
+            } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
 
           return `• ${job.title} | ${job.location} | Commission: ${commissionText} | Salary: ${salaryRange}`;
         })
@@ -195,8 +187,7 @@ const getRecruiterJobNotificationTemplate = (
       4. Click on "Accept Job" to start working on the position
       5. Upload qualified candidates to earn your commission
       
-      Dashboard URL: ${
-        process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com"
+      Dashboard URL: ${process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com"
       }/dashboard/recruiter
       
       This is an automated notification from SourcingScreen.
@@ -603,9 +594,8 @@ const getEndOfDayNotificationTemplate = (
     process.env.NEXT_PUBLIC_APP_URL || "https://sourcingscreen.com";
 
   return {
-    subject: `Daily Job Summary - ${jobCount} New Job${
-      jobCount > 1 ? "s" : ""
-    } Available`,
+    subject: `Daily Job Summary - ${jobCount} New Job${jobCount > 1 ? "s" : ""
+      } Available`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -652,14 +642,13 @@ const getEndOfDayNotificationTemplate = (
               Hello ${recruiterName}! 👋
             </div>
             <div class="job-summary">
-              <p><strong>📊 Today's Summary:</strong> ${jobCount} new job${
-      jobCount > 1 ? "s have" : " has"
-    } been posted today that you might be interested in.</p>
+              <p><strong>📊 Today's Summary:</strong> ${jobCount} new job${jobCount > 1 ? "s have" : " has"
+      } been posted today that you might be interested in.</p>
             </div>
             <div class="jobs-list">
               ${jobs
-                .map(
-                  (job) => `
+        .map(
+          (job) => `
                 <div class="job-item">
                   <div class="job-grid">
                     <div class="job-cell">
@@ -672,7 +661,7 @@ const getEndOfDayNotificationTemplate = (
                     </div>
                     <div class="job-cell">
                       <div class="job-cell-header">Incentive Details</div>
-                      ${job.commission ? `<div class="job-details"><span class="job-details-icon">💰</span><span><strong>Hiring Incentive:</strong> ${job.commission}</span></div>` : ""}
+                      ${job.commission ? `<div class="job-details"><span class="job-details-icon">💰</span><span><strong>Recruiter Fees:</strong> ${job.commission}</span></div>` : ""}
                       <div class="job-details">
                         <span class="job-details-icon">📅</span>
                         <span><strong>Posted:</strong> ${new Date(job.postedAt).toLocaleDateString()}</span>
@@ -681,8 +670,8 @@ const getEndOfDayNotificationTemplate = (
                   </div>
                 </div>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </div>
             <div class="cta-section">
               <a href="${dashboardUrl}/dashboard/recruiter" class="cta-button">

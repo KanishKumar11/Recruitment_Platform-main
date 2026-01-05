@@ -410,23 +410,23 @@ function RecruiterSubmissionsPageContent() {
                   </p>
                 </div>
               ) : (
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-gray-200 table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[200px]">
                         Candidate
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[350px]">
                         Job Title
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
                         Actions
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[150px]">
                         Status
                       </th>
                       {isPrimary && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[200px]">
                           Submitted By
                         </th>
                       )}
@@ -438,32 +438,32 @@ function RecruiterSubmissionsPageContent() {
                         key={resume._id as string}
                         className="hover:bg-gray-50"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 w-[200px]">
                           <button
                             onClick={() =>
                               handleViewResume(resume._id as string)
                             }
                             className="text-left hover:bg-gray-50 rounded p-1 -m-1 transition-colors"
                           >
-                            <div className="text-sm font-medium text-gray-900 hover:text-indigo-600">
+                            <div className="text-sm font-medium text-gray-900 hover:text-indigo-600 truncate" title={resume.candidateName}>
                               {resume.candidateName}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 truncate">
                               {resume.phone || "N/A"}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 truncate">
                               {resume.email || "N/A"}
                             </div>
                           </button>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 w-[350px]">
                           <button
                             onClick={() =>
                               handleViewResume(resume._id as string)
                             }
                             className="text-left hover:bg-gray-50 rounded p-1 -m-1 transition-colors w-full"
                           >
-                            <div className="text-sm text-gray-900 hover:text-indigo-600 font-medium">
+                            <div className="text-sm text-gray-900 hover:text-indigo-600 font-medium truncate max-w-[320px]" title={resume.jobTitle || "Unknown Job"}>
                               {resume.jobTitle || "Unknown Job"}
                             </div>
                             <div className="mt-2">
@@ -472,16 +472,16 @@ function RecruiterSubmissionsPageContent() {
                                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
                                   title={resume.jobCode || "N/A"}
                                 >
-                                  Job Code: {resume.jobCode?.replace(/^job-/i, "") || "N/A"}
+                                  {resume.jobCode?.replace(/^job-/i, "") || "N/A"}
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
-                                  Location: {(resume as any).jobLocation || "N/A"}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 truncate max-w-[120px]">
+                                  {(resume as any).jobLocation || "N/A"}
                                 </span>
                               </div>
                             </div>
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="px-6 py-4 w-[100px] text-right text-sm font-medium">
                           <button
                             onClick={() =>
                               handleViewResume(resume._id as string)
@@ -491,7 +491,7 @@ function RecruiterSubmissionsPageContent() {
                             View Details
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 w-[150px]">
                           <ResumeStatusBadge status={resume.status} />
 
                           {/* Show timestamp for the latest status change */}
@@ -564,7 +564,7 @@ function RecruiterSubmissionsPageContent() {
                         </td>
                         {/* Submitted By column only for primary users */}
                         {isPrimary && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 w-[200px] text-sm text-gray-500">
                             <SubmitterInfo
                               submitterId={resume.submittedBy?.toString() || ""}
                               currentUserId={user?.id?.toString()}
