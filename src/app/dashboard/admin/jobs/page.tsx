@@ -1,7 +1,7 @@
 //src/dashboard/admin/jobs/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -42,7 +42,7 @@ import {
 import { toast } from "react-hot-toast";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 
-export default function AdminJobsPage() {
+function AdminJobsPageContent() {
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -70,8 +70,6 @@ export default function AdminJobsPage() {
   // Delete modal states
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-
 
   // Redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -228,18 +226,15 @@ export default function AdminJobsPage() {
 
   if (isLoading) {
     return (
-      <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
-        <DashboardLayout>
-          <div className="flex items-center justify-center h-80">
-            <LoadingSpinner />
-          </div>
-        </DashboardLayout>
-      </ProtectedLayout>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-80">
+          <LoadingSpinner />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
       <DashboardLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -387,7 +382,6 @@ export default function AdminJobsPage() {
             />
           </div>
         </div>
-
         {/* Delete Confirmation Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
@@ -424,6 +418,23 @@ export default function AdminJobsPage() {
           </div>
         )}
       </DashboardLayout>
+  );
+}
+
+export default function AdminJobsPage() {
+  return (
+    <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
+      <Suspense
+        fallback={
+          <DashboardLayout>
+            <div className="flex items-center justify-center h-80">
+              <LoadingSpinner />
+            </div>
+          </DashboardLayout>
+        }
+      >
+        <AdminJobsPageContent />
+      </Suspense>
     </ProtectedLayout>
   );
 }
