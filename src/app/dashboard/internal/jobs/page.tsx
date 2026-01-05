@@ -1,7 +1,7 @@
 //src/dashboard/internal/jobs/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -42,7 +42,7 @@ import { IJob } from "@/app/models/Job";
 import { toast } from "react-hot-toast";
 import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 
-export default function InternalJobsPage() {
+function InternalJobsPageContent() {
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -403,18 +403,15 @@ export default function InternalJobsPage() {
 
   if (isLoading) {
     return (
-      <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
-        <DashboardLayout>
-          <div className="flex items-center justify-center h-80">
-            <LoadingSpinner />
-          </div>
-        </DashboardLayout>
-      </ProtectedLayout>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-80">
+          <LoadingSpinner />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
       <DashboardLayout>
         <div className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -588,6 +585,23 @@ export default function InternalJobsPage() {
           )}
         </div>
       </DashboardLayout>
+  );
+}
+
+export default function InternalJobsPage() {
+  return (
+    <ProtectedLayout allowedRoles={["ADMIN", "INTERNAL"]}>
+      <Suspense
+        fallback={
+          <DashboardLayout>
+            <div className="flex items-center justify-center h-80">
+              <LoadingSpinner />
+            </div>
+          </DashboardLayout>
+        }
+      >
+        <InternalJobsPageContent />
+      </Suspense>
     </ProtectedLayout>
   );
 }
