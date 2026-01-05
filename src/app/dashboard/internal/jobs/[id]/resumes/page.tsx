@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useGetResumesByJobIdQuery } from "../../../../../store/services/resumesApi";
 import { ResumeStatus } from "@/app/constants/resumeStatus";
 import ResumeStatusBadge from "@/app/components/company/ResumeStatusBadge";
@@ -34,7 +34,9 @@ import ExcelJS from "exceljs";
 export default function InternalJobResumesPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const jobId = params.id as string;
+  const fromPage = searchParams.get("page") || "1";
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [downloadDropdownOpen, setDownloadDropdownOpen] = useState<
     string | null
@@ -49,6 +51,10 @@ export default function InternalJobResumesPage() {
     isError,
     error,
   } = useGetResumesByJobIdQuery(jobId);
+
+  const handleBack = () => {
+    router.push(`/dashboard/internal/jobs?page=${fromPage}`);
+  };
 
   // Explicitly type the resumesData to match the expected API response
   type ResumesResponse =
@@ -103,10 +109,6 @@ export default function InternalJobResumesPage() {
           );
       }
     });
-
-  const handleBack = () => {
-    router.back();
-  };
 
   const handleViewResume = (resumeId: string) => {
     setSelectedResumeId(resumeId);

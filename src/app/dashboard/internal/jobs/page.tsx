@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   EyeIcon,
@@ -45,12 +45,37 @@ import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 export default function InternalJobsPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageParam = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
+  const [currentPage, setCurrentPage] = useState(pageParam);
 
   const { data: jobs, isLoading, error, refetch } = useGetJobsQuery();
   const { data: resumeCounts, isLoading: isLoadingCounts } =
     useGetResumeCountsQuery();
   const [updateJobStatus] = useUpdateJobStatusMutation();
   const [deleteJob, { isLoading: isDeleting }] = useDeleteJobMutation();
+
+  const syncPageToUrl = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  const goToPage = (page: number) => {
+    const safePage = Math.max(1, page);
+    setCurrentPage(safePage);
+    syncPageToUrl(safePage);
+  };
+
+  useEffect(() => {
+    const urlPage = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
+    if (!Number.isNaN(urlPage)) {
+      setCurrentPage(urlPage);
+    }
+  }, [searchParams]);
+
+  const pageQuery = `?page=${currentPage}`;
 
   // Column definitions for DataTable
   const columns: ColumnDef<any>[] = [
@@ -63,21 +88,21 @@ export default function InternalJobsPage() {
           <div className="flex flex-col space-y-2">
             <div className="grid grid-cols-4 gap-2 w-full">
               <Link
-                href={`/dashboard/internal/jobs/${job._id}`}
+                href={`/dashboard/internal/jobs/${job._id}${pageQuery}`}
                 className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 hover:shadow-sm transition-all"
                 title="View Job"
               >
                 <EyeIcon className="h-6 w-6" />
               </Link>
               <Link
-                href={`/dashboard/internal/jobs/${job._id}/edit`}
+                href={`/dashboard/internal/jobs/${job._id}/edit${pageQuery}`}
                 className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 hover:shadow-sm transition-all"
                 title="Edit Job"
               >
                 <PencilIcon className="h-5 w-5" />
               </Link>
               <Link
-                href={`/dashboard/internal/jobs/${job._id}/questions`}
+                href={`/dashboard/internal/jobs/${job._id}/questions${pageQuery}`}
                 className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-purple-200 bg-purple-50 text-xs font-semibold text-purple-700 hover:bg-purple-100 hover:shadow-sm transition-all"
                 title="Job Questions"
               >
@@ -94,7 +119,7 @@ export default function InternalJobsPage() {
             <Button
               size="sm"
               onClick={() =>
-                router.push(`/dashboard/internal/jobs/${job._id}/resumes`)
+                router.push(`/dashboard/internal/jobs/${job._id}/resumes${pageQuery}`)
               }
               className="w-full text-xs font-semibold bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-sm hover:shadow"
               title="View Resumes"
@@ -147,7 +172,7 @@ export default function InternalJobsPage() {
       cell: ({ row }) => {
         const job = row.original;
         return (
-          <Link href={`/dashboard/internal/jobs/${job._id}/resumes`} className="block py-2 cursor-pointer">
+          <Link href={`/dashboard/internal/jobs/${job._id}/resumes${pageQuery}`} className="block py-2 cursor-pointer">
             <div className="text-sm text-blue-600 text-center">
               {isLoadingCounts ? (
                 <span className="text-blue-600">Loading...</span>
@@ -320,18 +345,22 @@ export default function InternalJobsPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    goToPage(1);
   };
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
+    goToPage(1);
   };
 
   const handleJobTypeFilterChange = (value: string) => {
     setJobTypeFilter(value);
+    goToPage(1);
   };
 
   const handleCompanyFilterChange = (value: string) => {
     setCompanyFilter(value);
+    goToPage(1);
   };
 
   // Function to format salary range
@@ -514,7 +543,12 @@ export default function InternalJobsPage() {
                 </button>
               </div>
 
-              <DataTable columns={columns} data={filteredJobs} />
+              <DataTable
+                columns={columns}
+                data={filteredJobs}
+                initialPageIndex={currentPage - 1}
+                onPageChange={(pageIndex) => goToPage(pageIndex + 1)}
+              />
             </div>
           </div>
 

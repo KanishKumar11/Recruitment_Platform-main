@@ -121,9 +121,10 @@ export default function RecruiterJobResumesPage() {
     });
 
   const fromTab = searchParams.get('from') || 'live';
+  const fromPage = searchParams.get('page') || '1';
 
   const handleBack = () => {
-    router.push(`/dashboard/recruiter/jobs?active=${fromTab}`);
+    router.push(`/dashboard/recruiter/jobs?active=${fromTab}&page=${fromPage}`);
   };
 
   const handleViewResume = (resumeId: string) => {

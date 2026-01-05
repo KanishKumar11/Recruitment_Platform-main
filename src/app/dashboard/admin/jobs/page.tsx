@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { RootState } from "../../../store/index";
@@ -45,6 +45,11 @@ import { getCountryNameFromCode } from "@/app/utils/countryUtils";
 export default function AdminJobsPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageParam = searchParams.get("page");
+  const currentPage = Math.max(parseInt(pageParam ?? "1", 10) || 1, 1);
+  const initialPageIndex = currentPage - 1;
 
   const { data: jobs, isLoading, error, refetch } = useGetJobsQuery();
   const { data: resumeCounts, isLoading: isLoadingCounts } =
@@ -147,7 +152,14 @@ export default function AdminJobsPage() {
     isLoadingCounts,
     onStatusChange: handleStatusChange,
     onDeleteJob: openDeleteModal,
+    currentPage,
   });
+
+  const handlePageChange = (pageIndex: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", (pageIndex + 1).toString());
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
 
 
 
@@ -370,6 +382,8 @@ export default function AdminJobsPage() {
                 },
               ]}
               pageSize={itemsPerPage}
+              initialPageIndex={initialPageIndex}
+              onPageChange={handlePageChange}
             />
           </div>
         </div>

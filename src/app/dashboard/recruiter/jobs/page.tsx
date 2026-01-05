@@ -82,7 +82,8 @@ function RecruiterJobsContent() {
   const [industryFilter, setIndustryFilter] = useState("");
 
   // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
+  const pageParam = parseInt(searchParams.get("page") || "1", 10);
+  const [currentPage, setCurrentPage] = useState(Math.max(pageParam, 1));
   const itemsPerPage = 10;
 
   // Derived data for filter dropdowns
@@ -121,9 +122,22 @@ function RecruiterJobsContent() {
   const currentJobs = filteredJobs.slice(startIndex, endIndex);
 
   // Reset to first page when filters change
+  const syncPageToUrl = (page: number, tab: "live" | "saved") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("active", tab);
+    params.set("page", page.toString());
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  const goToPage = (page: number) => {
+    const safePage = Math.max(1, page);
+    setCurrentPage(safePage);
+    syncPageToUrl(safePage, activeTab);
+  };
+
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    setCurrentPage(1);
+    goToPage(1);
   };
 
   const handleFilterChange = (
@@ -131,7 +145,7 @@ function RecruiterJobsContent() {
     value: string
   ) => {
     setValue(value);
-    setCurrentPage(1);
+    goToPage(1);
   };
 
   // Handle URL parameters to set active tab
@@ -139,6 +153,10 @@ function RecruiterJobsContent() {
     const activeParam = searchParams.get('active');
     if (activeParam === 'saved') {
       setActiveTab('saved');
+    }
+    const pageFromUrl = parseInt(searchParams.get('page') || '1', 10);
+    if (!Number.isNaN(pageFromUrl) && pageFromUrl > 0) {
+      setCurrentPage(pageFromUrl);
     }
   }, [searchParams]);
 
@@ -167,7 +185,7 @@ function RecruiterJobsContent() {
     setCountryFilter("");
     setClientFilter("");
     setIndustryFilter("");
-    setCurrentPage(1);
+    goToPage(1);
   };
 
   // Format salary for display
@@ -240,7 +258,10 @@ function RecruiterJobsContent() {
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8">
                   <button
-                    onClick={() => setActiveTab("live")}
+                    onClick={() => {
+                      setActiveTab("live");
+                      goToPage(1);
+                    }}
                     className={`py-2 px-1 border-b-2 font-medium text-sm ${
                       activeTab === "live"
                         ? "border-indigo-500 text-indigo-600"
@@ -250,7 +271,10 @@ function RecruiterJobsContent() {
                     Live Jobs
                   </button>
                   <button
-                    onClick={() => setActiveTab("saved")}
+                    onClick={() => {
+                      setActiveTab("saved");
+                      goToPage(1);
+                    }}
                     className={`py-2 px-1 border-b-2 font-medium text-sm ${
                       activeTab === "saved"
                         ? "border-indigo-500 text-indigo-600"
@@ -417,7 +441,7 @@ function RecruiterJobsContent() {
                                   <button
                                     onClick={() =>
                                       router.push(
-                                        `/dashboard/recruiter/jobs/${job._id}?from=${activeTab}`
+                                        `/dashboard/recruiter/jobs/${job._id}?from=${activeTab}&page=${currentPage}`
                                       )
                                     }
                                     className="text-lg font-semibold text-gray-900 hover:text-indigo-600 truncate text-left transition-colors duration-200 overflow-hidden text-ellipsis whitespace-nowrap"
@@ -487,7 +511,7 @@ function RecruiterJobsContent() {
                                     setSaveJobModalOpen(true);
                                   } else {
                                     router.push(
-                                      `/dashboard/recruiter/jobs/${job._id}?from=${activeTab}`
+                                      `/dashboard/recruiter/jobs/${job._id}?from=${activeTab}&page=${currentPage}`
                                     );
                                   }
                                 }}
@@ -499,7 +523,7 @@ function RecruiterJobsContent() {
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/apply?from=${activeTab}`
+                                    `/dashboard/recruiter/jobs/${job._id}/apply?from=${activeTab}&page=${currentPage}`
                                   )
                                 }
                                 disabled={job.status === "PAUSED"}
@@ -516,7 +540,7 @@ function RecruiterJobsContent() {
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions?from=${activeTab}`
+                                    `/dashboard/recruiter/jobs/${job._id}/screening-questions?from=${activeTab}&page=${currentPage}`
                                   )
                                 }
                                 className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -527,7 +551,7 @@ function RecruiterJobsContent() {
                               <button
                                 onClick={() =>
                                   router.push(
-                                    `/dashboard/recruiter/jobs/${job._id}/resumes?from=${activeTab}`
+                                    `/dashboard/recruiter/jobs/${job._id}/resumes?from=${activeTab}&page=${currentPage}`
                                   )
                                 }
                                 className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -575,9 +599,7 @@ function RecruiterJobsContent() {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={() =>
-                            setCurrentPage(Math.max(1, currentPage - 1))
-                          }
+                          onClick={() => goToPage(currentPage - 1)}
                           className={
                             currentPage === 1
                               ? "pointer-events-none opacity-50"
@@ -591,7 +613,7 @@ function RecruiterJobsContent() {
                         <>
                           <PaginationItem>
                             <PaginationLink
-                              onClick={() => setCurrentPage(1)}
+                              onClick={() => goToPage(1)}
                               className="cursor-pointer"
                             >
                               1
@@ -625,7 +647,7 @@ function RecruiterJobsContent() {
                           return (
                             <PaginationItem key={pageNum}>
                               <PaginationLink
-                                onClick={() => setCurrentPage(pageNum)}
+                                onClick={() => goToPage(pageNum)}
                                 isActive={currentPage === pageNum}
                                 className="cursor-pointer"
                               >
@@ -646,7 +668,7 @@ function RecruiterJobsContent() {
                           )}
                           <PaginationItem>
                             <PaginationLink
-                              onClick={() => setCurrentPage(totalPages)}
+                              onClick={() => goToPage(totalPages)}
                               className="cursor-pointer"
                             >
                               {totalPages}
@@ -657,11 +679,7 @@ function RecruiterJobsContent() {
 
                       <PaginationItem>
                         <PaginationNext
-                          onClick={() =>
-                            setCurrentPage(
-                              Math.min(totalPages, currentPage + 1)
-                            )
-                          }
+                          onClick={() => goToPage(currentPage + 1)}
                           className={
                             currentPage === totalPages
                               ? "pointer-events-none opacity-50"

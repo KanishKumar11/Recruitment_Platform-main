@@ -9,6 +9,8 @@ import {
   useGetEmailSettingsQuery,
   useUpdateEmailSettingsMutation,
 } from "@/app/store/services/adminApi";
+import { useGetUsersQuery } from "@/app/store/services/adminApi";
+import { UserRole } from "@/app/constants/userRoles";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
@@ -70,6 +72,14 @@ export default function EmailNotificationsPage() {
   const [recentWindow, setRecentWindow] = useState<"1" | "3">("1");
   const [auto1d, setAuto1d] = useState(false);
   const [auto3d, setAuto3d] = useState(false);
+
+  const { data: recruiterList } = useGetUsersQuery({
+    role: UserRole.RECRUITER,
+    isActive: true,
+    limit: 1,
+    page: 1,
+  });
+  const activeRecruiterCount = recruiterList?.pagination?.total || 0;
 
   // RTK Query hook for fetching email notification statistics
   const {
@@ -480,7 +490,7 @@ export default function EmailNotificationsPage() {
                               Total Recipients
                             </dt>
                             <dd className="text-lg font-medium text-gray-900">
-                              {stats.overview.totalRecipients}
+                              {activeRecruiterCount}
                             </dd>
                           </dl>
                         </div>

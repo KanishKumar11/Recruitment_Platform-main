@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { RootState } from "../../../../store/index";
@@ -25,7 +25,9 @@ import ManageJobAccessModal from "@/components/ManageJobAccessModal";
 export default function AdminJobDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params?.id as string;
+  const backPage = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
 
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -86,7 +88,7 @@ export default function AdminJobDetailPage() {
               </p>
               <div className="mt-4">
                 <Link
-                  href="/dashboard/admin/jobs"
+                  href={`/dashboard/admin/jobs?page=${backPage}`}
                   className="text-indigo-600 hover:text-indigo-500"
                 >
                   Back to jobs list
@@ -160,7 +162,7 @@ export default function AdminJobDetailPage() {
                         View Resumes
                       </Link>
                       <Link
-                        href="/dashboard/admin/jobs"
+                        href={`/dashboard/admin/jobs?page=${backPage}`}
                         className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                       >
                         Back to Jobs

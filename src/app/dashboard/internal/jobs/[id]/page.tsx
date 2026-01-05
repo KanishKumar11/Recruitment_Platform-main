@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/app/components/layout/ProtectedLayout";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { RootState } from "../../../../store/index";
@@ -127,7 +127,9 @@ const getCurrencySymbol = (currencyCode: string): string => {
 export default function AdminJobDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params?.id as string;
+  const fromPage = searchParams.get("page") || "1";
 
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -209,7 +211,7 @@ export default function AdminJobDetailPage() {
               </p>
               <div className="mt-4">
                 <Link
-                  href="/dashboard/admin/jobs"
+                  href={`/dashboard/internal/jobs?page=${fromPage}`}
                   className="text-indigo-600 hover:text-indigo-500"
                 >
                   Back to jobs list
@@ -236,26 +238,26 @@ export default function AdminJobDetailPage() {
                   </h3>
                   <div className="flex flex-wrap gap-3">
                     <Link
-                      href={`/dashboard/internal/jobs/${id}/apply`}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                      href={`/dashboard/internal/jobs/${id}/apply?page=${fromPage}`}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
                     >
                       Apply to Job
                     </Link>
                     <Link
-                      href={`/dashboard/internal/jobs/${id}/edit`}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      href={`/dashboard/internal/jobs/${id}/edit?page=${fromPage}`}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
                     >
                       Edit Job
                     </Link>
                     <Link
-                      href={`/dashboard/internal/jobs/${id}/questions`}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      href={`/dashboard/internal/jobs/${id}/questions?page=${fromPage}`}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
                     >
                       Manage Questions
                     </Link>
                     <Link
-                      href={`/dashboard/internal/jobs/${id}/resumes`}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      href={`/dashboard/internal/jobs/${id}/resumes?page=${fromPage}`}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors"
                     >
                       View Resumes
                     </Link>
@@ -263,7 +265,7 @@ export default function AdminJobDetailPage() {
                     <div className="relative">
                       <button
                         onClick={() => setIsUpdatesModalOpen(true)}
-                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-md shadow-sm text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
                       >
                         <MessageSquare className="mr-2 h-4 w-4" />
                         Job Updates
@@ -276,14 +278,14 @@ export default function AdminJobDetailPage() {
                     </div>
                     <button
                       onClick={() => setIsRecruitersModalOpen(true)}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors"
                     >
                       <Users className="mr-2 h-4 w-4" />
                       Show Recruiters
                     </button>
                     <Link
-                      href="/dashboard/internal/jobs"
-                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      href={`/dashboard/internal/jobs?page=${fromPage}`}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                     >
                       Back to Jobs
                     </Link>

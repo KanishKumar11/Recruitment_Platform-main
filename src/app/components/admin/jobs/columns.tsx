@@ -75,6 +75,7 @@ interface JobColumnsProps {
   isLoadingCounts?: boolean;
   onStatusChange: (jobId: string, status: JobStatus) => void;
   onDeleteJob: (jobId: string) => void;
+  currentPage?: number;
 }
 
 export const createJobColumns = ({
@@ -82,7 +83,11 @@ export const createJobColumns = ({
   isLoadingCounts,
   onStatusChange,
   onDeleteJob,
-}: JobColumnsProps): ColumnDef<IJob>[] => [
+  currentPage,
+}: JobColumnsProps): ColumnDef<IJob>[] => {
+  const pageQuery = currentPage ? `?page=${currentPage}` : "";
+
+  return [
     {
       id: "actions",
       header: "Actions",
@@ -93,21 +98,21 @@ export const createJobColumns = ({
           <div className="flex flex-col gap-2 py-2">
             <div className="grid grid-cols-2 gap-2 w-full">
               <Link
-                href={`/dashboard/admin/jobs/${job._id}`}
+                href={`/dashboard/admin/jobs/${job._id}${pageQuery}`}
                 className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 hover:shadow-sm transition-all"
                 title="View Job"
               >
                 <EyeIcon className="h-4 w-4" />
               </Link>
               <Link
-                href={`/dashboard/admin/jobs/${job._id}/edit`}
+                href={`/dashboard/admin/jobs/${job._id}/edit${pageQuery}`}
                 className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-blue-200 bg-blue-50 text-xs font-semibold text-blue-700 hover:bg-blue-100 hover:shadow-sm transition-all"
                 title="Edit Job"
               >
                 <PencilIcon className="h-4 w-4" />
               </Link>
               <Link
-                href={`/dashboard/admin/jobs/${job._id}/questions`}
+                href={`/dashboard/admin/jobs/${job._id}/questions${pageQuery}`}
                 className="inline-flex items-center justify-center h-9 px-3 w-full rounded-lg border border-purple-200 bg-purple-50 text-xs font-semibold text-purple-700 hover:bg-purple-100 hover:shadow-sm transition-all"
                 title="Job Questions"
               >
@@ -121,7 +126,7 @@ export const createJobColumns = ({
                 <TrashIcon className="h-4 w-4" />
               </button>
             </div>
-            <Link href={`/dashboard/admin/jobs/${job._id}/resumes`}>
+            <Link href={`/dashboard/admin/jobs/${job._id}/resumes${pageQuery}`}>
               <Button
                 size="sm"
                 className="w-full text-xs font-semibold bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-sm hover:shadow"
@@ -198,7 +203,7 @@ export const createJobColumns = ({
         const count = resumeCounts?.[job._id as string] || 0;
 
         return (
-          <Link href={`/dashboard/admin/jobs/${job._id}/resumes`} className="block py-2 cursor-pointer">
+          <Link href={`/dashboard/admin/jobs/${job._id}/resumes${pageQuery}`} className="block py-2 cursor-pointer">
             <div className="text-sm text-blue-600 font-bold text-center ">
               {isLoadingCounts ? (
                 <span className="text-gray-400">Loading...</span>
@@ -281,14 +286,15 @@ export const createJobColumns = ({
               onChange={(e) =>
                 onStatusChange(job._id as string, e.target.value as JobStatus)
               }
-              className={`p-1 text-xs font-medium rounded ${job.status === JobStatus.ACTIVE
-                ? "bg-green-100 text-green-800"
-                : job.status === JobStatus.PAUSED
+              className={`p-1 text-xs font-medium rounded ${
+                job.status === JobStatus.ACTIVE
+                  ? "bg-green-100 text-green-800"
+                  : job.status === JobStatus.PAUSED
                   ? "bg-yellow-100 text-yellow-800"
                   : job.status === JobStatus.CLOSED
-                    ? "bg-red-100 text-red-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
+                  ? "bg-red-100 text-red-800"
+                  : "bg-gray-100 text-gray-800"
+              }`}
             >
               {Object.values(JobStatus).map((status) => (
                 <option key={status} value={status}>
@@ -304,3 +310,4 @@ export const createJobColumns = ({
       },
     },
   ];
+};

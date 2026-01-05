@@ -14,6 +14,7 @@ export default function ScreeningQuestionsPage() {
   const searchParams = useSearchParams();
   const id = params?.id as string;
   const fromTab = searchParams.get('from') || 'live';
+  const fromPage = searchParams.get('page') || '1';
 
   // const { user } = useSelector((state: RootState) => state.auth);
   const { data: job, isLoading } = useGetJobByIdQuery(id);
@@ -62,7 +63,7 @@ export default function ScreeningQuestionsPage() {
 
     if (isViewOnlyMode) {
       // In view-only mode, just navigate back without saving
-      router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`);
+      router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}&page=${fromPage}`);
       return;
     }
 
@@ -74,7 +75,7 @@ export default function ScreeningQuestionsPage() {
 
     // Navigate back to the job details page
     toast.success("Screening questions saved");
-    router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`);
+    router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}&page=${fromPage}`);
   };
 
   return (
@@ -85,7 +86,7 @@ export default function ScreeningQuestionsPage() {
             <div className="mb-6">
               <button
                 onClick={() =>
-                  router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}`)
+                  router.push(`/dashboard/recruiter/jobs/${params.id}?from=${fromTab}&page=${fromPage}`)
                 }
                 className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900"
               >

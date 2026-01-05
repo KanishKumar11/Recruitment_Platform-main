@@ -4,7 +4,9 @@ import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
+  PaginationState,
   SortingState,
+  Updater,
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -53,6 +55,8 @@ interface DataTableProps<TData, TValue> {
   }[];
   pageSize?: number;
   pageSizeOptions?: number[];
+  initialPageIndex?: number;
+  onPageChange?: (pageIndex: number) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -63,6 +67,8 @@ export function DataTable<TData, TValue>({
   filterOptions = [],
   pageSize = 10,
   pageSizeOptions = [10, 20, 30, 40, 50],
+  initialPageIndex = 0,
+  onPageChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -72,13 +78,31 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
+    pageIndex: initialPageIndex,
     pageSize: pageSize,
   });
+
+  // Keep pagination state in sync with incoming initial value.
+  React.useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: initialPageIndex }));
+  }, [initialPageIndex]);
+
+  const handlePaginationChange = (updater: Updater<PaginationState>) => {
+    setPagination((prev) => {
+      const nextState =
+        typeof updater === "function"
+          ? (updater as (old: PaginationState) => PaginationState)(prev)
+          : updater;
+
+      onPageChange?.(nextState.pageIndex);
+      return nextState;
+    });
+  };
 
   const table = useReactTable({
     data,
     columns,
+    autoResetPageIndex: false,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -87,7 +111,7 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange: setPagination,
+    onPaginationChange: handlePaginationChange,
     state: {
       sorting,
       columnFilters,
