@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDb from '@/app/lib/db';
 import ResumeModel from '@/app/models/Resume';
 import { verifyToken } from '@/app/lib/auth';
-import { unlink } from 'fs/promises';
-import path from 'path';
+import { deleteFileFromR2 } from '@/app/lib/r2Storage';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -50,12 +49,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Document not found in resume' }, { status: 404 });
     }
 
-    // Remove file from filesystem
-    const filePath = path.join(process.cwd(), 'uploads', filename);
+    // Remove file from R2
     try {
-      await unlink(filePath);
+      await deleteFileFromR2(filename);
     } catch (error) {
-      console.warn('Could not delete file from filesystem:', error);
+      console.warn('Could not delete file from R2:', error);
     }
 
     // Remove document from resume record
@@ -63,7 +61,7 @@ export async function DELETE(request: NextRequest) {
     resume.updatedAt = new Date();
     await resume.save();
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Document removed successfully'
     });
 

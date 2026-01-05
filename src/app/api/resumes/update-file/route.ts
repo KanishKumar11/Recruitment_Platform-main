@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDb from '@/app/lib/db';
 import ResumeModel from '@/app/models/Resume';
 import { verifyToken } from '@/app/lib/auth';
-import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 import { validateResumeFile } from '@/app/lib/fileValidation';
+import { uploadFileToR2, deleteFileFromR2, getContentType } from '@/app/lib/r2Storage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,20 +57,19 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const fileExtension = path.extname(file.name);
     const newFilename = `resume_${resumeId}_${timestamp}${fileExtension}`;
-    const uploadPath = path.join(process.cwd(), 'uploads', newFilename);
 
-    // Save new file
+    // Save new file to R2
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(uploadPath, buffer);
+    const contentType = getContentType(file.name);
+    await uploadFileToR2(buffer, newFilename, contentType);
 
-    // Delete old file if it exists
+    // Delete old file from R2 if it exists
     if (resume.resumeFile) {
-      const oldFilePath = path.join(process.cwd(), 'uploads', resume.resumeFile);
       try {
-        await unlink(oldFilePath);
+        await deleteFileFromR2(resume.resumeFile);
       } catch (error) {
-        console.warn('Could not delete old resume file:', error);
+        console.warn('Could not delete old resume file from R2:', error);
       }
     }
 
@@ -79,9 +78,9 @@ export async function POST(request: NextRequest) {
     resume.updatedAt = new Date();
     await resume.save();
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Resume file updated successfully',
-      filename: newFilename 
+      filename: newFilename
     });
 
   } catch (error) {

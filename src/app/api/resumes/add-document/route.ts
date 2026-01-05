@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDb from '@/app/lib/db';
 import ResumeModel from '@/app/models/Resume';
 import { verifyToken } from '@/app/lib/auth';
-import { writeFile } from 'fs/promises';
 import path from 'path';
 import { validateAdditionalDocument } from '@/app/lib/fileValidation';
+import { uploadFileToR2, getContentType } from '@/app/lib/r2Storage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,12 +57,12 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const fileExtension = path.extname(file.name);
     const newFilename = `doc_${resumeId}_${timestamp}${fileExtension}`;
-    const uploadPath = path.join(process.cwd(), 'uploads', newFilename);
 
-    // Save new file
+    // Save new file to R2
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(uploadPath, buffer);
+    const contentType = getContentType(file.name);
+    await uploadFileToR2(buffer, newFilename, contentType);
 
     // Add document to resume record
     if (!resume.additionalDocuments) {
@@ -76,9 +76,9 @@ export async function POST(request: NextRequest) {
     resume.updatedAt = new Date();
     await resume.save();
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Document added successfully',
-      filename: newFilename 
+      filename: newFilename
     });
 
   } catch (error) {

@@ -1,7 +1,5 @@
-// api/resumes/route.ts - Updated version
+// api/resumes/route.ts - Updated version with R2 storage
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import connectDb from "./../../lib/db";
 import ResumeModel from "./../../models/Resume";
@@ -15,6 +13,7 @@ import {
 } from "./../../lib/fileValidation";
 import { shouldSendGlobalNotification } from "./../../lib/recruiterEmailService";
 import { addBulkEmailNotificationJob } from "./../../lib/backgroundJobProcessor";
+import { uploadFileToR2, getContentType } from "./../../lib/r2Storage";
 
 export async function POST(req: NextRequest) {
   try {
@@ -133,20 +132,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Save the resume file - Updated to use uploads directory outside public
+    // Save the resume file to R2
     const resumeBytes = await resumeFile.arrayBuffer();
     const resumeBuffer = Buffer.from(resumeBytes);
 
-    // Create uploads directory outside public folder
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    await mkdir(uploadsDir, { recursive: true });
-
     // Generate unique filename for resume
     const uniqueResumeFilename = `${uuidv4()}_${resumeFile.name}`;
-    const resumeFilePath = path.join(uploadsDir, uniqueResumeFilename);
+    const resumeContentType = getContentType(resumeFile.name);
 
-    // Write the resume file
-    await writeFile(resumeFilePath, resumeBuffer);
+    // Upload resume to R2
+    await uploadFileToR2(resumeBuffer, uniqueResumeFilename, resumeContentType);
 
     // Process additional documents
     const additionalDocuments = [];
@@ -157,10 +152,10 @@ export async function POST(req: NextRequest) {
 
         // Generate unique filename for additional document
         const uniqueDocFilename = `${uuidv4()}_${file.name}`;
-        const docFilePath = path.join(uploadsDir, uniqueDocFilename);
+        const docContentType = getContentType(file.name);
 
-        // Write the additional document
-        await writeFile(docFilePath, fileBuffer);
+        // Upload additional document to R2
+        await uploadFileToR2(fileBuffer, uniqueDocFilename, docContentType);
 
         additionalDocuments.push({
           filename: uniqueDocFilename,

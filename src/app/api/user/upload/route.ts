@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { authenticateRequest, unauthorized } from "../../../lib/auth";
 import { validateProfilePicture, validateCompanyProfile } from "../../../lib/fileValidation";
+import { uploadFileToR2, getContentType, getR2PublicUrl } from "../../../lib/r2Storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,34 +41,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create upload directory if it doesn't exist
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      fileType === "profile" ? "profiles" : "resumes"
-    );
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      // Directory might already exist, ignore error
-    }
-
-    // Generate unique filename
+    // Generate unique filename with folder prefix
     const timestamp = Date.now();
     const fileExtension = path.extname(file.name);
-    const fileName = `${userId}_${timestamp}${fileExtension}`;
-    const filePath = path.join(uploadDir, fileName);
+    const folderPrefix = fileType === "profile" ? "profiles" : "resumes";
+    const fileName = `${folderPrefix}/${userId}_${timestamp}${fileExtension}`;
 
-    // Convert file to buffer and save
+    // Convert file to buffer and upload to R2
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    const contentType = getContentType(file.name);
+    await uploadFileToR2(buffer, fileName, contentType);
 
     // Return the file URL
-    const fileUrl = `/uploads/${
-      fileType === "profile" ? "profiles" : "resumes"
-    }/${fileName}`;
+    const fileUrl = getR2PublicUrl(fileName);
 
     return NextResponse.json({
       success: true,

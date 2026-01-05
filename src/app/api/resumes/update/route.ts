@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 import connectDb from '../../../lib/db';
 import ResumeModel from '../../../models/Resume';
 import { authenticateRequest, unauthorized, forbidden } from '../../../lib/auth';
 import { UserRole } from '../../../models/User';
 import { validateResumeFile, validateAdditionalDocument } from '../../../lib/fileValidation';
+import { uploadFileToR2, deleteFileFromR2, getContentType } from '../../../lib/r2Storage';
 
 export async function PUT(req: NextRequest) {
   try {
@@ -89,27 +89,23 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: resumeValidation.error }, { status: 400 });
       }
 
-      // Create uploads directory if it doesn't exist
-      const uploadsDir = path.join(process.cwd(), 'uploads');
-      
       // Generate unique filename
       const timestamp = Date.now();
       const fileExtension = path.extname(resumeFile.name);
       const uniqueResumeFilename = `resume_${resumeId}_${timestamp}${fileExtension}`;
-      const resumeFilePath = path.join(uploadsDir, uniqueResumeFilename);
 
-      // Save new resume file
+      // Save new resume file to R2
       const resumeBytes = await resumeFile.arrayBuffer();
       const resumeBuffer = Buffer.from(resumeBytes);
-      await writeFile(resumeFilePath, resumeBuffer);
+      const contentType = getContentType(resumeFile.name);
+      await uploadFileToR2(resumeBuffer, uniqueResumeFilename, contentType);
 
-      // Delete old resume file if it exists
+      // Delete old resume file from R2 if it exists
       if (resume.resumeFile) {
-        const oldResumeFilePath = path.join(uploadsDir, resume.resumeFile);
         try {
-          await unlink(oldResumeFilePath);
+          await deleteFileFromR2(resume.resumeFile);
         } catch (error) {
-          console.warn('Could not delete old resume file:', error);
+          console.warn('Could not delete old resume file from R2:', error);
         }
       }
 
@@ -122,13 +118,11 @@ export async function PUT(req: NextRequest) {
 
     // Remove files marked for deletion
     if (filesToRemove.length > 0 && resume.additionalDocuments) {
-      const uploadsDir = path.join(process.cwd(), 'uploads');
       const updatedAdditionalDocs = resume.additionalDocuments.filter((doc: any) => {
         if (filesToRemove.includes(doc.filename)) {
-          // Delete the file from filesystem
-          const filePath = path.join(uploadsDir, doc.filename);
-          unlink(filePath).catch(error => {
-            console.warn('Could not delete additional document:', error);
+          // Delete the file from R2
+          deleteFileFromR2(doc.filename).catch(error => {
+            console.warn('Could not delete additional document from R2:', error);
           });
           return false;
         }
@@ -139,7 +133,6 @@ export async function PUT(req: NextRequest) {
 
     // Add new additional documents
     if (additionalFiles.length > 0) {
-      const uploadsDir = path.join(process.cwd(), 'uploads');
       const newAdditionalDocs = [];
 
       for (const file of additionalFiles) {
@@ -153,12 +146,12 @@ export async function PUT(req: NextRequest) {
           const timestamp = Date.now();
           const fileExtension = path.extname(file.name);
           const uniqueDocFilename = `doc_${resumeId}_${timestamp}_${Math.random().toString(36).substring(7)}${fileExtension}`;
-          const docFilePath = path.join(uploadsDir, uniqueDocFilename);
 
-          // Write the additional document
+          // Upload the additional document to R2
           const fileBytes = await file.arrayBuffer();
           const fileBuffer = Buffer.from(fileBytes);
-          await writeFile(docFilePath, fileBuffer);
+          const contentType = getContentType(file.name);
+          await uploadFileToR2(fileBuffer, uniqueDocFilename, contentType);
 
           newAdditionalDocs.push({
             filename: uniqueDocFilename,

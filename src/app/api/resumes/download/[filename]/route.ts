@@ -1,16 +1,14 @@
 // src/app/api/resumes/download/[filename]/route.ts
+// Updated to use Cloudflare R2 storage
 import { NextRequest, NextResponse } from "next/server";
-import { readFile } from "fs/promises";
+import { downloadFileFromR2 } from "@/app/lib/r2Storage";
 import path from "path";
-
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-
-
     const { filename } = await params;
 
     // Security check - ensure filename doesn't contain path traversal
@@ -22,75 +20,13 @@ export async function GET(
       return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
     }
 
-    // Construct file paths - check both possible locations
-    const rootUploadsDir = path.join(process.cwd(), "uploads");
-    const srcAppUploadsDir = path.join(process.cwd(), "src", "app", "uploads");
-
-    // Check src/app/uploads first, then fallback to root uploads
-    let uploadsDir = srcAppUploadsDir;
-    let filePath = path.join(srcAppUploadsDir, filename);
-
-    // If file doesn't exist in src/app/uploads, try root uploads
-    const fs = require("fs");
-    if (!fs.existsSync(filePath)) {
-      uploadsDir = rootUploadsDir;
-      filePath = path.join(rootUploadsDir, filename);
-    }
-
     // Check if this is a download request or preview request
     const url = new URL(req.url);
     const isDownloadRequest = url.searchParams.get("download") === "true";
 
     try {
-      // First check if file exists using fs.access
-      const fs = require("fs").promises;
-
-      try {
-        await fs.access(filePath);
-      } catch (accessError) {
-        console.error("File access failed:", filePath, accessError);
-
-        // Try to find similar files in the uploads directory
-        try {
-          const uploadsFiles = await fs.readdir(uploadsDir);
-          const similarFiles = uploadsFiles.filter(
-            (file: string) =>
-              file
-                .toLowerCase()
-                .includes(filename.toLowerCase().split("_")[0]) ||
-              filename.toLowerCase().includes(file.toLowerCase().split("_")[0])
-          );
-
-          console.log("Similar files found:", similarFiles);
-
-          if (similarFiles.length > 0) {
-            return NextResponse.json(
-              {
-                error: "File not found",
-                suggestion: `Similar files available: ${similarFiles.join(
-                  ", "
-                )}`,
-                availableFiles: similarFiles,
-              },
-              { status: 404 }
-            );
-          }
-        } catch (dirError) {
-          console.error("Failed to read uploads directory:", dirError);
-        }
-
-        return NextResponse.json(
-          {
-            error: "File not found",
-            requestedFile: filename,
-            filePath: filePath,
-          },
-          { status: 404 }
-        );
-      }
-
-      // Read the file
-      const fileBuffer = await readFile(filePath);
+      // Download file from R2
+      const { buffer, contentType } = await downloadFileFromR2(filename);
 
       // Get original filename - handle both UUID-prefixed and regular filenames
       let originalName = filename;
@@ -99,47 +35,8 @@ export async function GET(
         originalName = filename.substring(37);
       }
 
-      // Determine content type based on file extension
-      const ext = path.extname(filename).toLowerCase();
-      let contentType = "application/octet-stream";
-
-      switch (ext) {
-        case ".pdf":
-          contentType = "application/pdf";
-          break;
-        case ".jpg":
-        case ".jpeg":
-          contentType = "image/jpeg";
-          break;
-        case ".png":
-          contentType = "image/png";
-          break;
-        case ".gif":
-          contentType = "image/gif";
-          break;
-        case ".txt":
-          contentType = "text/plain";
-          break;
-        case ".docx":
-          contentType =
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-          break;
-        case ".doc":
-          contentType = "application/msword";
-          break;
-        case ".webp":
-          contentType = "image/webp";
-          break;
-        case ".bmp":
-          contentType = "image/bmp";
-          break;
-        case ".zip":
-          contentType = "application/zip";
-          break;
-      }
-
       // Set appropriate headers
-      const response = new NextResponse(fileBuffer as any);
+      const response = new NextResponse(buffer as any);
       response.headers.set("Content-Type", contentType);
 
       // Only set attachment disposition if explicitly requested for download
@@ -158,10 +55,22 @@ export async function GET(
 
       return response;
     } catch (fileError) {
-      console.error("File read error:", filePath, fileError);
+      console.error("R2 file download error:", filename, fileError);
+
+      // Check if it's a "not found" error
+      if ((fileError as Error).message?.includes("not found")) {
+        return NextResponse.json(
+          {
+            error: "File not found",
+            requestedFile: filename,
+          },
+          { status: 404 }
+        );
+      }
+
       return NextResponse.json(
         {
-          error: "Failed to read file",
+          error: "Failed to download file",
           details: (fileError as Error).message,
           requestedFile: filename,
         },
