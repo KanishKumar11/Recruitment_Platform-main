@@ -413,7 +413,7 @@ function RecruiterSubmissionsPageContent() {
                 <table className="min-w-full divide-y divide-gray-200 table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[200px]">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[130px]">
                         Candidate
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[350px]">
@@ -438,20 +438,20 @@ function RecruiterSubmissionsPageContent() {
                         key={resume._id as string}
                         className="hover:bg-gray-50"
                       >
-                        <td className="px-6 py-4 w-[200px]">
+                        <td className="px-6 py-4 w-[130px]">
                           <button
                             onClick={() =>
                               handleViewResume(resume._id as string)
                             }
                             className="text-left hover:bg-gray-50 rounded p-1 -m-1 transition-colors"
                           >
-                            <div className="text-sm font-medium text-gray-900 hover:text-indigo-600 truncate" title={resume.candidateName}>
+                            <div className="text-sm font-medium text-gray-900 hover:text-indigo-600 truncate max-w-[130px]" title={resume.candidateName}>
                               {resume.candidateName}
                             </div>
-                            <div className="text-sm text-gray-500 truncate">
+                            <div className="text-sm text-gray-500 truncate max-w-[130px]">
                               {resume.phone || "N/A"}
                             </div>
-                            <div className="text-sm text-gray-500 truncate">
+                            <div className="text-sm text-gray-500 truncate max-w-[130px]">
                               {resume.email || "N/A"}
                             </div>
                           </button>

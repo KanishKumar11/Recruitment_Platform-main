@@ -190,9 +190,8 @@ function RecruiterJobsContent() {
 
   // Format salary for display
   const formatSalary = (job: IJob) => {
-    return `${
-      job.salary.currency
-    } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
+    return `${job.salary.currency
+      } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
   };
 
   // Calculate commission value based on new commission structure
@@ -210,11 +209,10 @@ function RecruiterJobsContent() {
 
     if (job.commission.type === "fixed") {
       // For fixed commission, show the recruiter amount directly
-      return `${
-        job.salary.currency
-      } ${job.commission.recruiterAmount.toLocaleString(undefined, {
-        maximumFractionDigits: 0,
-      })}`;
+      return `${job.salary.currency
+        } ${job.commission.recruiterAmount.toLocaleString(undefined, {
+          maximumFractionDigits: 0,
+        })}`;
     } else {
       // For percentage-based commission, calculate based on max salary
       const commissionValue =
@@ -249,7 +247,7 @@ function RecruiterJobsContent() {
   return (
     <ProtectedLayout allowedRoles={["RECRUITER"]}>
       <DashboardLayout>
-        <div className="py-6">
+        <div className="py-6 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-6">Jobs</h1>
 
@@ -262,11 +260,10 @@ function RecruiterJobsContent() {
                       setActiveTab("live");
                       goToPage(1);
                     }}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === "live"
-                        ? "border-indigo-500 text-indigo-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "live"
+                      ? "border-indigo-500 text-indigo-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
                   >
                     Live Jobs
                   </button>
@@ -275,11 +272,10 @@ function RecruiterJobsContent() {
                       setActiveTab("saved");
                       goToPage(1);
                     }}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === "saved"
-                        ? "border-indigo-500 text-indigo-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "saved"
+                      ? "border-indigo-500 text-indigo-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
                   >
                     My Jobs ({recruiterJobs?.savedJobs?.length || 0})
                   </button>
@@ -527,11 +523,10 @@ function RecruiterJobsContent() {
                                   )
                                 }
                                 disabled={job.status === "PAUSED"}
-                                className={`inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white ${
-                                  job.status === "PAUSED"
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                }`}
+                                className={`inline-flex items-center justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white ${job.status === "PAUSED"
+                                  ? "bg-gray-400 cursor-not-allowed"
+                                  : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                  }`}
                               >
                                 <FileText className="mr-1.5 h-3 w-3" />
                                 {job.status === "PAUSED" ? "Job Paused" : "Upload Resume"}
@@ -547,7 +542,7 @@ function RecruiterJobsContent() {
                               >
                                 <QuestionMarkCircleIcon className="mr-1.5 h-3 w-3" />
                                 Screening Questions
-              </button>
+                              </button>
                               <button
                                 onClick={() =>
                                   router.push(

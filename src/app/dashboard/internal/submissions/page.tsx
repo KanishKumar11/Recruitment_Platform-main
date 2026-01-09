@@ -395,7 +395,7 @@ export default function InternalSubmissionsPage() {
                 <table className="min-w-full divide-y divide-gray-200 table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[200px]">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[130px]">
                         Candidate
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[350px]">
@@ -416,11 +416,11 @@ export default function InternalSubmissionsPage() {
                         className="hover:bg-gray-50 cursor-pointer"
                         onClick={() => handleOpenModal(resume._id as string)}
                       >
-                        <td className="px-6 py-4 w-[200px]">
-                          <div className="text-sm font-medium text-gray-900 truncate" title={resume.candidateName}>
+                        <td className="px-6 py-4 w-[130px]">
+                          <div className="text-sm font-medium text-gray-900 truncate max-w-[130px]" title={resume.candidateName}>
                             {resume.candidateName}
                           </div>
-                          <div className="text-sm text-gray-500 truncate">
+                          <div className="text-sm text-gray-500 truncate max-w-[130px]">
                             {resume.phone || "N/A"}
                           </div>
                         </td>

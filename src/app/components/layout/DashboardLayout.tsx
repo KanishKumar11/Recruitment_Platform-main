@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user } = useSelector((state: RootState) => state.auth);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  
+
   // Get notifications data for recruiters
   const notificationsHook = useNotifications({
     autoRefresh: user?.role === 'RECRUITER',
@@ -63,14 +63,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           unreadCount={unreadCount}
                           onNotificationClick={() => setIsNotificationOpen(!isNotificationOpen)}
                         />
-                        <NotificationDropdown 
+                        <NotificationDropdown
                           isOpen={isNotificationOpen}
                           onClose={() => setIsNotificationOpen(false)}
                           notificationsHook={notificationsHook}
                         />
                       </div>
                     )}
-                    
+
                     <Link
                       href={`/dashboard/profile`}
                       className="text-gray-700 hover:text-gray-900"

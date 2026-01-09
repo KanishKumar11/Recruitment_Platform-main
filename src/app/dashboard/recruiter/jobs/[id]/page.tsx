@@ -83,11 +83,10 @@ export default function RecruiterJobDetailsPage() {
 
     if (job.commission.type === "fixed") {
       // For fixed commission, show the recruiter amount directly
-      return `${
-        job.salary.currency
-      } ${job.commission.recruiterAmount.toLocaleString(undefined, {
-        maximumFractionDigits: 0,
-      })}`;
+      return `${job.salary.currency
+        } ${job.commission.recruiterAmount.toLocaleString(undefined, {
+          maximumFractionDigits: 0,
+        })}`;
     } else {
       // For percentage-based commission, calculate range based on salary range
       const minCommission =
@@ -107,9 +106,8 @@ export default function RecruiterJobDetailsPage() {
   // (Removed unused getCommissionDisplayText and getRecruiterCommissionPercentage functions)
   // Format salary for display (matching the listing page)
   const formatSalary = (job: IJob) => {
-    return `${
-      job.salary.currency
-    } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
+    return `${job.salary.currency
+      } ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`;
   };
 
   // Format salary with compensation frequency
@@ -161,19 +159,18 @@ export default function RecruiterJobDetailsPage() {
                         </div>
                         <div className="flex items-center space-x-4">
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              job.status === "ACTIVE"
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${job.status === "ACTIVE"
                                 ? "bg-green-100 text-green-800"
                                 : job.status === "PAUSED"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
                           >
                             {job.status === "ACTIVE"
                               ? "Active"
                               : job.status === "PAUSED"
-                              ? "Paused"
-                              : job.status}
+                                ? "Paused"
+                                : job.status}
                           </span>
                           <button
                             onClick={() =>
@@ -208,11 +205,10 @@ export default function RecruiterJobDetailsPage() {
                               )
                             }
                             disabled={job.status === "PAUSED"}
-                            className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                              job.status === "PAUSED"
+                            className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${job.status === "PAUSED"
                                 ? "bg-gray-400 cursor-not-allowed"
                                 : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            }`}
+                              }`}
                           >
                             <FileText className="mr-2 h-4 w-4" />
                             {job.status === "PAUSED"
@@ -330,8 +326,8 @@ export default function RecruiterJobDetailsPage() {
                                   {job.compensationType === "HOURLY"
                                     ? "hourly"
                                     : job.compensationType === "MONTHLY"
-                                    ? "monthly"
-                                    : "annual"}{" "}
+                                      ? "monthly"
+                                      : "annual"}{" "}
                                   salary
                                 </span>
                               )
@@ -417,7 +413,6 @@ export default function RecruiterJobDetailsPage() {
                     </div>
                   </div>
 
-                  {/* Sourcing Guidelines */}
                   {job.sourcingGuidelines && (
                     <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
                       <div className="px-4 py-3 border-b border-gray-200">
@@ -432,6 +427,60 @@ export default function RecruiterJobDetailsPage() {
                             __html: job.sourcingGuidelines,
                           }}
                         />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Screening Questions */}
+                  {job.screeningQuestions && job.screeningQuestions.length > 0 && (
+                    <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+                      <div className="px-4 py-5 sm:px-6">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900">
+                          Screening Questions
+                        </h3>
+                      </div>
+                      <div className="border-t border-gray-200">
+                        <ul className="divide-y divide-gray-200">
+                          {job.screeningQuestions.map(
+                            (question: any, index: number) => (
+                              <li key={question._id || index} className="px-4 py-4">
+                                <div className="flex justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {question.question}
+                                    </p>
+                                    <div className="flex mt-1">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                        {question.questionType}
+                                      </span>
+                                      {question.required && (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                          Required
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                {question.options && question.options.length > 0 && (
+                                  <div className="mt-2">
+                                    <ul className="list-disc pl-5">
+                                      {question.options.map(
+                                        (option: string, idx: number) => (
+                                          <li
+                                            key={idx}
+                                            className="text-sm text-gray-700"
+                                          >
+                                            {option}
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                )}
+                              </li>
+                            )
+                          )}
+                        </ul>
                       </div>
                     </div>
                   )}
